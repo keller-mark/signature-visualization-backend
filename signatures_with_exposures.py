@@ -3,17 +3,19 @@ import sys
 import os
 import pandas as pd
 import numpy as np
-from constants import *
 
 parent_dir_name = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(parent_dir_name + "/signature-computation")
 from signatures import Signatures
+from constants import *
 
-parent_dir_name = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(parent_dir_name + "/signature-estimation-py")
 from signature_estimation_qp import signature_estimation_qp
 
 class SignaturesWithExposures(Signatures):
+
+    def __init__(self, sigs_file, chosen_sigs=[]):
+        super().__init__(sigs_file, chosen_sigs)
 
     def get_exposures(self, counts_df):
         sig_names = self.get_chosen_names()
