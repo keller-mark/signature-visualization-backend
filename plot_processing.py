@@ -70,8 +70,8 @@ class PlotProcessing():
     return PlotProcessing.pd_as_file(sig_df, index_val=False)
 
   @staticmethod
-  def sigs_per_cancer(sig_source):
-    active_sig_source_filepath = os.path.join(SIG_PRESETS_DIR, sig_source + ".json")
+  def sigs_per_cancer(sig_preset):
+    active_sig_source_filepath = os.path.join(SIG_PRESETS_DIR, sig_preset + ".json")
     if not os.path.isfile(active_sig_source_filepath):
       return None
     with open(active_sig_source_filepath) as data_file:    

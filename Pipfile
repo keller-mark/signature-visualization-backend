@@ -11,6 +11,8 @@ pandas = "*"
 cython = "*"
 quadprog = "*"
 scikit-learn = "*"
+flask = "*"
+gunicorn = "*"
 
 [dev-packages]
 
