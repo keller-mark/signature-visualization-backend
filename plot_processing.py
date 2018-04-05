@@ -21,7 +21,7 @@ class PlotProcessing():
 
   @staticmethod
   def muts_by_sig_points(region_width, chromosome, sigs, projects):
-    signatures = Signatures(SIGS_FILE, chosen_sigs=sigs)
+    signatures = SignaturesWithExposures(SIGS_FILE, chosen_sigs=sigs)
     # validation
     if region_width < 10000: # will be too slow, stop processing
       return None
@@ -103,7 +103,7 @@ class PlotProcessing():
 
   @staticmethod
   def data_listing_json():
-    signatures = Signatures(SIGS_FILE)
+    signatures = SignaturesWithExposures(SIGS_FILE)
     return {
       "sources": PlotProcessing.data_listing_json_aux(SSM_DIR),
       "sigs": signatures.get_all_names(),
