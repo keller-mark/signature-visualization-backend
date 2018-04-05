@@ -14,10 +14,7 @@ async def route_signature_genome_bins(req):
   projects = json_or(req, 'sources', ["PCAWG-BRCA-EU", "PCAWG-LIHC-US"], PROJ_RE)
 
   output = PlotProcessing.muts_by_sig_points(region_width, chromosome, signatures, projects)
-  length = str.encode(output)
-  header = HEADERS
-  header['Content-Length'] = length
-  return response.text(output, headers=header, content_type='text/csv')
+  return response.text(output, headers=HEADERS, content_type='text/csv')
 
 @app.post('/kataegis')
 async def route_kataegis(req):
@@ -25,38 +22,31 @@ async def route_kataegis(req):
   projects = json_or(req, 'sources', ["PCAWG-BRCA-EU", "PCAWG-LIHC-US"], PROJ_RE)
 
   output = PlotProcessing.kataegis(chromosome, projects)
-  length = str.encode(output)
-  header = HEADERS
-  header['Content-Length'] = length
-  return response.text(output, headers=header, content_type='text/csv')
+  return response.text(output, headers=HEADERS, content_type='text/csv')
 
 @app.post('/signatures')
 async def route_signatures(req):
   sig_source = json_or(req, 'sigSource', "cosmic", r'^[a-zA-Z0-9]+$')
+  
   output = PlotProcessing.sigs(sig_source)
   return response.text(output, headers=HEADERS)
 
 @app.post('/signatures-per-cancer')
 async def route_signatures_per_cancer(req):
   sig_source = json_or(req, 'sigSource', "cosmic", r'^[a-zA-Z0-9]+$')
+
   output = PlotProcessing.sigs_per_cancer(sig_source)
   return response.text(output, headers=HEADERS)
 
 @app.post('/data-listing')
 async def route_data_listing(req):
   output = json.dumps(PlotProcessing.data_listing_json())
-  length = str.encode(output)
-  header = HEADERS
-  header['Content-Length'] = length
   return response.text(output, headers=HEADERS, content_type='application/json')
 
 @app.post('/chromosomes')
 async def route_chromosome(req):
   output = json.dumps(CHROMOSOMES)
-  length = str.encode(output)
-  header = HEADERS
-  header['Content-Length'] = length
-  return response.text(output, headers=header, content_type='application/json')
+  return response.text(output, headers=HEADERS, content_type='application/json')
 
 if __name__ == '__main__':
   app.run(
