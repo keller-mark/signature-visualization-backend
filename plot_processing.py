@@ -7,7 +7,7 @@ import json
 from web_constants import *
 
 parent_dir_name = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(parent_dir_name + "/../signature-computation")
+sys.path.append(parent_dir_name + "/signature-computation")
 from signatures import Signatures
 from constants import *
 
