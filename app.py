@@ -14,7 +14,7 @@ async def route_signature_genome_bins(req):
   projects = json_or(req, 'sources', ["PCAWG-BRCA-EU", "PCAWG-LIHC-US"], PROJ_RE)
 
   output = PlotProcessing.muts_by_sig_points(region_width, chromosome, signatures, projects)
-  return response.text(output, headers=HEADERS, content_type='text/csv')
+  return response.text(output, headers=HEADERS)
 
 @app.post('/kataegis')
 async def route_kataegis(req):
@@ -22,7 +22,7 @@ async def route_kataegis(req):
   projects = json_or(req, 'sources', ["PCAWG-BRCA-EU", "PCAWG-LIHC-US"], PROJ_RE)
 
   output = PlotProcessing.kataegis(chromosome, projects)
-  return response.text(output, headers=HEADERS, content_type='text/csv')
+  return response.text(output, headers=HEADERS)
 
 @app.post('/signatures')
 async def route_signatures(req):
@@ -41,12 +41,12 @@ async def route_signatures_per_cancer(req):
 @app.post('/data-listing')
 async def route_data_listing(req):
   output = json.dumps(PlotProcessing.data_listing_json())
-  return response.text(output, headers=HEADERS, content_type='application/json')
+  return response.text(output, headers=HEADERS)
 
 @app.post('/chromosomes')
 async def route_chromosome(req):
   output = json.dumps(CHROMOSOMES)
-  return response.text(output, headers=HEADERS, content_type='application/json')
+  return response.text(output, headers=HEADERS)
 
 if __name__ == '__main__':
   app.run(
