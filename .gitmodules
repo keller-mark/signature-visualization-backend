@@ -1,8 +1,6 @@
-
 [submodule "signature-computation"]
 	path = signature-computation
-  url = https://github.com/keller-mark/signature-computation
-
+	url = https://github.com/keller-mark/signature-computation
 [submodule "signature-estimation-py"]
-  path = signature-estimation-py
-  url = https://github.com/lrgr/signature-estimation-py
+	path = signature-estimation-py
+	url = https://github.com/lrgr/signature-estimation-py
