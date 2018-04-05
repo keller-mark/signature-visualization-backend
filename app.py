@@ -44,8 +44,11 @@ async def route_signatures_per_cancer(req):
 
 @app.post('/data-listing')
 async def route_data_listing(req):
-  output = PlotProcessing.data_listing_json()
-  return response.json(output, headers=HEADERS)
+  output = json.dumps(PlotProcessing.data_listing_json())
+  length = str.encode(output)
+  header = HEADERS
+  header['Content-Length'] = length
+  return response.text(output, headers=HEADERS, content_type='application/json')
 
 @app.post('/chromosomes')
 async def route_chromosome(req):
@@ -53,7 +56,7 @@ async def route_chromosome(req):
   length = str.encode(output)
   header = HEADERS
   header['Content-Length'] = length
-  return response.text(output, headers=HEADERS, content_type='application/json')
+  return response.text(output, headers=header, content_type='application/json')
 
 if __name__ == '__main__':
   app.run(
