@@ -46,18 +46,20 @@ class PlotProcessing():
         # compute exposures
         counts_df = donor_df.drop(columns=[TOBACCO_BINARY, TOBACCO_INTENSITY, ALCOHOL_BINARY])
         counts_df = counts_df.dropna(axis=0, how='any')
-        exps_df = signatures.get_exposures(counts_df)
-        # compute assignments
-        assignments_df = signatures.get_assignments(exps_df)
-        # add signature column
-        ssm_df['signature'] = ssm_df.apply(lambda row: assignments_df.loc[row[DONOR_ID], row[CONTEXT]] if pd.notnull(row[CONTEXT]) else None, axis=1)
-        
-        # aggregate
-        groups = ssm_df.groupby(['region', 'signature'])
-        counts = groups.size().reset_index(name='counts')   
-        regions_df = counts.pivot(index='signature', columns='region', values='counts')
-        # sum
-        regions_master_df = regions_master_df.add(regions_df, fill_value=0)
+
+        if len(counts_df) > 0:
+          exps_df = signatures.get_exposures(counts_df)
+          # compute assignments
+          assignments_df = signatures.get_assignments(exps_df)
+          # add signature column
+          ssm_df['signature'] = ssm_df.apply(lambda row: assignments_df.loc[row[DONOR_ID], row[CONTEXT]] if pd.notnull(row[CONTEXT]) else None, axis=1)
+          
+          # aggregate
+          groups = ssm_df.groupby(['region', 'signature'])
+          counts = groups.size().reset_index(name='counts')   
+          regions_df = counts.pivot(index='signature', columns='region', values='counts')
+          # sum
+          regions_master_df = regions_master_df.add(regions_df, fill_value=0)
     
     # finalize
     regions_master_df.fillna(value=0, inplace=True)
