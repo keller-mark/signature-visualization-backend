@@ -9,7 +9,7 @@ app = Flask(__name__)
 
 @app.route('/signature-genome-bins', methods=['POST'])
 def route_signature_genome_bins():
-  req = request.get_json()
+  req = request.get_json(force=True)
   region_width = int(json_or(req, 'regionWidth', 1000000, r'^\d+$'))
   chromosome = str(json_or(req, 'chromosome', "1", CHROMOSOME_RE))
   signatures = json_or(req, 'signatures', ["COSMIC 1"], r'.*')
@@ -21,7 +21,7 @@ def route_signature_genome_bins():
 
 @app.route('/kataegis', methods=['POST'])
 def route_kataegis():
-  req = request.get_json()
+  req = request.get_json(force=True)
   chromosome = str(json_or(req, 'chromosome', "1", CHROMOSOME_RE))
   projects = json_or(req, 'sources', ["PCAWG-BRCA-EU", "PCAWG-LIHC-US"], PROJ_RE)
 
@@ -35,7 +35,7 @@ def route_signatures():
 
 @app.route('/signatures-per-cancer', methods=['POST'])
 def route_signatures_per_cancer():
-  req = request.get_json()
+  req = request.get_json(force=True)
   sig_preset = json_or(req, 'preset', "cosmic", r'^[a-zA-Z0-9]+$')
 
   output = PlotProcessing.sigs_per_cancer(sig_preset)
