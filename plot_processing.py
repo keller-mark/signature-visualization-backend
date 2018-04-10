@@ -146,3 +146,37 @@ class PlotProcessing():
   @staticmethod
   def kataegis_rainfall(project, donor_id, chromosome):
     pass
+  
+  @staticmethod
+  def signature_exposures(sigs, projects):
+    signatures = SignaturesWithExposures(SIGS_FILE, chosen_sigs=sigs)
+    
+    sig_names = signatures.get_chosen_names()
+    result_df = pd.DataFrame([], columns=CLINICAL_VARIABLES + sig_names)
+
+    for proj_id in projects:
+      donor_filepath = os.path.join(DONOR_DIR, ("donor.%s.tsv" % proj_id))
+      if os.path.isfile(donor_filepath):
+        donor_df = pd.read_csv(donor_filepath, sep='\t', index_col=0)
+        MUTATION_CATEGORIES = list(set(donor_df.columns.values) - set(CLINICAL_VARIABLES))
+        
+        # drop donors with empty mutation counts (probably not in simple somatic mutation file)
+        donor_df = donor_df[pd.notnull(donor_df[mutation_categories])]
+        
+        # split into two dataframes based on clinical columns and count columns
+        clinical_df = donor_df[CLINICAL_VARIABLES]
+        counts_df = donor_df[MUTATION_CATEGORIES]
+
+        # compute exposures
+        if len(counts_df) > 0:
+          exps_df = signatures.get_exposures(counts_df)
+
+          # join exposures and clinical data
+          clinical_df = clinical_df.join(exps_df)
+          # append project df to overall df
+          result_df = result_df.append(clinical_df)
+    
+    print(result_df.head())
+    
+    # finalize
+    return PlotProcessing.pd_as_file(regions_master_df)

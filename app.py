@@ -27,6 +27,16 @@ def route_kataegis():
   output = PlotProcessing.kataegis(projects)
   return response_json(app, output)
 
+@app.route('/exposures', methods=['POST'])
+def route_exposures():
+  req = request.get_json(force=True)
+  signatures = json_or(req, 'signatures', ["COSMIC 1"], r'.*')
+  projects = json_or(req, 'sources', ["PCAWG-BRCA-EU", "PCAWG-LIHC-US"], PROJ_RE)
+
+  output = PlotProcessing.signature_exposures(signatures, projects)
+
+  return response_csv(app, output)
+
 @app.route('/signatures', methods=['POST'])
 def route_signatures():  
   output = PlotProcessing.sigs()
