@@ -30,7 +30,7 @@ def route_kataegis():
 @app.route('/exposures', methods=['POST'])
 def route_exposures():
   req = request.get_json(force=True)
-  signatures = json_or(req, 'signatures', ["COSMIC 1"], r'.*')
+  signatures = json_or(req, 'signatures', ["COSMIC 1", "COSMIC 2"], r'.*')
   projects = json_or(req, 'sources', ["PCAWG-BRCA-EU", "PCAWG-LIHC-US"], PROJ_RE)
 
   output = PlotProcessing.signature_exposures(signatures, projects)
