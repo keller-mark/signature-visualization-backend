@@ -22,11 +22,10 @@ def route_signature_genome_bins():
 @app.route('/kataegis', methods=['POST'])
 def route_kataegis():
   req = request.get_json(force=True)
-  chromosome = str(json_or(req, 'chromosome', "1", CHROMOSOME_RE))
   projects = json_or(req, 'sources', ["PCAWG-BRCA-EU", "PCAWG-LIHC-US"], PROJ_RE)
 
-  output = PlotProcessing.kataegis(chromosome, projects)
-  return response_csv(app, output)
+  output = PlotProcessing.kataegis(projects)
+  return response_json(app, output)
 
 @app.route('/signatures', methods=['POST'])
 def route_signatures():  

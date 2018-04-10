@@ -113,18 +113,35 @@ class PlotProcessing():
     }
 
   @staticmethod
-  def kataegis(chromosome, projects):
+  def kataegis(projects):
     width = 1000
-    df_cols = [DONOR_ID, POS]
+    df_cols = [DONOR_ID, CHR, POS]
     df = pd.DataFrame([], columns=df_cols)
+    result = {
+      # sets of kataegis mutations by donor, chromosome
+      # 'DONOR_ID': { '1': list(mutation_1, mutation_2), ... }
+    }
     for proj_id in projects:
       ssm_filepath = os.path.join(SSM_DIR, ("ssm.%s.tsv" % proj_id))
       if os.path.isfile(ssm_filepath):
         ssm_df = pd.read_csv(ssm_filepath, sep='\t', index_col=0)
-        ssm_df = ssm_df.loc[ssm_df[CHR] == chromosome]
         katagis_df = ssm_df.loc[ssm_df[MUT_DIST_ROLLING_6] <= width][df_cols]
         df = df.append(katagis_df, ignore_index=True)
-    return PlotProcessing.pd_as_file(df, index_val=False)
+        # create empty entry for each donor
+        proj_donor_ids = list(ssm_df[DONOR_ID].unique())
+        for donor_id in proj_donor_ids:
+          result[donor_id] = { 'kataegis': {}, 'proj_id': proj_id }
+    
+    groups = df.groupby([DONOR_ID, CHR])
+    def add_group(g):
+      g_donor_id = g[DONOR_ID].unique()[0]
+      g_chromosome = g[CHR].unique()[0]
+      g_kataegis_mutations = list(g[POS].unique())
+      result[g_donor_id]['kataegis'][g_chromosome] = g_kataegis_mutations
+
+    groups.apply(add_group)
+
+    return result
   
   @staticmethod
   def kataegis_rainfall(project, donor_id, chromosome):
