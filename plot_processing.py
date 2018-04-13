@@ -164,8 +164,10 @@ class PlotProcessing():
         donor_df = donor_df.dropna(subset=mutation_categories, how='any')
         
         # split into two dataframes based on clinical columns and count columns
-        clinical_df = donor_df[CLINICAL_VARIABLES]
-        counts_df = donor_df[mutation_categories]
+        clinical_df = donor_df.loc[:, CLINICAL_VARIABLES]
+        counts_df = donor_df.loc[:, mutation_categories]
+        # add column for project id
+        clinical_df.loc[:, "proj_id"] = proj_id 
 
         if len(counts_df) > 0:
           # compute exposures
