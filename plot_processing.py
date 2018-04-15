@@ -167,7 +167,7 @@ class PlotProcessing():
         clinical_df = donor_df.loc[:, CLINICAL_VARIABLES]
         counts_df = donor_df.loc[:, mutation_categories]
         # add column for project id
-        clinical_df.loc[:, "proj_id"] = proj_id 
+        clinical_df.loc[:, 'proj_id'] = proj_id 
 
         if len(counts_df) > 0:
           # compute exposures
@@ -176,6 +176,6 @@ class PlotProcessing():
           clinical_df = clinical_df.join(exps_df)
           # append project df to overall df
           result_df = result_df.append(clinical_df)
-    
+    result_df.index.name = 'donor_id'
     # finalize
     return PlotProcessing.pd_as_file(result_df)
