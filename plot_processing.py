@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import os
 import io
 import re
@@ -144,8 +145,23 @@ class PlotProcessing():
     return result
   
   @staticmethod
-  def kataegis_rainfall(project, donor_id, chromosome):
-    pass
+  def kataegis_rainfall(proj_id, donor_id, chromosome):
+    df_cols = [DONOR_ID, CHR, POS, CONTEXT, MUT_DIST, MUT_DIST_ROLLING_6]
+    ssm_df = pd.DataFrame([], columns=df_cols)
+    ssm_filepath = os.path.join(SSM_DIR, ("ssm.%s.tsv" % proj_id))
+    if os.path.isfile(ssm_filepath):
+      ssm_df = pd.read_csv(ssm_filepath, sep='\t', index_col=0)
+      ssm_df = ssm_df.loc[ssm_df[CHR] == chromosome][df_cols]
+      ssm_df = ssm_df.loc[ssm_df[DONOR_ID] == donor_id][df_cols]
+
+      ssm_df['kataegis'] = ssm_df.apply(lambda row: 1 if (row[MUT_DIST_ROLLING_6] <= 1000) else 0, axis=1)
+      ssm_df = ssm_df.drop(columns=[MUT_DIST_ROLLING_6, CHR, DONOR_ID])
+      ssm_df = ssm_df.replace([np.inf, -np.inf], np.nan)
+      ssm_df = ssm_df.dropna(axis=0, how='any', subset=[CONTEXT, MUT_DIST])
+      ssm_df[MUT_DIST] = ssm_df[MUT_DIST].astype(int)
+      ssm_df = ssm_df.rename(columns={ POS: "pos", CONTEXT: "context", MUT_DIST: "mut_dist" })
+    return PlotProcessing.pd_as_file(ssm_df, index_val=False)
+
   
   @staticmethod
   def signature_exposures(sigs, projects):

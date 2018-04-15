@@ -27,6 +27,16 @@ def route_kataegis():
   output = PlotProcessing.kataegis(projects)
   return response_json(app, output)
 
+@app.route('/kataegis-rainfall', methods=['POST'])
+def route_kataegis_rainfall():
+  req = request.get_json(force=True)
+  proj_id = json_or(req, 'proj_id', "PCAWG-PRAD-UK", PROJ_RE)
+  donor_id = json_or(req, 'donor_id', "DO51965")
+  chromosome = str(json_or(req, 'chromosome', "1", CHROMOSOME_RE))
+
+  output = PlotProcessing.kataegis_rainfall(proj_id, donor_id, chromosome)
+  return response_csv(app, output)
+
 @app.route('/exposures', methods=['POST'])
 def route_exposures():
   req = request.get_json(force=True)

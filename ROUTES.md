@@ -5,27 +5,53 @@ POST: `/signature-genome-bins`
 {
 	"regionWidth": 5000000,
 	"chromosome": "1",
-	"sigSource": "cosmic",
-	"activityLevel": "all",
-	"ssmSources": ["PCAWG-PRAD-UK"]
+	"signatures": ["COSMIC 1", "COSMIC 3"],
+	"sources": ["PCAWG-PRAD-UK"]
+}
+```
+
+POST: `/exposures`
+```
+{
+	"signatures": ["COSMIC 1", "COSMIC 3"],
+	"sources": ["PCAWG-PRAD-UK"]
+}
+```
+
+POST: `/kataegis`
+```
+{
+	"sources": ["PCAWG-PRAD-UK"]
+}
+```
+
+POST: `/kataegis-rainfall`
+```
+{
+	"proj_id": "PCAWG-PRAD-UK",
+	"donor_id": "DO51965",
+	"chromosome": "1"
 }
 ```
 
 POST: `/signatures`
 ```
-{
-	"sigSource": "cosmic"
-}
+{ }
 ```
 
 POST: `/signatures-per-cancer`
 ```
 {
-	"sigSource": "cosmic"
+	"preset": "cosmic"
 }
 ```
 
 POST: `/data-listing`
+```
+{ }
+```
+
+POST: `/chromosomes`
 ```
 { }
 ```
