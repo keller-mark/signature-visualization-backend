@@ -188,6 +188,8 @@ class PlotProcessing():
         if len(counts_df) > 0:
           # compute exposures
           exps_df = signatures.get_exposures(counts_df)
+          # multiply exposures by total mutations for each donor
+          exps_df = exps_df.apply(lambda row: row * counts_df.loc[row.name, :].sum(), axis=1)
           # join exposures and clinical data
           clinical_df = clinical_df.join(exps_df)
           # append project df to overall df
