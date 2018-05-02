@@ -47,3 +47,28 @@ PROJ_RE = r'^[A-Z0-9]+-[A-Z0-9]+-[A-Z]+$'
 EXTRACT_PROJ_RE = r'^(?:ssm|donor)\.([A-Z0-9]+-[A-Z0-9]+-[A-Z]+)\.tsv$'
 
 HEADERS = { 'Access-Control-Allow-Origin': '*' }
+
+# Column names for mutation tables
+VAR = 'Variant Base'
+REF = 'Reference Base'
+SAMPLE = 'Sample'
+FPRIME = "5' Flanking Bases"
+TPRIME = "3' Flanking Bases"
+POS = 'Position'
+CHR = 'Chromosome'
+MUT_DIST = 'Distance to Previous Mutation'
+NEAREST_MUT = 'Distance to Nearest Mutation'
+CAT = 'Category'
+CAT_INDEX = 'Category Index'
+COHORT = 'Cohort'
+
+MUT_DIST_ROLLING_6 = 'Rolling Mean for Kataegis'
+KATAEGIS = 'Kataegis'
+
+# Column names for donor clinical data tables
+TOBACCO_BINARY = 'Tobacco Binary'
+TOBACCO_INTENSITY = 'Tobacco Intensity'
+ALCOHOL_BINARY = 'Alcohol Binary'
+ALCOHOL_INTENSITY = 'Alcohol Intensity'
+
+CLINICAL_VARIABLES = [TOBACCO_BINARY, TOBACCO_INTENSITY, ALCOHOL_BINARY]

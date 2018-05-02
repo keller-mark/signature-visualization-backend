@@ -6,11 +6,7 @@ import re
 import sys
 import json
 from web_constants import *
-from signatures_with_exposures import SignaturesWithExposures
-
-parent_dir_name = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(parent_dir_name + "/signature-computation")
-from constants import *
+from signatures import Signatures
 
 class PlotProcessing():
 
@@ -22,7 +18,7 @@ class PlotProcessing():
 
   @staticmethod
   def muts_by_sig_points(region_width, chromosome, sigs, projects):
-    signatures = SignaturesWithExposures(SIGS_FILE, chosen_sigs=sigs)
+    signatures = Signatures(SIGS_FILE, chosen_sigs=sigs)
     # validation
     if region_width < 10000: # will be too slow, stop processing
       return None
@@ -53,7 +49,7 @@ class PlotProcessing():
           # compute assignments
           assignments_df = signatures.get_assignments(exps_df)
           # add signature column
-          ssm_df['signature'] = ssm_df.apply(lambda row: assignments_df.loc[row[DONOR_ID], row[CONTEXT]] if pd.notnull(row[CONTEXT]) else None, axis=1)
+          ssm_df['signature'] = ssm_df.apply(lambda row: assignments_df.loc[row[SAMPLE], row[CAT]] if pd.notnull(row[CAT]) else None, axis=1)
           
           # aggregate
           groups = ssm_df.groupby(['region', 'signature'])
@@ -106,7 +102,7 @@ class PlotProcessing():
 
   @staticmethod
   def data_listing_json():
-    signatures = SignaturesWithExposures(SIGS_FILE)
+    signatures = Signatures(SIGS_FILE)
     return {
       "sources": PlotProcessing.data_listing_json_aux(SSM_DIR),
       "sigs": signatures.get_all_names(),
@@ -116,26 +112,27 @@ class PlotProcessing():
   @staticmethod
   def kataegis(projects):
     width = 1000
-    df_cols = [DONOR_ID, CHR, POS]
+    df_cols = [SAMPLE, CHR, POS]
     df = pd.DataFrame([], columns=df_cols)
     result = {
       # sets of kataegis mutations by donor, chromosome
-      # 'DONOR_ID': { '1': list(mutation_1, mutation_2), ... }
+      # 'SAMPLE': { '1': list(mutation_1, mutation_2), ... }
     }
     for proj_id in projects:
       ssm_filepath = os.path.join(SSM_DIR, ("ssm.%s.tsv" % proj_id))
       if os.path.isfile(ssm_filepath):
         ssm_df = pd.read_csv(ssm_filepath, sep='\t', index_col=0)
+        # TODO: add mut dist rolling mean to processing
         katagis_df = ssm_df.loc[ssm_df[MUT_DIST_ROLLING_6] <= width][df_cols]
         df = df.append(katagis_df, ignore_index=True)
         # create empty entry for each donor
-        proj_donor_ids = list(ssm_df[DONOR_ID].unique())
+        proj_donor_ids = list(ssm_df[SAMPLE].unique())
         for donor_id in proj_donor_ids:
           result[donor_id] = { 'kataegis': {}, 'proj_id': proj_id }
     
-    groups = df.groupby([DONOR_ID, CHR])
+    groups = df.groupby([SAMPLE, CHR])
     def add_group(g):
-      g_donor_id = g[DONOR_ID].unique()[0]
+      g_donor_id = g[SAMPLE].unique()[0]
       g_chromosome = g[CHR].unique()[0]
       g_kataegis_mutations = list(g[POS].unique())
       result[g_donor_id]['kataegis'][g_chromosome] = g_kataegis_mutations
@@ -146,26 +143,26 @@ class PlotProcessing():
   
   @staticmethod
   def kataegis_rainfall(proj_id, donor_id, chromosome):
-    df_cols = [DONOR_ID, CHR, POS, CONTEXT, MUT_DIST, MUT_DIST_ROLLING_6]
+    df_cols = [SAMPLE, CHR, POS, CAT, MUT_DIST, MUT_DIST_ROLLING_6]
     ssm_df = pd.DataFrame([], columns=df_cols)
     ssm_filepath = os.path.join(SSM_DIR, ("ssm.%s.tsv" % proj_id))
     if os.path.isfile(ssm_filepath):
       ssm_df = pd.read_csv(ssm_filepath, sep='\t', index_col=0)
       ssm_df = ssm_df.loc[ssm_df[CHR] == chromosome][df_cols]
-      ssm_df = ssm_df.loc[ssm_df[DONOR_ID] == donor_id][df_cols]
+      ssm_df = ssm_df.loc[ssm_df[SAMPLE] == donor_id][df_cols]
 
       ssm_df['kataegis'] = ssm_df.apply(lambda row: 1 if (row[MUT_DIST_ROLLING_6] <= 1000) else 0, axis=1)
-      ssm_df = ssm_df.drop(columns=[MUT_DIST_ROLLING_6, CHR, DONOR_ID])
+      ssm_df = ssm_df.drop(columns=[MUT_DIST_ROLLING_6, CHR, SAMPLE])
       ssm_df = ssm_df.replace([np.inf, -np.inf], np.nan)
-      ssm_df = ssm_df.dropna(axis=0, how='any', subset=[CONTEXT, MUT_DIST])
+      ssm_df = ssm_df.dropna(axis=0, how='any', subset=[CAT, MUT_DIST])
       ssm_df[MUT_DIST] = ssm_df[MUT_DIST].astype(int)
-      ssm_df = ssm_df.rename(columns={ POS: "pos", CONTEXT: "context", MUT_DIST: "mut_dist" })
+      ssm_df = ssm_df.rename(columns={ POS: "pos", CAT: "context", MUT_DIST: "mut_dist" })
     return PlotProcessing.pd_as_file(ssm_df, index_val=False)
 
   
   @staticmethod
   def signature_exposures(sigs, projects):
-    signatures = SignaturesWithExposures(SIGS_FILE, chosen_sigs=sigs)
+    signatures = Signatures(SIGS_FILE, chosen_sigs=sigs)
     
     sig_names = signatures.get_chosen_names()
     result_df = pd.DataFrame([], columns=CLINICAL_VARIABLES + sig_names)
@@ -173,7 +170,7 @@ class PlotProcessing():
     for proj_id in projects:
       donor_filepath = os.path.join(DONOR_DIR, ("donor.%s.tsv" % proj_id))
       if os.path.isfile(donor_filepath):
-        donor_df = pd.read_csv(donor_filepath, sep='\t', index_col=0)
+        donor_df = pd.read_csv(donor_filepath, sep='\t', index_col=0, header=0)
         mutation_categories = list(set(donor_df.columns.values) - set(CLINICAL_VARIABLES))
         
         # drop donors with empty mutation counts (probably not in simple somatic mutation file)
@@ -182,14 +179,17 @@ class PlotProcessing():
         # split into two dataframes based on clinical columns and count columns
         clinical_df = donor_df.loc[:, CLINICAL_VARIABLES]
         counts_df = donor_df.loc[:, mutation_categories]
+
         # add column for project id
-        clinical_df.loc[:, 'proj_id'] = proj_id 
+        clinical_df.loc[:, 'proj_id'] = proj_id
 
         if len(counts_df) > 0:
           # compute exposures
           exps_df = signatures.get_exposures(counts_df)
+
           # multiply exposures by total mutations for each donor
           exps_df = exps_df.apply(lambda row: row * counts_df.loc[row.name, :].sum(), axis=1)
+
           # join exposures and clinical data
           clinical_df = clinical_df.join(exps_df)
           # append project df to overall df

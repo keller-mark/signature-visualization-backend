@@ -4,18 +4,42 @@ import os
 import pandas as pd
 import numpy as np
 
-parent_dir_name = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(parent_dir_name + "/signature-computation")
-from signatures import Signatures
-from constants import *
+from web_constants import *
 
+parent_dir_name = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(parent_dir_name + "/signature-estimation-py")
 from signature_estimation_qp import signature_estimation_qp
 
-class SignaturesWithExposures(Signatures):
+class Signatures():
 
     def __init__(self, sigs_file, chosen_sigs=[]):
-        super().__init__(sigs_file, chosen_sigs)
+        self.sigs_df = pd.read_csv(sigs_file, sep='\t', index_col=0)
+        self.sigs_df.index = self.sigs_df.index.astype(str)
+        self.chosen_sigs = chosen_sigs
+    
+    def get_all_names(self):
+        return list(self.sigs_df.index.values)
+    
+    def get_chosen_names(self):
+        return list(set(self.chosen_sigs) & set(self.get_all_names()))
+    
+    def get_contexts(self):
+        return list(self.sigs_df.columns.values)
+
+    def get_2d_array(self, sig_names):
+        return self.sigs_df.loc[sig_names].values
+    
+    def get_counts(self, ssm_df):
+        ssm_df = ssm_df[pd.notnull(ssm_df[CAT])]
+        # Initialize donor_id x 96 context df to hold mutation context counts
+        tc_df = pd.DataFrame(data=0, columns=self.get_contexts(), index=list(ssm_df[SAMPLE].unique()))
+        # aggregate
+        groups = ssm_df.groupby([SAMPLE, CAT])
+        counts = groups.size().reset_index(name='counts')   
+        partial_tc_df = counts.pivot(index=SAMPLE, columns=CAT, values='counts')
+        # expand back out
+        tc_df = tc_df.add(partial_tc_df, fill_value=0)
+        return tc_df
 
     def get_exposures(self, counts_df):
         sig_names = self.get_chosen_names()
