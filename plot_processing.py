@@ -176,12 +176,9 @@ class PlotProcessing():
         if os.path.isfile(donor_filepath):
           clinical_df = pd.read_csv(donor_filepath, sep='\t', index_col=0)
         else:
-          clinical_df = pd.DataFrame([], columns=CLINICAL_VARIABLES)
+          clinical_df = pd.DataFrame([], columns=CLINICAL_VARIABLES, index=list(counts_df.index.values))
         
         mutation_categories = list(counts_df.columns.values)
-        
-        # add column for project id
-        clinical_df.loc[:, 'proj_id'] = proj_id
 
         if len(counts_df) > 0:
           # compute exposures
@@ -194,6 +191,8 @@ class PlotProcessing():
           clinical_df = clinical_df.join(exps_df)
           # drop donors with empty exposures, didn't have count data
           clinical_df = clinical_df.dropna(subset=sigs, how='any')
+          # add column for project id
+          clinical_df.loc[:, 'proj_id'] = proj_id
           # append project df to overall df
           result_df = result_df.append(clinical_df)
     result_df.index.name = 'donor_id'
