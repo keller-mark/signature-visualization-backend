@@ -2,14 +2,13 @@ import os
 import re
 
 DATA_DIR = 'data'
-PROCESSED_DIR = os.path.join(DATA_DIR, 'processed')
+DATA_META_FILE = os.path.join(DATA_DIR, 'meta.tsv')
 
-SIGS_DIR = os.path.join(PROCESSED_DIR, 'sigs')
+
+SIGS_DIR = os.path.join(DATA_DIR, 'sigs')
 SIGS_FILE = os.path.join(SIGS_DIR, 'signatures.tsv')
+SIGS_META_FILE = os.path.join(SIGS_DIR, 'signatures_meta.tsv')
 SIG_PRESETS_DIR = os.path.join(SIGS_DIR, 'presets')
-
-SSM_DIR = os.path.join(PROCESSED_DIR, 'ssm')
-DONOR_DIR = os.path.join(PROCESSED_DIR, 'donor')
 
 SSM_FILE_PREFIX = 'ssm'
 DONOR_FILE_PREFIX = 'donor'
@@ -62,7 +61,7 @@ CAT = 'Category'
 CAT_INDEX = 'Category Index'
 COHORT = 'Cohort'
 
-MUT_DIST_ROLLING_6 = 'Rolling Mean for Kataegis'
+MUT_DIST_ROLLING_MEAN = 'Rolling Mean of 6 Mutation Distances'
 KATAEGIS = 'Kataegis'
 
 # Column names for donor clinical data tables

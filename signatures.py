@@ -12,13 +12,18 @@ from signature_estimation_qp import signature_estimation_qp
 
 class Signatures():
 
-    def __init__(self, sigs_file, chosen_sigs=[]):
+    def __init__(self, sigs_file, meta_file, chosen_sigs=[]):
         self.sigs_df = pd.read_csv(sigs_file, sep='\t', index_col=0)
         self.sigs_df.index = self.sigs_df.index.astype(str)
         self.chosen_sigs = chosen_sigs
-    
+
+        self.meta_df = pd.read_csv(meta_file, sep='\t', index_col=0)
+        self.meta_df = self.meta_df.fillna(value="")
     def get_all_names(self):
         return list(self.sigs_df.index.values)
+    
+    def get_metadata(self):
+        return self.meta_df.transpose().to_dict()
     
     def get_chosen_names(self):
         return list(set(self.chosen_sigs) & set(self.get_all_names()))

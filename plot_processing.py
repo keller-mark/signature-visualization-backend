@@ -11,6 +11,18 @@ from signatures import Signatures
 class PlotProcessing():
 
   @staticmethod
+  def project_metadata(filepaths = True):
+    meta_df = pd.read_csv(DATA_META_FILE, sep='\t', index_col=0)
+    meta_df["has_clinical"] = pd.notnull(meta_df["clinical_path"])
+    meta_df["has_ssm"] = pd.notnull(meta_df["ssm_path"])
+    meta_df["has_counts"] = pd.notnull(meta_df["counts_path"])
+    meta_df = meta_df.fillna(value="")
+    if not filepaths:
+      meta_df = meta_df.drop(columns=['clinical_path', 'ssm_path', 'counts_path'])
+    meta_df = meta_df.transpose()
+    return meta_df.to_dict()
+
+  @staticmethod
   def pd_as_file(df, index_val=True):
     output = io.StringIO()
     df.to_csv(output, index=index_val)
@@ -18,7 +30,7 @@ class PlotProcessing():
 
   @staticmethod
   def muts_by_sig_points(region_width, chromosome, sigs, projects):
-    signatures = Signatures(SIGS_FILE, chosen_sigs=sigs)
+    signatures = Signatures(SIGS_FILE, SIGS_META_FILE, chosen_sigs=sigs)
     # validation
     if region_width < 10000: # will be too slow, stop processing
       return None
@@ -28,12 +40,13 @@ class PlotProcessing():
     # regions_master_df: sigs x regions
     regions_master_df = pd.DataFrame(index=sig_names, columns=region_names)
 
+    project_metadata = PlotProcessing.project_metadata()
     for proj_id in projects:
-      ssm_filepath = os.path.join(SSM_DIR, ("ssm.%s.tsv" % proj_id))
-      donor_filepath = os.path.join(DONOR_DIR, ("donor.%s.tsv" % proj_id))
-      if os.path.isfile(ssm_filepath) and os.path.isfile(donor_filepath):
-        ssm_df = pd.read_csv(ssm_filepath, sep='\t', index_col=0)
-        donor_df = pd.read_csv(donor_filepath, sep='\t', index_col=0)
+      ssm_filepath = os.path.join(DATA_DIR, project_metadata[proj_id]["ssm_path"])
+      counts_filepath = os.path.join(DATA_DIR, project_metadata[proj_id]["counts_path"])
+      if os.path.isfile(ssm_filepath) and os.path.isfile(counts_filepath):
+        ssm_df = pd.read_csv(ssm_filepath, sep='\t')
+        counts_df = pd.read_csv(counts_filepath, sep='\t', index_col=0)
         # restrict to current chromosome
         ssm_df = ssm_df[ssm_df[CHR] == chromosome]
         # set region values
@@ -41,7 +54,6 @@ class PlotProcessing():
 
         # set signature values
         # compute exposures
-        counts_df = donor_df.drop(columns=[TOBACCO_BINARY, TOBACCO_INTENSITY, ALCOHOL_BINARY])
         counts_df = counts_df.dropna(axis=0, how='any')
 
         if len(counts_df) > 0:
@@ -66,7 +78,7 @@ class PlotProcessing():
   @staticmethod
   def sigs():
     sig_df = pd.read_csv(SIGS_FILE, sep='\t', index_col=0)
-    return PlotProcessing.pd_as_file(sig_df, index_val=False)
+    return PlotProcessing.pd_as_file(sig_df)
 
   @staticmethod
   def sigs_per_cancer(sig_preset):
@@ -78,34 +90,22 @@ class PlotProcessing():
     return active_sigs
 
   @staticmethod
-  def data_listing_json_aux(curr_path = PROCESSED_DIR):
-    listing = {}
+  def data_listing_json_aux(curr_path):
     files = []
     for name in os.listdir(curr_path):
       newpath = os.path.join(curr_path, name)
-      if os.path.isdir(newpath):
-        listing[name] = PlotProcessing.data_listing_json_aux(newpath)
-      if os.path.isfile(newpath):
-        if name.endswith(".tsv"):
-          matches = re.match(EXTRACT_PROJ_RE, name)
-          if matches != None:
-            files.append(matches.group(1))
-        elif name.endswith(".json"):
-          sig_source = name[:-5]
-          source_preset = PlotProcessing.sigs_per_cancer(sig_source)
-          files.append({ 'name': sig_source, 'preset': source_preset })
-
-    if len(list(listing.keys())) == 0:
-      return files
-    else:
-      return listing
+      if os.path.isfile(newpath) and name.endswith(".json"):
+        sig_source = name[:-5]
+        source_preset = PlotProcessing.sigs_per_cancer(sig_source)
+        files.append({ 'name': sig_source, 'preset': source_preset })
+    return files
 
   @staticmethod
   def data_listing_json():
-    signatures = Signatures(SIGS_FILE)
+    signatures = Signatures(SIGS_FILE, SIGS_META_FILE)
     return {
-      "sources": PlotProcessing.data_listing_json_aux(SSM_DIR),
-      "sigs": signatures.get_all_names(),
+      "sources": PlotProcessing.project_metadata(filepaths = False),
+      "sigs": signatures.get_metadata(),
       "sig_presets": PlotProcessing.data_listing_json_aux(SIG_PRESETS_DIR)
     }
 
@@ -118,12 +118,12 @@ class PlotProcessing():
       # sets of kataegis mutations by donor, chromosome
       # 'SAMPLE': { '1': list(mutation_1, mutation_2), ... }
     }
+    project_metadata = PlotProcessing.project_metadata()
     for proj_id in projects:
-      ssm_filepath = os.path.join(SSM_DIR, ("ssm.%s.tsv" % proj_id))
+      ssm_filepath = os.path.join(DATA_DIR, project_metadata[proj_id]["ssm_path"])
       if os.path.isfile(ssm_filepath):
-        ssm_df = pd.read_csv(ssm_filepath, sep='\t', index_col=0)
-        # TODO: add mut dist rolling mean to processing
-        katagis_df = ssm_df.loc[ssm_df[MUT_DIST_ROLLING_6] <= width][df_cols]
+        ssm_df = pd.read_csv(ssm_filepath, sep='\t')
+        katagis_df = ssm_df.loc[ssm_df[MUT_DIST_ROLLING_MEAN] <= width][df_cols]
         df = df.append(katagis_df, ignore_index=True)
         # create empty entry for each donor
         proj_donor_ids = list(ssm_df[SAMPLE].unique())
@@ -143,43 +143,43 @@ class PlotProcessing():
   
   @staticmethod
   def kataegis_rainfall(proj_id, donor_id, chromosome):
-    df_cols = [SAMPLE, CHR, POS, CAT, MUT_DIST, MUT_DIST_ROLLING_6]
+    project_metadata = PlotProcessing.project_metadata()
+
+    df_cols = [SAMPLE, CHR, POS, CAT, MUT_DIST, MUT_DIST_ROLLING_MEAN]
     ssm_df = pd.DataFrame([], columns=df_cols)
-    ssm_filepath = os.path.join(SSM_DIR, ("ssm.%s.tsv" % proj_id))
+    ssm_filepath = os.path.join(DATA_DIR, project_metadata[proj_id]["ssm_path"])
     if os.path.isfile(ssm_filepath):
-      ssm_df = pd.read_csv(ssm_filepath, sep='\t', index_col=0)
+      ssm_df = pd.read_csv(ssm_filepath, sep='\t')
       ssm_df = ssm_df.loc[ssm_df[CHR] == chromosome][df_cols]
       ssm_df = ssm_df.loc[ssm_df[SAMPLE] == donor_id][df_cols]
 
-      ssm_df['kataegis'] = ssm_df.apply(lambda row: 1 if (row[MUT_DIST_ROLLING_6] <= 1000) else 0, axis=1)
-      ssm_df = ssm_df.drop(columns=[MUT_DIST_ROLLING_6, CHR, SAMPLE])
+      ssm_df['kataegis'] = ssm_df.apply(lambda row: 1 if (row[MUT_DIST_ROLLING_MEAN] <= 1000) else 0, axis=1)
+      ssm_df = ssm_df.drop(columns=[MUT_DIST_ROLLING_MEAN, CHR, SAMPLE])
       ssm_df = ssm_df.replace([np.inf, -np.inf], np.nan)
       ssm_df = ssm_df.dropna(axis=0, how='any', subset=[CAT, MUT_DIST])
       ssm_df[MUT_DIST] = ssm_df[MUT_DIST].astype(int)
       ssm_df = ssm_df.rename(columns={ POS: "pos", CAT: "context", MUT_DIST: "mut_dist" })
     return PlotProcessing.pd_as_file(ssm_df, index_val=False)
-
   
   @staticmethod
   def signature_exposures(sigs, projects):
-    signatures = Signatures(SIGS_FILE, chosen_sigs=sigs)
+    signatures = Signatures(SIGS_FILE, SIGS_META_FILE, chosen_sigs=sigs)
     
     sig_names = signatures.get_chosen_names()
     result_df = pd.DataFrame([], columns=CLINICAL_VARIABLES + sig_names)
-
+    project_metadata = PlotProcessing.project_metadata()
     for proj_id in projects:
-      donor_filepath = os.path.join(DONOR_DIR, ("donor.%s.tsv" % proj_id))
-      if os.path.isfile(donor_filepath):
-        donor_df = pd.read_csv(donor_filepath, sep='\t', index_col=0, header=0)
-        mutation_categories = list(set(donor_df.columns.values) - set(CLINICAL_VARIABLES))
+      donor_filepath = os.path.join(DATA_DIR, project_metadata[proj_id]["clinical_path"])
+      counts_filepath = os.path.join(DATA_DIR, project_metadata[proj_id]["counts_path"])
+      if os.path.isfile(counts_filepath):
+        counts_df = pd.read_csv(counts_filepath, sep='\t', index_col=0)
+        if os.path.isfile(donor_filepath):
+          clinical_df = pd.read_csv(donor_filepath, sep='\t', index_col=0)
+        else:
+          clinical_df = pd.DataFrame([], columns=CLINICAL_VARIABLES)
         
-        # drop donors with empty mutation counts (probably not in simple somatic mutation file)
-        donor_df = donor_df.dropna(subset=mutation_categories, how='any')
+        mutation_categories = list(counts_df.columns.values)
         
-        # split into two dataframes based on clinical columns and count columns
-        clinical_df = donor_df.loc[:, CLINICAL_VARIABLES]
-        counts_df = donor_df.loc[:, mutation_categories]
-
         # add column for project id
         clinical_df.loc[:, 'proj_id'] = proj_id
 
@@ -192,6 +192,8 @@ class PlotProcessing():
 
           # join exposures and clinical data
           clinical_df = clinical_df.join(exps_df)
+          # drop donors with empty exposures, didn't have count data
+          clinical_df = clinical_df.dropna(subset=sigs, how='any')
           # append project df to overall df
           result_df = result_df.append(clinical_df)
     result_df.index.name = 'donor_id'
