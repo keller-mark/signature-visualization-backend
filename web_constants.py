@@ -4,7 +4,7 @@ import re
 DATA_DIR = 'data'
 DATA_META_FILE = os.path.join(DATA_DIR, 'meta.tsv')
 
-OBJ_STORE_URL = "https://mutation-signatures-explorer.obj.umiacs.umd.edu/"
+OBJ_STORE_URL = "https://mutation-signature-explorer.obj.umiacs.umd.edu/"
 
 
 SIGS_DIR = os.path.join(DATA_DIR, 'sigs')
