@@ -21,6 +21,10 @@ class PlotProcessing():
       meta_df = meta_df.drop(columns=['clinical_path', 'ssm_path', 'counts_path'])
     meta_df = meta_df.transpose()
     return meta_df.to_dict()
+  
+  @staticmethod
+  def pd_fetch_tsv(s3_key, **kwargs):
+    return pd.read_csv((OBJ_STORE_URL + s3_key), sep='\t', **kwargs)
 
   @staticmethod
   def pd_as_file(df, index_val=True):
@@ -42,11 +46,12 @@ class PlotProcessing():
 
     project_metadata = PlotProcessing.project_metadata()
     for proj_id in projects:
-      ssm_filepath = os.path.join(DATA_DIR, project_metadata[proj_id]["ssm_path"])
-      counts_filepath = os.path.join(DATA_DIR, project_metadata[proj_id]["counts_path"])
-      if os.path.isfile(ssm_filepath) and os.path.isfile(counts_filepath):
-        ssm_df = pd.read_csv(ssm_filepath, sep='\t')
-        counts_df = pd.read_csv(counts_filepath, sep='\t', index_col=0)
+      if project_metadata[proj_id]["has_ssm"] and project_metadata[proj_id]["has_counts"]:
+        ssm_filepath = project_metadata[proj_id]["ssm_path"]
+        counts_filepath = project_metadata[proj_id]["counts_path"]
+
+        ssm_df = PlotProcessing.pd_fetch_tsv(ssm_filepath)
+        counts_df = PlotProcessing.pd_fetch_tsv(counts_filepath, index_col=0)
         # restrict to current chromosome
         ssm_df = ssm_df[ssm_df[CHR] == chromosome]
         # set region values
@@ -120,9 +125,9 @@ class PlotProcessing():
     }
     project_metadata = PlotProcessing.project_metadata()
     for proj_id in projects:
-      ssm_filepath = os.path.join(DATA_DIR, project_metadata[proj_id]["ssm_path"])
-      if os.path.isfile(ssm_filepath):
-        ssm_df = pd.read_csv(ssm_filepath, sep='\t')
+      if project_metadata[proj_id]["has_ssm"]:
+        ssm_filepath = project_metadata[proj_id]["ssm_path"]
+        ssm_df = PlotProcessing.pd_fetch_tsv(ssm_filepath)
         katagis_df = ssm_df.loc[ssm_df[MUT_DIST_ROLLING_MEAN] <= width][df_cols]
         df = df.append(katagis_df, ignore_index=True)
         # create empty entry for each donor
@@ -147,9 +152,9 @@ class PlotProcessing():
 
     df_cols = [SAMPLE, CHR, POS, CAT, MUT_DIST, MUT_DIST_ROLLING_MEAN]
     ssm_df = pd.DataFrame([], columns=df_cols)
-    ssm_filepath = os.path.join(DATA_DIR, project_metadata[proj_id]["ssm_path"])
-    if os.path.isfile(ssm_filepath):
-      ssm_df = pd.read_csv(ssm_filepath, sep='\t')
+    if project_metadata[proj_id]["has_ssm"]:
+      ssm_filepath = project_metadata[proj_id]["ssm_path"]
+      ssm_df = PlotProcessing.pd_fetch_tsv(ssm_filepath)
       ssm_df = ssm_df.loc[ssm_df[CHR] == chromosome][df_cols]
       ssm_df = ssm_df.loc[ssm_df[SAMPLE] == donor_id][df_cols]
 
@@ -169,12 +174,12 @@ class PlotProcessing():
     result_df = pd.DataFrame([], columns=CLINICAL_VARIABLES + sig_names)
     project_metadata = PlotProcessing.project_metadata()
     for proj_id in projects:
-      donor_filepath = os.path.join(DATA_DIR, project_metadata[proj_id]["clinical_path"])
-      counts_filepath = os.path.join(DATA_DIR, project_metadata[proj_id]["counts_path"])
-      if os.path.isfile(counts_filepath):
-        counts_df = pd.read_csv(counts_filepath, sep='\t', index_col=0)
-        if os.path.isfile(donor_filepath):
-          clinical_df = pd.read_csv(donor_filepath, sep='\t', index_col=0)
+      if project_metadata[proj_id]["has_counts"]:
+        counts_filepath = project_metadata[proj_id]["counts_path"]
+        counts_df = PlotProcessing.pd_fetch_tsv(counts_filepath, index_col=0)
+        if project_metadata[proj_id]["has_clinical"]:
+          donor_filepath = project_metadata[proj_id]["clinical_path"]
+          clinical_df = PlotProcessing.pd_fetch_tsv(donor_filepath, index_col=0)
         else:
           clinical_df = pd.DataFrame([], columns=CLINICAL_VARIABLES, index=list(counts_df.index.values))
         
