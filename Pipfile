@@ -4,14 +4,14 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-Sanic = "*"
+sanic = "*"
 numpy = "*"
 scipy = "*"
 pandas = "*"
-Cython = "*"
+cython = "*"
 quadprog = "*"
 scikit-learn = "*"
-Flask = "*"
+flask = "*"
 gunicorn = "*"
 
 [dev-packages]
