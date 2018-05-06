@@ -1,4 +1,4 @@
-# Interactive Mutation Visualizations with Mutation Signatures
+# Mutation Signature Explorer - Server
 
 ### Setup
 ```

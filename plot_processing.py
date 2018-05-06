@@ -150,7 +150,7 @@ class PlotProcessing():
   def kataegis_rainfall(proj_id, donor_id, chromosome):
     project_metadata = PlotProcessing.project_metadata()
 
-    df_cols = [SAMPLE, CHR, POS, CAT, MUT_DIST, MUT_DIST_ROLLING_MEAN]
+    df_cols = [SAMPLE, CHR, POS, CAT, CAT_INDEX, MUT_DIST, MUT_DIST_ROLLING_MEAN]
     ssm_df = pd.DataFrame([], columns=df_cols)
     if project_metadata[proj_id]["has_ssm"]:
       ssm_filepath = project_metadata[proj_id]["ssm_path"]
@@ -163,7 +163,8 @@ class PlotProcessing():
       ssm_df = ssm_df.replace([np.inf, -np.inf], np.nan)
       ssm_df = ssm_df.dropna(axis=0, how='any', subset=[CAT, MUT_DIST])
       ssm_df[MUT_DIST] = ssm_df[MUT_DIST].astype(int)
-      ssm_df = ssm_df.rename(columns={ POS: "pos", CAT: "context", MUT_DIST: "mut_dist" })
+      ssm_df[CAT_INDEX] = ssm_df[CAT_INDEX].astype(int)
+      ssm_df = ssm_df.rename(columns={ POS: "pos", CAT: "cat", CAT_INDEX: "cat_index", MUT_DIST: "mut_dist" })
     return PlotProcessing.pd_as_file(ssm_df, index_val=False)
   
   @staticmethod
