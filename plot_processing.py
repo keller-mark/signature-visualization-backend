@@ -86,24 +86,12 @@ class PlotProcessing():
     return PlotProcessing.pd_as_file(sig_df)
 
   @staticmethod
-  def sigs_per_cancer(sig_preset):
-    active_sig_source_filepath = os.path.join(SIG_PRESETS_DIR, sig_preset + ".json")
-    if not os.path.isfile(active_sig_source_filepath):
+  def sigs_per_cancer_type():
+    if not os.path.isfile(SIGS_PER_CANCER_TYPE_FILE):
       return None
-    with open(active_sig_source_filepath) as data_file:    
+    with open(SIGS_PER_CANCER_TYPE_FILE) as data_file:    
       active_sigs = json.load(data_file)
     return active_sigs
-
-  @staticmethod
-  def data_listing_json_aux(curr_path):
-    files = []
-    for name in os.listdir(curr_path):
-      newpath = os.path.join(curr_path, name)
-      if os.path.isfile(newpath) and name.endswith(".json"):
-        sig_source = name[:-5]
-        source_preset = PlotProcessing.sigs_per_cancer(sig_source)
-        files.append({ 'name': sig_source, 'preset': source_preset })
-    return files
 
   @staticmethod
   def data_listing_json():
@@ -111,7 +99,7 @@ class PlotProcessing():
     return {
       "sources": PlotProcessing.project_metadata(filepaths = False),
       "sigs": signatures.get_metadata(),
-      "sig_presets": PlotProcessing.data_listing_json_aux(SIG_PRESETS_DIR)
+      "sig_presets": PlotProcessing.sigs_per_cancer_type()
     }
 
   @staticmethod

@@ -10,7 +10,7 @@ OBJ_STORE_URL = "https://mutation-signature-explorer.obj.umiacs.umd.edu/"
 SIGS_DIR = os.path.join(DATA_DIR, 'sigs')
 SIGS_FILE = os.path.join(SIGS_DIR, 'signatures.tsv')
 SIGS_META_FILE = os.path.join(SIGS_DIR, 'signatures_meta.tsv')
-SIG_PRESETS_DIR = os.path.join(SIGS_DIR, 'presets')
+SIGS_PER_CANCER_TYPE_FILE = os.path.join(SIGS_DIR, 'per_cancer_type.json')
 
 SSM_FILE_PREFIX = 'ssm'
 DONOR_FILE_PREFIX = 'donor'
