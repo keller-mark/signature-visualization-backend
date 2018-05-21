@@ -1,6 +1,7 @@
 import json
 from flask import Flask
-from web_constants import *
+
+HEADERS = { 'Access-Control-Allow-Origin': '*' }
 
 def response_csv(app, output):
     return app.response_class(

@@ -70,6 +70,11 @@ def route_chromosomes():
   output = CHROMOSOMES
   return response_json(app, output)
 
+@app.route('/karyotype', methods=['POST'])
+def route_karyotype():
+  output = PlotProcessing.chromosome_bands()
+  return response_csv(app, output)
+
 if __name__ == '__main__':
   app.run(
       debug=bool(os.environ.get('DEBUG', '')), 

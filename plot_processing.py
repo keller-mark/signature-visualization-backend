@@ -191,4 +191,10 @@ class PlotProcessing():
           result_df = result_df.append(clinical_df)
     result_df.index.name = 'donor_id'
     # finalize
-    return PlotProcessing.pd_as_file(result_df)
+    return PlotProcessing.pd_as_file(result_df, index_val=False)
+  
+  @staticmethod
+  def chromosome_bands():
+    df = pd.read_csv(CHROMOSOME_BANDS_FILE, sep='\t')
+
+    return PlotProcessing.pd_as_file(df, index_val=False)
