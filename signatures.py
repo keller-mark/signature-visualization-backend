@@ -17,13 +17,15 @@ class Signatures():
         self.sigs_df.index = self.sigs_df.index.astype(str)
         self.chosen_sigs = chosen_sigs
 
-        self.meta_df = pd.read_csv(meta_file, sep='\t', index_col=0)
+        self.meta_df = pd.read_csv(meta_file, sep='\t')
         self.meta_df = self.meta_df.fillna(value="")
+        self.meta_df = self.meta_df.sort_values(by=['index'])
     def get_all_names(self):
         return list(self.sigs_df.index.values)
     
     def get_metadata(self):
-        return self.meta_df.transpose().to_dict()
+        
+        return self.meta_df.to_dict(orient='records')
     
     def get_chosen_names(self):
         return list(set(self.chosen_sigs) & set(self.get_all_names()))

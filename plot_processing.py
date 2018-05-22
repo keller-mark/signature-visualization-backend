@@ -191,7 +191,7 @@ class PlotProcessing():
           result_df = result_df.append(clinical_df)
     result_df.index.name = 'donor_id'
     # finalize
-    return PlotProcessing.pd_as_file(result_df, index_val=False)
+    return PlotProcessing.pd_as_file(result_df)
   
   @staticmethod
   def chromosome_bands():
