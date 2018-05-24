@@ -13,6 +13,7 @@ git submodule foreach git pull origin master
 - `pip install -r requirements.txt`
 
 ### Run
+[http://localhost:8000](http://localhost:8000)
 ```
 export DEBUG=1 # for development purposes
 cd app && python main.py
