@@ -24,7 +24,8 @@ class PlotProcessing():
   
   @staticmethod
   def pd_fetch_tsv(s3_key, **kwargs):
-    return pd.read_csv((OBJ_STORE_URL + s3_key), sep='\t', **kwargs)
+    filepath = os.path.join(OBJ_DIR, s3_key)
+    return pd.read_csv(filepath, sep='\t', **kwargs)
 
   @staticmethod
   def pd_as_file(df, index_val=True):

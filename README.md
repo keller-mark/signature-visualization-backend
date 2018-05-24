@@ -8,20 +8,17 @@ git submodule foreach git pull origin master
 
 ### Dependencies
 - python
-- `pip install pipenv` (Use pipenv to manage dependencies - required by Heroku)
-- `pipenv install`
+- `pip install Cython`
+- `pip install -r requirements.txt`
 
 ### Run
 ```
-pipenv shell
-python app.py
+export DEBUG=1 # for development purposes
+cd app && python main.py
 ```
 
-### Deploy `prod` branch to Heroku
-Assuming development is done on master branch:
+### Docker
 ```
-git checkout prod && git merge master && git checkout master
-git push heroku prod:master
-
-heroku logs --tail
+docker build -t imuse-server .
+docker run -d -v $(pwd)/obj:/obj -p 80:80 imuse-server
 ```
