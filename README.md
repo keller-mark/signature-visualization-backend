@@ -8,6 +8,7 @@ git submodule foreach git pull origin master
 
 ### Dependencies
 - python
+- `pip install flask`
 - `pip install Cython`
 - `pip install -r requirements.txt`
 
