@@ -11,13 +11,9 @@ SIGS_FILE = os.path.join(SIGS_DIR, 'signatures.tsv')
 SIGS_META_FILE = os.path.join(SIGS_DIR, 'signatures_meta.tsv')
 SIGS_PER_CANCER_TYPE_FILE = os.path.join(SIGS_DIR, 'per_cancer_type.json')
 
-SSM_FILE_PREFIX = 'ssm'
-DONOR_FILE_PREFIX = 'donor'
-
 # Regular Expressions
 CHROMOSOME_RE = r'^(X|Y|M|[1-9]|1[0-9]|2[0-2])$'
 PROJ_RE = r'^[A-Z0-9]+-[A-Z0-9]+-[A-Z]+$'
-EXTRACT_PROJ_RE = r'^(?:ssm|donor)\.([A-Z0-9]+-[A-Z0-9]+-[A-Z]+)\.tsv$'
 
 # Column names for mutation tables
 VAR = 'Variant Base'

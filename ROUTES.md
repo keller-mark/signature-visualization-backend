@@ -1,10 +1,19 @@
 ### API
 
+POST: `/data-listing`
+```
+{ }
+```
+
+POST: `/chromosomes`
+```
+{ }
+```
+
 POST: `/signature-genome-bins`
 ```
 {
 	"regionWidth": 5000000,
-	"chromosome": "1",
 	"signatures": ["COSMIC 1", "COSMIC 3"],
 	"sources": ["PCAWG-PRAD-UK"]
 }
@@ -29,29 +38,11 @@ POST: `/kataegis-rainfall`
 ```
 {
 	"proj_id": "PCAWG-PRAD-UK",
-	"donor_id": "DO51965",
-	"chromosome": "1"
+	"donor_id": "DO51965"
 }
 ```
 
 POST: `/signatures`
-```
-{ }
-```
-
-POST: `/signatures-per-cancer`
-```
-{
-	"preset": "cosmic"
-}
-```
-
-POST: `/data-listing`
-```
-{ }
-```
-
-POST: `/chromosomes`
 ```
 { }
 ```

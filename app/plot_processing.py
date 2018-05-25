@@ -34,52 +34,53 @@ class PlotProcessing():
     return output.getvalue()
 
   @staticmethod
-  def muts_by_sig_points(region_width, chromosome, sigs, projects):
+  def muts_by_sig_points(region_width, sigs, projects):
     signatures = Signatures(SIGS_FILE, SIGS_META_FILE, chosen_sigs=sigs)
     # validation
     if region_width < 10000: # will be too slow, stop processing
       return None
     
     sig_names = signatures.get_chosen_names()
-    region_names = list(range(0, CHROMOSOMES[chromosome], region_width))
-    # regions_master_df: sigs x regions
-    regions_master_df = pd.DataFrame(index=sig_names, columns=region_names)
+    chr_dfs = {}
+    for chr_name, chr_len in CHROMOSOMES.items():
+      chr_regions = list(range(0, chr_len, region_width))
+      # each chr_df: sigs x regions
+      chr_dfs[chr_name] = pd.DataFrame(index=sig_names, columns=chr_regions)
 
     project_metadata = PlotProcessing.project_metadata()
     for proj_id in projects:
+      # load data for project
       if project_metadata[proj_id]["has_ssm"] and project_metadata[proj_id]["has_counts"]:
         ssm_filepath = project_metadata[proj_id]["ssm_path"]
         counts_filepath = project_metadata[proj_id]["counts_path"]
 
         ssm_df = PlotProcessing.pd_fetch_tsv(ssm_filepath)
         counts_df = PlotProcessing.pd_fetch_tsv(counts_filepath, index_col=0)
-        # restrict to current chromosome
-        ssm_df = ssm_df[ssm_df[CHR] == chromosome]
-        # set region values
-        ssm_df['region'] = ssm_df.apply(lambda row: row[POS] // region_width * region_width, axis=1) 
-
-        # set signature values
-        # compute exposures
         counts_df = counts_df.dropna(axis=0, how='any')
 
         if len(counts_df) > 0:
+          # compute exposures
           exps_df = signatures.get_exposures(counts_df)
-          # compute assignments
           assignments_df = signatures.get_assignments(exps_df)
-          # add signature column
+          # set region of genome
+          ssm_df['region'] = ssm_df.apply(lambda row: row[POS] // region_width * region_width, axis=1)
+          # add signature column. TODO: figure out why this step takes so long
           ssm_df['signature'] = ssm_df.apply(lambda row: assignments_df.loc[row[SAMPLE], row[CAT]] if pd.notnull(row[CAT]) else None, axis=1)
-          
-          # aggregate
-          groups = ssm_df.groupby(['region', 'signature'])
-          counts = groups.size().reset_index(name='counts')   
-          regions_df = counts.pivot(index='signature', columns='region', values='counts')
-          # sum
-          regions_master_df = regions_master_df.add(regions_df, fill_value=0)
+          # for each chromosome
+          for chr_name, ssm_chr_df in ssm_df.groupby([CHR]):
+            # aggregate
+            groups = ssm_chr_df.groupby(['region', 'signature'])
+            counts = groups.size().reset_index(name='counts')   
+            regions_df = counts.pivot(index='signature', columns='region', values='counts')
+            # sum
+            chr_dfs[chr_name] = chr_dfs[chr_name].add(regions_df, fill_value=0)
     
     # finalize
-    regions_master_df.fillna(value=0, inplace=True)
-    regions_master_df[list(regions_master_df.columns.values)] = regions_master_df[list(regions_master_df.columns.values)].astype(int)
-    return PlotProcessing.pd_as_file(regions_master_df.transpose())
+    for chr_name in CHROMOSOMES.keys():
+      chr_dfs[chr_name].fillna(value=0, inplace=True)
+      chr_dfs[chr_name][list(chr_dfs[chr_name].columns.values)] = chr_dfs[chr_name][list(chr_dfs[chr_name].columns.values)].astype(int)
+      chr_dfs[chr_name] = chr_dfs[chr_name].transpose().to_dict(orient='index')
+    return chr_dfs
 
   @staticmethod
   def sigs():
@@ -136,7 +137,7 @@ class PlotProcessing():
     return result
   
   @staticmethod
-  def kataegis_rainfall(proj_id, donor_id, chromosome):
+  def kataegis_rainfall(proj_id, donor_id):
     project_metadata = PlotProcessing.project_metadata()
 
     df_cols = [SAMPLE, CHR, POS, CAT, CAT_INDEX, MUT_DIST, MUT_DIST_ROLLING_MEAN]
@@ -144,16 +145,15 @@ class PlotProcessing():
     if project_metadata[proj_id]["has_ssm"]:
       ssm_filepath = project_metadata[proj_id]["ssm_path"]
       ssm_df = PlotProcessing.pd_fetch_tsv(ssm_filepath)
-      ssm_df = ssm_df.loc[ssm_df[CHR] == chromosome][df_cols]
       ssm_df = ssm_df.loc[ssm_df[SAMPLE] == donor_id][df_cols]
 
       ssm_df['kataegis'] = ssm_df.apply(lambda row: 1 if (row[MUT_DIST_ROLLING_MEAN] <= 1000) else 0, axis=1)
-      ssm_df = ssm_df.drop(columns=[MUT_DIST_ROLLING_MEAN, CHR, SAMPLE])
+      ssm_df = ssm_df.drop(columns=[MUT_DIST_ROLLING_MEAN, SAMPLE])
       ssm_df = ssm_df.replace([np.inf, -np.inf], np.nan)
       ssm_df = ssm_df.dropna(axis=0, how='any', subset=[CAT, MUT_DIST])
       ssm_df[MUT_DIST] = ssm_df[MUT_DIST].astype(int)
       ssm_df[CAT_INDEX] = ssm_df[CAT_INDEX].astype(int)
-      ssm_df = ssm_df.rename(columns={ POS: "pos", CAT: "cat", CAT_INDEX: "cat_index", MUT_DIST: "mut_dist" })
+      ssm_df = ssm_df.rename(columns={ CHR: "chr", POS: "pos", CAT: "cat", CAT_INDEX: "cat_index", MUT_DIST: "mut_dist" })
     return PlotProcessing.pd_as_file(ssm_df, index_val=False)
   
   @staticmethod

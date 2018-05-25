@@ -11,13 +11,12 @@ app = Flask(__name__)
 def route_signature_genome_bins():
   req = request.get_json(force=True)
   region_width = int(json_or(req, 'regionWidth', 1000000, r'^\d+$'))
-  chromosome = str(json_or(req, 'chromosome', "1", CHROMOSOME_RE))
   signatures = json_or(req, 'signatures', ["COSMIC 1"], r'.*')
   projects = json_or(req, 'sources', ["PCAWG-BRCA-EU", "PCAWG-LIHC-US"], PROJ_RE)
 
-  output = PlotProcessing.muts_by_sig_points(region_width, chromosome, signatures, projects)
+  output = PlotProcessing.muts_by_sig_points(region_width, signatures, projects)
 
-  return response_csv(app, output)
+  return response_json(app, output)
 
 @app.route('/kataegis', methods=['POST'])
 def route_kataegis():
@@ -32,9 +31,8 @@ def route_kataegis_rainfall():
   req = request.get_json(force=True)
   proj_id = json_or(req, 'proj_id', "PCAWG-PRAD-UK", PROJ_RE)
   donor_id = json_or(req, 'donor_id', "DO51965")
-  chromosome = str(json_or(req, 'chromosome', "1", CHROMOSOME_RE))
 
-  output = PlotProcessing.kataegis_rainfall(proj_id, donor_id, chromosome)
+  output = PlotProcessing.kataegis_rainfall(proj_id, donor_id)
   return response_csv(app, output)
 
 @app.route('/exposures', methods=['POST'])
@@ -51,14 +49,6 @@ def route_exposures():
 def route_signatures():  
   output = PlotProcessing.sigs()
   return response_csv(app, output)
-
-@app.route('/signatures-per-cancer', methods=['POST'])
-def route_signatures_per_cancer():
-  req = request.get_json(force=True)
-  sig_preset = json_or(req, 'preset', "cosmic", r'^[a-zA-Z0-9]+$')
-
-  output = PlotProcessing.sigs_per_cancer(sig_preset)
-  return response_json(app, output)
 
 @app.route('/data-listing', methods=['POST'])
 def route_data_listing():
