@@ -43,7 +43,18 @@ def route_exposures():
 
   output = PlotProcessing.signature_exposures(signatures, projects)
 
-  return response_csv(app, output)
+  return response_json(app, output)
+
+@app.route('/exposures-single-donor', methods=['POST'])
+def route_exposures_single():
+  req = request.get_json(force=True)
+  signatures = json_or(req, 'signatures', ["COSMIC 1", "COSMIC 2"], r'.*')
+  proj_id = json_or(req, 'proj_id', "PCAWG-PRAD-UK", PROJ_RE)
+  donor_id = json_or(req, 'donor_id', "DO51965")
+
+  output = PlotProcessing.signature_exposures(signatures, [proj_id], single_donor_id=donor_id)
+
+  return response_json(app, output)
 
 @app.route('/signatures', methods=['POST'])
 def route_signatures():  
