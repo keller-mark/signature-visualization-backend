@@ -17,8 +17,9 @@ class Signatures():
         self.sigs_df.index = self.sigs_df.index.astype(str)
         self.chosen_sigs = chosen_sigs
 
-        self.meta_df = pd.read_csv(meta_file, sep='\t')
+        self.meta_df = pd.read_csv(meta_file, sep='\t', dtype=str)
         self.meta_df = self.meta_df.fillna(value="")
+        self.meta_df['index'] = self.meta_df['index'].astype(int)
         self.meta_df = self.meta_df.sort_values(by=['index'])
     def get_all_names(self):
         return list(self.sigs_df.index.values)
