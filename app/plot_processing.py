@@ -5,6 +5,8 @@ import io
 import re
 import sys
 import json
+from yaml import load
+from yaml import CLoader as Loader
 from web_constants import *
 from signatures import Signatures
 
@@ -92,7 +94,7 @@ class PlotProcessing():
     if not os.path.isfile(SIGS_PER_CANCER_TYPE_FILE):
       return None
     with open(SIGS_PER_CANCER_TYPE_FILE) as data_file:    
-      active_sigs = json.load(data_file)
+      active_sigs = load(data_file, Loader=Loader)
     return active_sigs
 
   @staticmethod

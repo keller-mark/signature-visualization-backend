@@ -9,7 +9,7 @@ CHROMOSOME_BANDS_FILE = os.path.join(DATA_DIR, 'chromosome_bands.tsv')
 SIGS_DIR = os.path.join(DATA_DIR, 'sigs')
 SIGS_FILE = os.path.join(SIGS_DIR, 'signatures.tsv')
 SIGS_META_FILE = os.path.join(SIGS_DIR, 'signatures_meta.tsv')
-SIGS_PER_CANCER_TYPE_FILE = os.path.join(SIGS_DIR, 'per_cancer_type.json')
+SIGS_PER_CANCER_TYPE_FILE = os.path.join(SIGS_DIR, 'per_cancer_type.yaml')
 
 # Regular Expressions
 CHROMOSOME_RE = r'^(X|Y|M|[1-9]|1[0-9]|2[0-2])$'
