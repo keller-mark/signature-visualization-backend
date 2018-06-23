@@ -21,11 +21,11 @@ class Signatures():
         self.meta_df = self.meta_df.fillna(value="")
         self.meta_df['index'] = self.meta_df['index'].astype(int)
         self.meta_df = self.meta_df.sort_values(by=['index'])
+
     def get_all_names(self):
         return list(self.sigs_df.index.values)
     
     def get_metadata(self):
-        
         return self.meta_df.to_dict(orient='records')
     
     def get_chosen_names(self):
@@ -60,6 +60,15 @@ class Signatures():
 
         exps_df = pd.DataFrame(E, index=samples, columns=sig_names)
         return exps_df
+
+    def get_sig_as_dict(self, sig_name):
+        obj = { "data": [], "meta": {}}
+        try:
+            obj["data"] = list(self.sigs_df.loc[sig_name, :].to_dict().items())
+            obj["meta"] = self.meta_df.loc[self.meta_df['name'] == sig_name, :].to_dict(orient='records')[0]
+        except KeyError:
+            pass
+        return obj
 
     def get_assignments(self, exps_df):
         sig_names = self.get_chosen_names()

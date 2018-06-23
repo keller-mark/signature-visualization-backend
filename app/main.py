@@ -56,10 +56,12 @@ def route_exposures_single():
 
   return response_json(app, output)
 
-@app.route('/signatures', methods=['POST'])
-def route_signatures():  
-  output = PlotProcessing.sigs()
-  return response_csv(app, output)
+@app.route('/signature', methods=['POST'])
+def route_signature():
+  req = request.get_json(force=True)
+  signature = json_or(req, 'signature', "COSMIC 1", r'.*')
+  output = PlotProcessing.signature(name=signature)
+  return response_json(app, output)
 
 @app.route('/data-listing', methods=['POST'])
 def route_data_listing():

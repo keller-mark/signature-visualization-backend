@@ -85,9 +85,9 @@ class PlotProcessing():
     return chr_dfs
 
   @staticmethod
-  def sigs():
-    sig_df = pd.read_csv(SIGS_FILE, sep='\t', index_col=0)
-    return PlotProcessing.pd_as_file(sig_df)
+  def signature(name):
+    signatures = Signatures(SIGS_FILE, SIGS_META_FILE)
+    return signatures.get_sig_as_dict(name)
 
   @staticmethod
   def sigs_per_cancer_type():
