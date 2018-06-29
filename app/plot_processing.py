@@ -6,7 +6,7 @@ import re
 import sys
 import json
 from yaml import load
-from yaml import CLoader as Loader
+from yaml import Loader
 from web_constants import *
 from signatures import Signatures
 
