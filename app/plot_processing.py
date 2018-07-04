@@ -36,11 +36,14 @@ class PlotProcessing():
     return output.getvalue()
 
   @staticmethod
-  def signature_genome_bins(region_width, sigs, projects):
+  def signature_genome_bins(region_width, sigs, projects, single_donor_id=None):
     signatures = Signatures(SIGS_FILE, SIGS_META_FILE, chosen_sigs=sigs)
     # validation
     if region_width < 10000: # will be too slow, stop processing
       return None
+
+    if single_donor_id != None: # single donor request
+      assert(len(projects) == 1)
     
     sig_names = signatures.get_chosen_names()
     chr_dfs = {}
@@ -59,6 +62,10 @@ class PlotProcessing():
         ssm_df = PlotProcessing.pd_fetch_tsv(ssm_filepath)
         counts_df = PlotProcessing.pd_fetch_tsv(counts_filepath, index_col=0)
         counts_df = counts_df.dropna(axis=0, how='any')
+        
+        if single_donor_id != None: # single donor request
+          counts_df = counts_df.loc[[single_donor_id], :]
+          ssm_df = ssm_df.loc[ssm_df[SAMPLE] == single_donor_id]
 
         if len(counts_df) > 0:
           # compute exposures
@@ -211,9 +218,14 @@ class PlotProcessing():
   def samples_with_signatures(sigs, projects):
     signatures = Signatures(SIGS_FILE, SIGS_META_FILE, chosen_sigs=sigs)
     sig_names = signatures.get_chosen_names()
-    result = [] # array containing an object for each project
-    # example: [ { proj_id: ID, num_samples: X, [["Sig 1", number], ...]}, ...]
     
+    # array containing an object for each signature
+    # example: { signatures: {"SBS 1": {"proj_id": number, ...}, ...}, "projects": { "proj_id": num_samples}, ... }
+    result = {
+      "signatures": {},
+      "projects": {}
+    }
+
     project_metadata = PlotProcessing.project_metadata()
     for proj_id in projects:
       if project_metadata[proj_id]["has_counts"]:
@@ -221,7 +233,7 @@ class PlotProcessing():
         counts_filepath = project_metadata[proj_id]["counts_path"]
         counts_df = PlotProcessing.pd_fetch_tsv(counts_filepath, index_col=0)
         counts_df = counts_df.dropna(how='any', axis='index')
-        num_samples = len(counts_df.index.values)
+        result["projects"][proj_id] = len(counts_df.index.values)
         
         if len(counts_df) > 0:
           # compute exposures
@@ -231,13 +243,11 @@ class PlotProcessing():
           # for each signature, get number of samples with at least one mutation attributed
           samples_with_sig = exps_df.apply(lambda col: col.loc[col >= 1].size, axis='index')
           
-          proj_result = {
-            "proj_id": proj_id, 
-            "num_samples": num_samples, 
-            "data": list(samples_with_sig.to_dict().items())
-          }
-          # concatenate project array into result array
-          result.append(proj_result)
+          for sig_name, num_samples in samples_with_sig.to_dict().items():
+            try:
+              result["signatures"][sig_name][proj_id] = num_samples
+            except KeyError:
+              result["signatures"][sig_name] = { proj_id: num_samples }
     return result
   
   @staticmethod

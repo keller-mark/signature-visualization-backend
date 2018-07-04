@@ -11,17 +11,27 @@ app = Flask(__name__)
 def route_signature_genome_bins():
   req = request.get_json(force=True)
   region_width = int(json_or(req, 'regionWidth', 1000000, r'^\d+$'))
-  signatures = json_or(req, 'signatures', ["COSMIC 1"], r'.*')
-  projects = json_or(req, 'sources', ["PCAWG-BRCA-EU", "PCAWG-LIHC-US"], PROJ_RE)
+  signatures = json_or(req, 'signatures', [], r'.*')
+  projects = json_or(req, 'sources', [], PROJ_RE)
 
   output = PlotProcessing.signature_genome_bins(region_width, signatures, projects)
+  return response_json(app, output)
 
+@app.route('/signature-genome-bins-single-donor', methods=['POST'])
+def route_signature_genome_bins_single():
+  req = request.get_json(force=True)
+  region_width = int(json_or(req, 'regionWidth', 1000000, r'^\d+$'))
+  signatures = json_or(req, 'signatures', [], r'.*')
+  proj_id = json_or(req, 'proj_id', "PCAWG-PRAD-UK", PROJ_RE)
+  donor_id = json_or(req, 'donor_id', "DO51965")
+
+  output = PlotProcessing.signature_genome_bins(region_width, signatures, [proj_id], single_donor_id=donor_id)
   return response_json(app, output)
 
 @app.route('/kataegis', methods=['POST'])
 def route_kataegis():
   req = request.get_json(force=True)
-  projects = json_or(req, 'sources', ["PCAWG-BRCA-EU", "PCAWG-LIHC-US"], PROJ_RE)
+  projects = json_or(req, 'sources', [], PROJ_RE)
 
   output = PlotProcessing.kataegis(projects)
   return response_json(app, output)
@@ -38,8 +48,8 @@ def route_kataegis_rainfall():
 @app.route('/exposures', methods=['POST'])
 def route_exposures():
   req = request.get_json(force=True)
-  signatures = json_or(req, 'signatures', ["COSMIC 1", "COSMIC 2"], r'.*')
-  projects = json_or(req, 'sources', ["PCAWG-BRCA-EU", "PCAWG-LIHC-US"], PROJ_RE)
+  signatures = json_or(req, 'signatures', [], r'.*')
+  projects = json_or(req, 'sources', [], PROJ_RE)
 
   output = PlotProcessing.signature_exposures(signatures, projects)
 
@@ -48,7 +58,7 @@ def route_exposures():
 @app.route('/exposures-single-donor', methods=['POST'])
 def route_exposures_single():
   req = request.get_json(force=True)
-  signatures = json_or(req, 'signatures', ["COSMIC 1", "COSMIC 2"], r'.*')
+  signatures = json_or(req, 'signatures', [], r'.*')
   proj_id = json_or(req, 'proj_id', "PCAWG-PRAD-UK", PROJ_RE)
   donor_id = json_or(req, 'donor_id', "DO51965")
 
@@ -81,8 +91,8 @@ def route_karyotype():
 @app.route('/samples-with-signatures', methods=['POST'])
 def route_samples_with_signatures():
   req = request.get_json(force=True)
-  signatures = json_or(req, 'signatures', ["COSMIC 1", "COSMIC 2"], r'.*')
-  projects = json_or(req, 'sources', ["PCAWG-BRCA-EU", "PCAWG-LIHC-US"], PROJ_RE)
+  signatures = json_or(req, 'signatures', [], r'.*')
+  projects = json_or(req, 'sources', [], PROJ_RE)
 
   output = PlotProcessing.samples_with_signatures(signatures, projects)
 
