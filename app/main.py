@@ -14,7 +14,7 @@ def route_signature_genome_bins():
   signatures = json_or(req, 'signatures', ["COSMIC 1"], r'.*')
   projects = json_or(req, 'sources', ["PCAWG-BRCA-EU", "PCAWG-LIHC-US"], PROJ_RE)
 
-  output = PlotProcessing.muts_by_sig_points(region_width, signatures, projects)
+  output = PlotProcessing.signature_genome_bins(region_width, signatures, projects)
 
   return response_json(app, output)
 
@@ -77,6 +77,16 @@ def route_chromosomes():
 def route_karyotype():
   output = PlotProcessing.chromosome_bands()
   return response_csv(app, output)
+
+@app.route('/samples-with-signatures', methods=['POST'])
+def route_samples_with_signatures():
+  req = request.get_json(force=True)
+  signatures = json_or(req, 'signatures', ["COSMIC 1", "COSMIC 2"], r'.*')
+  projects = json_or(req, 'sources', ["PCAWG-BRCA-EU", "PCAWG-LIHC-US"], PROJ_RE)
+
+  output = PlotProcessing.samples_with_signatures(signatures, projects)
+
+  return response_json(app, output)
 
 if __name__ == '__main__':
   app.run(

@@ -36,7 +36,7 @@ class PlotProcessing():
     return output.getvalue()
 
   @staticmethod
-  def muts_by_sig_points(region_width, sigs, projects):
+  def signature_genome_bins(region_width, sigs, projects):
     signatures = Signatures(SIGS_FILE, SIGS_META_FILE, chosen_sigs=sigs)
     # validation
     if region_width < 10000: # will be too slow, stop processing
@@ -204,6 +204,40 @@ class PlotProcessing():
           proj_result = list(map(create_donor_obj, donors))
           # concatenate project array into result array
           result = (result + proj_result)
+    return result
+  
+
+  @staticmethod
+  def samples_with_signatures(sigs, projects):
+    signatures = Signatures(SIGS_FILE, SIGS_META_FILE, chosen_sigs=sigs)
+    sig_names = signatures.get_chosen_names()
+    result = [] # array containing an object for each project
+    # example: [ { proj_id: ID, num_samples: X, [["Sig 1", number], ...]}, ...]
+    
+    project_metadata = PlotProcessing.project_metadata()
+    for proj_id in projects:
+      if project_metadata[proj_id]["has_counts"]:
+        # counts data
+        counts_filepath = project_metadata[proj_id]["counts_path"]
+        counts_df = PlotProcessing.pd_fetch_tsv(counts_filepath, index_col=0)
+        counts_df = counts_df.dropna(how='any', axis='index')
+        num_samples = len(counts_df.index.values)
+        
+        if len(counts_df) > 0:
+          # compute exposures
+          exps_df = signatures.get_exposures(counts_df)
+          # multiply exposures by total mutations for each donor
+          exps_df = exps_df.apply(lambda row: row * counts_df.loc[row.name, :].sum(), axis=1)
+          # for each signature, get number of samples with at least one mutation attributed
+          samples_with_sig = exps_df.apply(lambda col: col.loc[col >= 1].size, axis='index')
+          
+          proj_result = {
+            "proj_id": proj_id, 
+            "num_samples": num_samples, 
+            "data": list(samples_with_sig.to_dict().items())
+          }
+          # concatenate project array into result array
+          result.append(proj_result)
     return result
   
   @staticmethod
