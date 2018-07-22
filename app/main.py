@@ -98,6 +98,16 @@ def route_samples_with_signatures():
 
   return response_json(app, output)
 
+@app.route('/clustering', methods=['POST'])
+def route_clustering():
+  req = request.get_json(force=True)
+  signatures = json_or(req, 'signatures', [], r'.*')
+  projects = json_or(req, 'sources', [], PROJ_RE)
+
+  output = PlotProcessing.clustering(signatures, projects)
+
+  return response_json(app, output)
+
 if __name__ == '__main__':
   app.run(
       host='0.0.0.0',
