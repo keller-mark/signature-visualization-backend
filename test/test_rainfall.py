@@ -22,3 +22,18 @@ class TestRainfall(unittest.TestCase):
         self.assertEqual({'chr', 'pos', 'cat', 'mut_dist', 'kataegis'}, set(res[0]))
         
         self.assertEqual(3107, len(res))
+    
+    def test_rainfall_2(self):
+        url = API_BASE + '/kataegis-rainfall'
+        payload = {
+            "proj_id": "ICGC-COCA-CN",
+            "donor_id": "SA602006"
+        }
+        r = requests.post(url, data=json.dumps(payload))
+        r.raise_for_status()
+        decoded_content = r.content.decode('utf-8')
+
+        res = list(csv.reader(decoded_content.splitlines(), delimiter=','))
+        self.assertEqual({'chr', 'pos', 'cat', 'mut_dist', 'kataegis'}, set(res[0]))
+        
+        self.assertEqual(129969, len(res))

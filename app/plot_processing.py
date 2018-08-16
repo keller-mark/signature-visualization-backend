@@ -72,8 +72,13 @@ class PlotProcessing():
       if project_metadata[proj_id][HAS_SSM] and project_metadata[proj_id][HAS_COUNTS]:
         ssm_filepath = project_metadata[proj_id]["extended_sbs_path"]
         counts_filepath = project_metadata[proj_id]["counts_sbs_path"]
-
-        ssm_df = PlotProcessing.pd_fetch_tsv(ssm_filepath)
+        dtype = {
+          SAMPLE: str,
+          POS_START: int,
+          CAT_SBS_96: str,
+          CHR: str
+        }
+        ssm_df = PlotProcessing.pd_fetch_tsv(ssm_filepath, dtype=dtype, usecols=dtype.keys())
         counts_df = PlotProcessing.pd_fetch_tsv(counts_filepath, index_col=0)
         counts_df = counts_df.dropna(axis=0, how='any')
         
@@ -96,7 +101,7 @@ class PlotProcessing():
             counts = groups.size().reset_index(name='counts')   
             regions_df = counts.pivot(index='signature', columns='region', values='counts')
             # sum
-            chr_dfs[chr_name] = chr_dfs[chr_name].add(regions_df, fill_value=0)
+            chr_dfs[str(chr_name)] = chr_dfs[str(chr_name)].add(regions_df, fill_value=0)
     
     # finalize
     for chr_name in CHROMOSOMES.keys():
@@ -140,7 +145,13 @@ class PlotProcessing():
     for proj_id in projects:
       if project_metadata[proj_id][HAS_SSM]:
         ssm_filepath = project_metadata[proj_id]["extended_sbs_path"]
-        ssm_df = PlotProcessing.pd_fetch_tsv(ssm_filepath)
+        dtype = {
+          SAMPLE: str,
+          CHR: str,
+          POS_START: int,
+          MUT_DIST_ROLLING_MEAN: float
+        }
+        ssm_df = PlotProcessing.pd_fetch_tsv(ssm_filepath, dtype=dtype, usecols=dtype.keys())
         katagis_df = ssm_df.loc[ssm_df[MUT_DIST_ROLLING_MEAN] <= width][df_cols]
         df = df.append(katagis_df, ignore_index=True)
         # create empty entry for each donor
@@ -167,7 +178,15 @@ class PlotProcessing():
     ssm_df = pd.DataFrame([], columns=df_cols)
     if project_metadata[proj_id][HAS_SSM]:
       ssm_filepath = project_metadata[proj_id]["extended_sbs_path"]
-      ssm_df = PlotProcessing.pd_fetch_tsv(ssm_filepath)
+      dtype = {
+        SAMPLE: str,
+        CHR: str,
+        POS_START: int,
+        CAT_SBS_96: str,
+        MUT_DIST: float,
+        MUT_DIST_ROLLING_MEAN: float
+      }
+      ssm_df = PlotProcessing.pd_fetch_tsv(ssm_filepath, dtype=dtype, usecols=dtype.keys())
       ssm_df = ssm_df.loc[ssm_df[SAMPLE] == donor_id][df_cols].copy()
 
       ssm_df['kataegis'] = ssm_df.apply(lambda row: 1 if (row[MUT_DIST_ROLLING_MEAN] <= 1000) else 0, axis=1)
