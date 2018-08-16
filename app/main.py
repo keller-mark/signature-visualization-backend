@@ -1,6 +1,13 @@
 from flask import Flask, request
 from plot_processing import PlotProcessing
 
+from plot_clustering import plot_clustering
+from plot_kataegis import plot_kataegis
+from plot_rainfall import plot_rainfall
+from plot_samples_with_signatures import plot_samples_with_signatures
+from plot_signature_exposures import plot_signature_exposures
+from plot_signature_genome_bins import plot_signature_genome_bins
+
 from web_constants import *
 from validation_utils import *
 from response_utils import *
@@ -14,7 +21,7 @@ def route_signature_genome_bins():
   signatures = json_or(req, 'signatures', [], r'.*')
   projects = json_or(req, 'sources', [], PROJ_RE)
 
-  output = PlotProcessing.signature_genome_bins(region_width, signatures, projects)
+  output = plot_signature_genome_bins(region_width, signatures, projects)
   return response_json(app, output)
 
 @app.route('/signature-genome-bins-single-donor', methods=['POST'])
@@ -25,7 +32,7 @@ def route_signature_genome_bins_single():
   proj_id = json_or(req, 'proj_id', "", PROJ_RE)
   donor_id = json_or(req, 'donor_id', "")
 
-  output = PlotProcessing.signature_genome_bins(region_width, signatures, [proj_id], single_donor_id=donor_id)
+  output = plot_signature_genome_bins(region_width, signatures, [proj_id], single_donor_id=donor_id)
   return response_json(app, output)
 
 @app.route('/kataegis', methods=['POST'])
@@ -33,7 +40,7 @@ def route_kataegis():
   req = request.get_json(force=True)
   projects = json_or(req, 'sources', [], PROJ_RE)
 
-  output = PlotProcessing.kataegis(projects)
+  output = plot_kataegis(projects)
   return response_json(app, output)
 
 @app.route('/kataegis-rainfall', methods=['POST'])
@@ -42,7 +49,7 @@ def route_kataegis_rainfall():
   proj_id = json_or(req, 'proj_id', "", PROJ_RE)
   donor_id = json_or(req, 'donor_id', "")
 
-  output = PlotProcessing.kataegis_rainfall(proj_id, donor_id)
+  output = plot_rainfall(proj_id, donor_id)
   return response_csv(app, output)
 
 @app.route('/exposures', methods=['POST'])
@@ -51,7 +58,7 @@ def route_exposures():
   signatures = json_or(req, 'signatures', [], r'.*')
   projects = json_or(req, 'sources', [], PROJ_RE)
 
-  output = PlotProcessing.signature_exposures(signatures, projects)
+  output = plot_signature_exposures(signatures, projects)
 
   return response_json(app, output)
 
@@ -62,7 +69,7 @@ def route_exposures_single():
   proj_id = json_or(req, 'proj_id', "", PROJ_RE)
   donor_id = json_or(req, 'donor_id', "")
 
-  output = PlotProcessing.signature_exposures(signatures, [proj_id], single_donor_id=donor_id)
+  output = plot_signature_exposures(signatures, [proj_id], single_donor_id=donor_id)
 
   return response_json(app, output)
 
@@ -94,7 +101,7 @@ def route_samples_with_signatures():
   signatures = json_or(req, 'signatures', [], r'.*')
   projects = json_or(req, 'sources', [], PROJ_RE)
 
-  output = PlotProcessing.samples_with_signatures(signatures, projects)
+  output = plot_samples_with_signatures(signatures, projects)
 
   return response_json(app, output)
 
@@ -104,7 +111,7 @@ def route_clustering():
   signatures = json_or(req, 'signatures', [], r'.*')
   projects = json_or(req, 'sources', [], PROJ_RE)
 
-  output = PlotProcessing.clustering(signatures, projects)
+  output = plot_clustering(signatures, projects)
 
   return response_json(app, output)
 
