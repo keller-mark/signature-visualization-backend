@@ -18,4 +18,4 @@ class TestKataegis(unittest.TestCase):
         r.raise_for_status()
         res = r.json()
         self.assertEqual(569, len(res.keys()))
-        self.assertEqual(4, len(res['DO217786']['kataegis']['1']))
+        self.assertEqual(4, len(res['SA542425']['kataegis']['1']))

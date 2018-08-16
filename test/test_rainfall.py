@@ -12,13 +12,13 @@ class TestRainfall(unittest.TestCase):
         
         payload = {
             "proj_id": "ICGC-BRCA-EU",
-            "donor_id": "DO217786"
+            "donor_id": "SA542425"
         }
         r = requests.post(url, data=json.dumps(payload))
         r.raise_for_status()
         decoded_content = r.content.decode('utf-8')
 
         res = list(csv.reader(decoded_content.splitlines(), delimiter=','))
-        self.assertEqual({'chr', 'pos', 'cat', 'cat_index', 'mut_dist', 'kataegis'}, set(res[0]))
+        self.assertEqual({'chr', 'pos', 'cat', 'mut_dist', 'kataegis'}, set(res[0]))
         
         self.assertEqual(3107, len(res))

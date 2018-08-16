@@ -9,7 +9,7 @@ class TestExposuresSingleDonor(unittest.TestCase):
     def test_exposures_single_donor(self):
         url = API_BASE + '/exposures-single-donor'
         payload = {
-            "donor_id": "DO220823", 
+            "donor_id": "SA557034", 
             "proj_id": "ICGC-BRCA-EU", 
             "sources":["PCAWG-BRCA-EU"],
             "signatures":[

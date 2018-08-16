@@ -12,17 +12,29 @@ from yaml import Loader
 from web_constants import *
 from signatures import Signatures
 
+HAS_CLINICAL = "has_clinical"
+HAS_SSM = "has_ssm"
+HAS_COUNTS = "has_counts"
+
 class PlotProcessing():
 
   @staticmethod
   def project_metadata(filepaths = True):
     meta_df = pd.read_csv(DATA_META_FILE, sep='\t', index_col=0)
-    meta_df["has_clinical"] = pd.notnull(meta_df["clinical_path"])
-    meta_df["has_ssm"] = pd.notnull(meta_df["ssm_path"])
-    meta_df["has_counts"] = pd.notnull(meta_df["counts_path"])
+    meta_df[HAS_CLINICAL] = pd.notnull(meta_df["clinical_path"])
+    meta_df[HAS_SSM] = (meta_df["extended_sbs_path"].notnull() & meta_df["extended_dbs_path"].notnull() & meta_df["extended_indel_path"].notnull())
+    meta_df[HAS_COUNTS] = (meta_df["counts_sbs_path"].notnull() & meta_df["counts_dbs_path"].notnull() & meta_df["counts_indel_path"])
     meta_df = meta_df.fillna(value="")
     if not filepaths:
-      meta_df = meta_df.drop(columns=['clinical_path', 'ssm_path', 'counts_path'])
+      meta_df = meta_df.drop(columns=[
+        'clinical_path', 
+        'extended_sbs_path', 
+        'counts_sbs_path', 
+        'extended_dbs_path', 
+        'counts_dbs_path', 
+        'extended_indel_path', 
+        'counts_indel_path'
+      ])
     meta_df = meta_df.transpose()
     return meta_df.to_dict()
   
@@ -57,9 +69,9 @@ class PlotProcessing():
     project_metadata = PlotProcessing.project_metadata()
     for proj_id in projects:
       # load data for project
-      if project_metadata[proj_id]["has_ssm"] and project_metadata[proj_id]["has_counts"]:
-        ssm_filepath = project_metadata[proj_id]["ssm_path"]
-        counts_filepath = project_metadata[proj_id]["counts_path"]
+      if project_metadata[proj_id][HAS_SSM] and project_metadata[proj_id][HAS_COUNTS]:
+        ssm_filepath = project_metadata[proj_id]["extended_sbs_path"]
+        counts_filepath = project_metadata[proj_id]["counts_sbs_path"]
 
         ssm_df = PlotProcessing.pd_fetch_tsv(ssm_filepath)
         counts_df = PlotProcessing.pd_fetch_tsv(counts_filepath, index_col=0)
@@ -74,9 +86,9 @@ class PlotProcessing():
           exps_df = signatures.get_exposures(counts_df)
           assignments_df = signatures.get_assignments(exps_df)
           # set region of genome
-          ssm_df['region'] = ssm_df.apply(lambda row: row[POS] // region_width * region_width, axis=1)
+          ssm_df['region'] = ssm_df.apply(lambda row: row[POS_START] // region_width * region_width, axis=1)
           # add signature column. TODO: figure out why this step takes so long
-          ssm_df['signature'] = ssm_df.apply(lambda row: assignments_df.loc[row[SAMPLE], row[CAT]] if pd.notnull(row[CAT]) else None, axis=1)
+          ssm_df['signature'] = ssm_df.apply(lambda row: assignments_df.loc[row[SAMPLE], row[CAT_SBS_96]] if pd.notnull(row[CAT_SBS_96]) else None, axis=1)
           # for each chromosome
           for chr_name, ssm_chr_df in ssm_df.groupby([CHR]):
             # aggregate
@@ -118,7 +130,7 @@ class PlotProcessing():
   @staticmethod
   def kataegis(projects):
     width = 1000
-    df_cols = [SAMPLE, CHR, POS]
+    df_cols = [SAMPLE, CHR, POS_START]
     df = pd.DataFrame([], columns=df_cols)
     result = {
       # sets of kataegis mutations by donor, chromosome
@@ -126,8 +138,8 @@ class PlotProcessing():
     }
     project_metadata = PlotProcessing.project_metadata()
     for proj_id in projects:
-      if project_metadata[proj_id]["has_ssm"]:
-        ssm_filepath = project_metadata[proj_id]["ssm_path"]
+      if project_metadata[proj_id][HAS_SSM]:
+        ssm_filepath = project_metadata[proj_id]["extended_sbs_path"]
         ssm_df = PlotProcessing.pd_fetch_tsv(ssm_filepath)
         katagis_df = ssm_df.loc[ssm_df[MUT_DIST_ROLLING_MEAN] <= width][df_cols]
         df = df.append(katagis_df, ignore_index=True)
@@ -140,7 +152,7 @@ class PlotProcessing():
     def add_group(g):
       g_donor_id = g[SAMPLE].unique()[0]
       g_chromosome = g[CHR].unique()[0]
-      g_kataegis_mutations = list(g[POS].unique())
+      g_kataegis_mutations = list(g[POS_START].unique())
       result[g_donor_id]['kataegis'][g_chromosome] = g_kataegis_mutations
 
     groups.apply(add_group)
@@ -151,20 +163,19 @@ class PlotProcessing():
   def kataegis_rainfall(proj_id, donor_id):
     project_metadata = PlotProcessing.project_metadata()
 
-    df_cols = [SAMPLE, CHR, POS, CAT, CAT_INDEX, MUT_DIST, MUT_DIST_ROLLING_MEAN]
+    df_cols = [SAMPLE, CHR, POS_START, CAT_SBS_96, MUT_DIST, MUT_DIST_ROLLING_MEAN]
     ssm_df = pd.DataFrame([], columns=df_cols)
-    if project_metadata[proj_id]["has_ssm"]:
-      ssm_filepath = project_metadata[proj_id]["ssm_path"]
+    if project_metadata[proj_id][HAS_SSM]:
+      ssm_filepath = project_metadata[proj_id]["extended_sbs_path"]
       ssm_df = PlotProcessing.pd_fetch_tsv(ssm_filepath)
-      ssm_df = ssm_df.loc[ssm_df[SAMPLE] == donor_id][df_cols]
+      ssm_df = ssm_df.loc[ssm_df[SAMPLE] == donor_id][df_cols].copy()
 
       ssm_df['kataegis'] = ssm_df.apply(lambda row: 1 if (row[MUT_DIST_ROLLING_MEAN] <= 1000) else 0, axis=1)
       ssm_df = ssm_df.drop(columns=[MUT_DIST_ROLLING_MEAN, SAMPLE])
       ssm_df = ssm_df.replace([np.inf, -np.inf], np.nan)
-      ssm_df = ssm_df.dropna(axis=0, how='any', subset=[CAT, MUT_DIST])
+      ssm_df = ssm_df.dropna(axis=0, how='any', subset=[CAT_SBS_96, MUT_DIST])
       ssm_df[MUT_DIST] = ssm_df[MUT_DIST].astype(int)
-      ssm_df[CAT_INDEX] = ssm_df[CAT_INDEX].astype(int)
-      ssm_df = ssm_df.rename(columns={ CHR: "chr", POS: "pos", CAT: "cat", CAT_INDEX: "cat_index", MUT_DIST: "mut_dist" })
+      ssm_df = ssm_df.rename(columns={ CHR: "chr", POS_START: "pos", CAT_SBS_96: "cat", MUT_DIST: "mut_dist" })
     return PlotProcessing.pd_as_file(ssm_df, index_val=False)
   
   @staticmethod
@@ -178,9 +189,9 @@ class PlotProcessing():
     
     project_metadata = PlotProcessing.project_metadata()
     for proj_id in projects:
-      if project_metadata[proj_id]["has_counts"]:
+      if project_metadata[proj_id][HAS_COUNTS]:
         # counts data
-        counts_filepath = project_metadata[proj_id]["counts_path"]
+        counts_filepath = project_metadata[proj_id]["counts_sbs_path"]
         counts_df = PlotProcessing.pd_fetch_tsv(counts_filepath, index_col=0)
         if single_donor_id != None: # single donor request
           counts_df = counts_df.loc[[single_donor_id], :]
@@ -188,7 +199,7 @@ class PlotProcessing():
         donors = list(counts_df.index.values)
         # clinical data
         clinical_df = pd.DataFrame([], columns=[], index=donors)
-        if project_metadata[proj_id]["has_clinical"]:
+        if project_metadata[proj_id][HAS_CLINICAL]:
           donor_filepath = project_metadata[proj_id]["clinical_path"]
           temp_clinical_df = PlotProcessing.pd_fetch_tsv(donor_filepath, index_col=0)
           clinical_df = clinical_df.join(temp_clinical_df, how='left')
@@ -230,9 +241,9 @@ class PlotProcessing():
 
     project_metadata = PlotProcessing.project_metadata()
     for proj_id in projects:
-      if project_metadata[proj_id]["has_counts"]:
+      if project_metadata[proj_id][HAS_COUNTS]:
         # counts data
-        counts_filepath = project_metadata[proj_id]["counts_path"]
+        counts_filepath = project_metadata[proj_id]["counts_sbs_path"]
         counts_df = PlotProcessing.pd_fetch_tsv(counts_filepath, index_col=0)
         counts_df = counts_df.dropna(how='any', axis='index')
         result["projects"][proj_id] = len(counts_df.index.values)
@@ -266,9 +277,9 @@ class PlotProcessing():
     
     project_metadata = PlotProcessing.project_metadata()
     for proj_id in projects:
-      if project_metadata[proj_id]["has_counts"]:
+      if project_metadata[proj_id][HAS_COUNTS]:
         # counts data
-        counts_filepath = project_metadata[proj_id]["counts_path"]
+        counts_filepath = project_metadata[proj_id]["counts_sbs_path"]
         counts_df = PlotProcessing.pd_fetch_tsv(counts_filepath, index_col=0)
         counts_df = counts_df.dropna(how='any', axis='index')
         

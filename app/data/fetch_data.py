@@ -3,7 +3,7 @@ import subprocess
 import os
 
 OBJ_STORE_URL = "https://mutation-signature-explorer.obj.umiacs.umd.edu/"
-FILE_COLUMNS = ['ssm_path', 'counts_path', 'clinical_path']
+FILE_COLUMNS = ['extended_sbs_path', 'counts_sbs_path', 'extended_dbs_path', 'counts_dbs_path', 'extended_indel_path', 'counts_indel_path', 'clinical_path']
 OBJ_DIR = '../../obj' if bool(os.environ.get("DEBUG", '')) else '/obj'
 META_FILE = './meta.tsv' if bool(os.environ.get("DEBUG", '')) else '/app/data/meta.tsv'
 

@@ -15,28 +15,53 @@ SIGS_PER_CANCER_TYPE_FILE = os.path.join(SIGS_DIR, 'per_cancer_type.yaml')
 CHROMOSOME_RE = r'^(X|Y|M|[1-9]|1[0-9]|2[0-2])$'
 PROJ_RE = r'^[A-Z0-9]+-[A-Z0-9]+-[A-Z]+$'
 
-# Column names for mutation tables
-VAR = 'Variant Base'
-REF = 'Reference Base'
+# Column names for extended mutation tables
+PATIENT = 'Patient'
 SAMPLE = 'Sample'
+CANCER_TYPE = 'Cancer Type'
+PROVENANCE = 'Provenance'
+COHORT = 'Cohort'
+CHR = 'Chromosome'
+POS_START = 'Start Position'
+POS_END = 'End Position'
+REF = 'Reference Sequence'
+VAR = 'Variant Sequence'
+GSTRAND = 'Genomic Strand' # Watson-Crick Strand
+SEQ_TYPE = 'Sequencing Strategy'
+MUT_TYPE = 'Mutation Type'
+ASSEMBLY = 'Assembly Version'
+
 FPRIME = "5' Flanking Bases"
 TPRIME = "3' Flanking Bases"
-POS = 'Position'
-CHR = 'Chromosome'
+TSTRAND = 'Transcriptional Strand'
 MUT_DIST = 'Distance to Previous Mutation'
 NEAREST_MUT = 'Distance to Nearest Mutation'
-CAT = 'Category'
-CAT_INDEX = 'Category Index'
-COHORT = 'Cohort'
-
 MUT_DIST_ROLLING_MEAN = 'Rolling Mean of 6 Mutation Distances'
 KATAEGIS = 'Kataegis'
 
+# Category columns
+CAT_SBS_6 = 'SBS_6'
+CAT_SBS_96 = 'SBS_96'
+CAT_DBS_10 = 'DBS_10'
+CAT_DBS_78 = 'DBS_78'
+CAT_INDEL_83 = 'INDEL_Alexandrov2018_83'
+CAT_INDEL_16 = 'INDEL_Alexandrov2018_16'
+
 # Column names for donor clinical data tables
-TOBACCO_BINARY = 'Tobacco Binary'
+TOBACCO_BINARY = 'Tobacco User'
 TOBACCO_INTENSITY = 'Tobacco Intensity'
-ALCOHOL_BINARY = 'Alcohol Binary'
+ALCOHOL_BINARY = 'Alcohol User'
 ALCOHOL_INTENSITY = 'Alcohol Intensity'
+DIAGNOSIS_AGE = 'Diagnosis Age'
+SEX = 'Sex'
+DIAGNOSIS_ICD10 = 'Diagnosis ICD10 Code'
+VITAL_STATUS = 'Vital Status'
+PRIOR_MALIGNANCY = 'Prior Malignancy'
+NUM_RELATIVES_WITH_HISTORY = 'Number of Relatives with Cancer History'
+FIRST_THERAPY_TYPE = 'First Therapy Type'
+FIRST_THERAPY_RESPONSE = 'First Therapy Response'
+SECOND_THERAPY_TYPE = 'Second Therapy Type'
+SECOND_THERAPY_RESPONSE = 'Second Therapy Response'
 
 CLINICAL_VARIABLES = [TOBACCO_BINARY, TOBACCO_INTENSITY, ALCOHOL_BINARY]
 

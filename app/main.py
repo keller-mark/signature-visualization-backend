@@ -22,8 +22,8 @@ def route_signature_genome_bins_single():
   req = request.get_json(force=True)
   region_width = int(json_or(req, 'regionWidth', 1000000, r'^\d+$'))
   signatures = json_or(req, 'signatures', [], r'.*')
-  proj_id = json_or(req, 'proj_id', "PCAWG-PRAD-UK", PROJ_RE)
-  donor_id = json_or(req, 'donor_id', "DO51965")
+  proj_id = json_or(req, 'proj_id', "", PROJ_RE)
+  donor_id = json_or(req, 'donor_id', "")
 
   output = PlotProcessing.signature_genome_bins(region_width, signatures, [proj_id], single_donor_id=donor_id)
   return response_json(app, output)
@@ -39,8 +39,8 @@ def route_kataegis():
 @app.route('/kataegis-rainfall', methods=['POST'])
 def route_kataegis_rainfall():
   req = request.get_json(force=True)
-  proj_id = json_or(req, 'proj_id', "PCAWG-PRAD-UK", PROJ_RE)
-  donor_id = json_or(req, 'donor_id', "DO51965")
+  proj_id = json_or(req, 'proj_id', "", PROJ_RE)
+  donor_id = json_or(req, 'donor_id', "")
 
   output = PlotProcessing.kataegis_rainfall(proj_id, donor_id)
   return response_csv(app, output)
@@ -59,8 +59,8 @@ def route_exposures():
 def route_exposures_single():
   req = request.get_json(force=True)
   signatures = json_or(req, 'signatures', [], r'.*')
-  proj_id = json_or(req, 'proj_id', "PCAWG-PRAD-UK", PROJ_RE)
-  donor_id = json_or(req, 'donor_id', "DO51965")
+  proj_id = json_or(req, 'proj_id', "", PROJ_RE)
+  donor_id = json_or(req, 'donor_id', "")
 
   output = PlotProcessing.signature_exposures(signatures, [proj_id], single_donor_id=donor_id)
 
@@ -69,7 +69,7 @@ def route_exposures_single():
 @app.route('/signature', methods=['POST'])
 def route_signature():
   req = request.get_json(force=True)
-  signature = json_or(req, 'signature', "COSMIC 1", r'.*')
+  signature = json_or(req, 'signature', "", r'.*')
   output = PlotProcessing.signature(name=signature)
   return response_json(app, output)
 
