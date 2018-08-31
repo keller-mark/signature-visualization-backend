@@ -3,6 +3,8 @@ from yaml import load
 from yaml import Loader
 from web_constants import *
 from signatures import Signatures
+from project_data import ProjectData
+
 
 def get_signatures_per_cancer_type():
     if not os.path.isfile(SIGS_PER_CANCER_TYPE_FILE):
