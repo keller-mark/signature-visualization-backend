@@ -21,7 +21,8 @@ class TestDataListing(unittest.TestCase):
             "has_counts": True
         }
         self.assertEqual(brca_obj, res['sources']['ICGC-BRCA-EU'])
-        self.assertEqual({'name', 'description', 'index', 'publication'}, set(res['sigs'][0].keys()))
+        self.assertIn('SBS_96', list(res['sigs'].keys()))
+        self.assertEqual({'name', 'description', 'index', 'publication'}, set(res['sigs']['SBS_96'][0].keys()))
         self.assertEqual({'group', 'id', 'cancer-types'}, set(res['sig_presets'][0].keys()))
         self.assertEqual({'name', 'id', 'signatures'}, set(res['sig_presets'][0]['cancer-types'][0].keys()))
     

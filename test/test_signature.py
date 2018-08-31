@@ -10,7 +10,8 @@ class TestSignature(unittest.TestCase):
         url = API_BASE + '/signature'
         
         payload = {
-            "signature": "COSMIC 1"
+            "name": "COSMIC 1",
+            "type": "SBS_96"
         }
         r = requests.post(url, data=json.dumps(payload))
         r.raise_for_status()
@@ -26,7 +27,8 @@ class TestSignature(unittest.TestCase):
         url = API_BASE + '/signature'
         
         payload = {
-            "signature": "COSMIC 2"
+            "name": "COSMIC 2",
+            "type": "SBS_96"
         }
         r = requests.post(url, data=json.dumps(payload))
         r.raise_for_status()

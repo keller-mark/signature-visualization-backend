@@ -5,3 +5,4 @@ pandas==0.22.0
 quadprog==0.1.6
 scikit-learn==0.19.1
 PyYAML==3.12
+jsonschema==2.6.0

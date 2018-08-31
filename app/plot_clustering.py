@@ -7,9 +7,14 @@ from web_constants import *
 from plot_processing import *
 from signatures import Signatures
 
+def plot_clustering(chosen_sigs_by_type, projects):
+    result = dict()
+    for sigs_type, chosen_sigs in chosen_sigs_by_type:
+        result[sigs_type] = plot_clustering_by_sigs_type(chosen_sigs, projects, sigs_type)
+    return result
 
-def plot_clustering(sigs, projects):
-    signatures = Signatures(SIGS_FILE, SIGS_META_FILE, chosen_sigs=sigs)
+def plot_clustering_by_sigs_type(sigs, projects, sigs_type):
+    signatures = Signatures(sigs_type, chosen_sigs=sigs)
     sig_names = signatures.get_chosen_names()
     full_exps_df = pd.DataFrame(index=[], columns=sig_names)
     

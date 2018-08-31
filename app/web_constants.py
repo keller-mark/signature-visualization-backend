@@ -6,9 +6,21 @@ DATA_DIR = 'data'
 DATA_META_FILE = os.path.join(DATA_DIR, 'meta.tsv')
 CHROMOSOME_BANDS_FILE = os.path.join(DATA_DIR, 'chromosome_bands.tsv')
 
+CATEGORY_TYPES = {
+  'SBS': ['SBS_96', 'SBS_6'],
+  'DBS': ['DBS_78', 'DBS_10'], 
+  'INDEL': ['INDEL_Alexandrov2018_83', 'INDEL_Alexandrov2018_16']
+}
+
+SIG_TYPES = {
+  'SBS': 'SBS_96',
+  'DBS': 'DBS_78',
+  'INDEL': 'INDEL_Alexandrov2018_83'
+}
+
 SIGS_DIR = os.path.join(DATA_DIR, 'sigs')
-SIGS_FILE = os.path.join(SIGS_DIR, 'signatures.tsv')
-SIGS_META_FILE = os.path.join(SIGS_DIR, 'signatures_meta.tsv')
+SIGS_FILE_SUFFIX = '_signatures.tsv'
+SIGS_META_FILE_SUFFIX = '_signatures_meta.tsv'
 SIGS_PER_CANCER_TYPE_FILE = os.path.join(SIGS_DIR, 'per_cancer_type.yaml')
 
 # Regular Expressions
@@ -38,14 +50,6 @@ MUT_DIST = 'Distance to Previous Mutation'
 NEAREST_MUT = 'Distance to Nearest Mutation'
 MUT_DIST_ROLLING_MEAN = 'Rolling Mean of 6 Mutation Distances'
 KATAEGIS = 'Kataegis'
-
-# Category columns
-CAT_SBS_6 = 'SBS_6'
-CAT_SBS_96 = 'SBS_96'
-CAT_DBS_10 = 'DBS_10'
-CAT_DBS_78 = 'DBS_78'
-CAT_INDEL_83 = 'INDEL_Alexandrov2018_83'
-CAT_INDEL_16 = 'INDEL_Alexandrov2018_16'
 
 # Column names for donor clinical data tables
 TOBACCO_BINARY = 'Tobacco User'
