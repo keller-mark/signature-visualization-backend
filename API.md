@@ -4,9 +4,14 @@ FORMAT: 1A
 Note that this API does NOT follow the traditional RESTful HTTP verb conventions. All requests are made via `POST`.
 
 Table of Contents:
-- [Data Listing](#data-listing)
-- [Signature](#signature)
-- [Exposures](#exposures)
+- [Data Listing](#data-listing-data-listing)
+- [Signature](#signature-signature)
+- [Exposures](#exposures-exposures)
+- [Exposures - Single Sample](#exposures---single-sample-exposures-single-sample)
+- [Kataegis](#kataegis-kataegis)
+- [Rainfall](#rainfall-kataegis-rainfall)
+- [Signature Genome Bins](#signature-genome-bins-signature-genome-bins)
+- [Signature Genome Bins - Single Sample](#signature-genome-bins---single-sample-signature-genome-bins-single-sample)
 
 ## Data Listing [/data-listing]
 
