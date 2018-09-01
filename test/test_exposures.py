@@ -51,6 +51,6 @@ class TestExposures(unittest.TestCase):
         r = requests.post(url, data=json.dumps(payload))
         r.raise_for_status()
         res = r.json()
-        self.assertEqual(569, len(res))
+        self.assertEqual(1139, len(res))
         self.assertEqual({'sample_id', 'proj_id', 'exposures', 'clinical'}, set(res[0].keys()))
         self.assertEqual(31, len(res[0]['exposures']['SBS']))

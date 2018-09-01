@@ -12,7 +12,7 @@ class TestRainfall(unittest.TestCase):
         
         payload = {
             "proj_id": "ICGC-BRCA-EU",
-            "donor_id": "SA542425"
+            "sample_id": "SA542425"
         }
         r = requests.post(url, data=json.dumps(payload))
         r.raise_for_status()
@@ -27,7 +27,7 @@ class TestRainfall(unittest.TestCase):
         url = API_BASE + '/kataegis-rainfall'
         payload = {
             "proj_id": "ICGC-COCA-CN",
-            "donor_id": "SA602006"
+            "sample_id": "SA602006"
         }
         r = requests.post(url, data=json.dumps(payload))
         r.raise_for_status()

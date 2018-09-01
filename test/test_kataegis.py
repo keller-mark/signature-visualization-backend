@@ -10,12 +10,12 @@ class TestKataegis(unittest.TestCase):
         url = API_BASE + '/kataegis'
         
         payload = {
-            "sources":[
+            "projects":[
                 "ICGC-BRCA-EU"
             ]
         }
         r = requests.post(url, data=json.dumps(payload))
         r.raise_for_status()
         res = r.json()
-        self.assertEqual(569, len(res.keys()))
+        self.assertEqual(1139, len(res.keys()))
         self.assertEqual(4, len(res['SA542425']['kataegis']['1']))
