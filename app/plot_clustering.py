@@ -26,7 +26,7 @@ def plot_clustering(chosen_sigs_by_mut_type, projects):
             signatures = signatures_by_mut_type[mut_type]
             counts_df = proj.get_counts_df(mut_type)
             
-            if len(counts_df) > 0:
+            if counts_df.shape[0] > 0 and len(signatures.get_chosen_names()) > 0:
                 # compute exposures
                 exps_df = signatures.get_exposures(counts_df)
 

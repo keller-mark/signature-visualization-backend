@@ -45,10 +45,15 @@ def plot_signature_genome_bins(region_width, chosen_sigs_by_mut_type, projects, 
             counts_df = proj.get_counts_df(mut_type)
 
             if single_sample_id != None: # single sample request
-                counts_df = counts_df.loc[[single_sample_id], :]
-                ssm_df = ssm_df.loc[ssm_df[SAMPLE] == single_sample_id]
+                try:
+                    counts_df = counts_df.loc[[single_sample_id], :]
+                    ssm_df = ssm_df.loc[ssm_df[SAMPLE] == single_sample_id]
+                except KeyError:
+                    counts_df = counts_df.drop(counts_df.index)
+                    ssm_df = ssm_df.drop(ssm_df.index)
+                    continue
 
-            if len(counts_df) > 0:
+            if counts_df.shape[0] > 0 and len(signatures.get_chosen_names()) > 0:
                 # compute exposures
                 exps_df = signatures.get_exposures(counts_df)
                 assignments_df = signatures.get_assignments(exps_df)
@@ -70,6 +75,6 @@ def plot_signature_genome_bins(region_width, chosen_sigs_by_mut_type, projects, 
     for chr_name in CHROMOSOMES.keys():
         for mut_type in MUT_TYPES:
             chr_dfs[chr_name][mut_type].fillna(value=0, inplace=True)
-            chr_dfs[chr_name][mut_type][list(chr_dfs[chr_name].columns.values)] = chr_dfs[chr_name][mut_type][list(chr_dfs[chr_name].columns.values)].astype(int)
+            chr_dfs[chr_name][mut_type][list(chr_dfs[chr_name][mut_type].columns.values)] = chr_dfs[chr_name][mut_type][list(chr_dfs[chr_name][mut_type].columns.values)].astype(int)
             chr_dfs[chr_name][mut_type] = chr_dfs[chr_name][mut_type].transpose().to_dict(orient='index')
     return chr_dfs

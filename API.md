@@ -10,8 +10,10 @@ Table of Contents:
 - [Exposures - Single Sample](#exposures---single-sample-exposures-single-sample)
 - [Kataegis](#kataegis-kataegis)
 - [Rainfall](#rainfall-kataegis-rainfall)
-- [Signature Genome Bins](#signature-genome-bins-signature-genome-bins)
 - [Signature Genome Bins - Single Sample](#signature-genome-bins---single-sample-signature-genome-bins-single-sample)
+- [Samples with Signatures](#samples-with-signatures-samples-with-signatures)
+- [Hierarchical Clustering](#hierarchical-clustering-clustering)
+
 
 ## Data Listing [/data-listing]
 
@@ -306,14 +308,15 @@ Table of Contents:
 			1,4652247,T[C>T]G,264732,0
 
 
-## Signature Genome Bins [/signature-genome-bins]
+## Signature Genome Bins - Single Sample [/signature-genome-bins-single-sample]
 
 + Request (text/plain)
 
 	+ Body
 
 			{
-				"projects": ["PCAWG-BRCA-EU"],
+				"proj_id": "ICGC-BRCA-EU",
+				"sample_id": "SA543682",
 				"signatures": {
 					"SBS": [
 						"COSMIC 1",
@@ -326,19 +329,179 @@ Table of Contents:
 						...
 					]
 				}, 
-				"regionWidth": 1000000
+				"regionWidth": 10000000
 			}
 
 + Response 200 (application/json)
 
 	+ Body
 
-		
+			{
+				"1": {
+					"SBS": {
+						"0": {
+							"COSMIC 1": 3,
+							...
+						},
+						"10000000": {
+							"COSMIC 1": 0,
+							...
+						},
+						"20000000": {
+							"COSMIC 1": 1,
+							...
+						},
+						...
+					},
+					"DBS": {
+						...
+					},
+					"INDEL": {
+						...
+					}
+				},
+				...
+				"22": {
+					...
+				},
+				"X": {
+					...
+				},
+				...
+			}
 
 
+## Samples with Signatures [/samples-with-signatures]
 
++ Request (text/plain)
 
+	+ Body
 
+			{
+				"projects":["ICGC-BRCA-EU"],
+				"signatures": {
+					"SBS": [
+						"COSMIC 1",
+						...
+					],
+					"DBS": [
+						...
+					],
+					"INDEL": [
+						...
+					]
+				}
+			}
 
++ Response 200 (application/json)
 
+	+ Body
 
+			{
+				"signatures": {
+					"SBS": {
+						"COSMIC 1": {
+							"ICGC-BRCA-EU": 561
+						},
+						...
+					},
+					"DBS": {
+						...
+					},
+					"INDEL": {
+						...
+					}
+				},
+				"projects": {
+					"ICGC-BRCA-EU": 1139,
+					...
+				}
+			}
+
+## Hierarchical Clustering [/clustering]
+
++ Request (text/plain)
+
+	+ Body
+
+			{
+				"projects": [
+					"ICGC-BRCA-EU",
+					...
+				],
+				"signatures": {
+					"SBS":[
+						"COSMIC 1",
+						...
+					],
+					"DBS": [
+						...
+					],
+					"INDEL": [
+						...
+					]
+				}
+			}
+
++ Response 200 (application/json)
+
+	+ Body
+
+			{
+				"children": [
+					{
+						"children": [
+							{
+								"children": [
+									{
+										"children": [
+											{
+												"children": [
+													{
+														"children": [
+															{
+																"children": [
+																	{
+																		"children": [],
+																		"name": "SA569469"
+																	},
+																	{
+																		"children": [],
+																		"name": "SA570293"
+																	}
+																],
+																"name": "SA569469-SA570293"
+															},
+															{
+																"children": [
+																	{
+																		"children": [
+																			{
+																				"children": [
+																					{
+																						"children": [],
+																						"name": "SA569588"
+																					},
+																					{
+																						"children": [],
+																						"name": "SA570579"
+																					}
+																				],
+																				"name": "SA569588-SA570579"
+																			},
+																			...
+																	},
+																	...
+															},
+															...
+													},
+													...
+											},
+											...
+									},
+									...
+							},
+							...
+					},
+					...
+			}
