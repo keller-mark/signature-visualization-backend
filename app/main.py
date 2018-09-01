@@ -29,7 +29,7 @@ string_array_schema = {
 projects_schema = string_array_schema
 signatures_schema = {
   "type" : "object",
-  "properties": dict([(mut_type, string_array_schema) for mut_type in SIG_TYPES.keys()])
+  "properties": dict([(mut_type, string_array_schema) for mut_type in MUT_TYPES])
 }
 
 

@@ -18,6 +18,9 @@ meta_df = pd.read_csv(DATA_META_FILE, sep='\t', index_col=0)
 def get_project_data(proj_id):
     return ProjectData(proj_id, meta_df.loc[proj_id])
 
+def get_selected_project_data(proj_id_list):
+    return list(map(lambda proj_id: get_project_data(proj_id), proj_id_list))
+
 # Factory-type function for getting list of all ProjectData objects
 def get_all_project_data():
     row_tuples = meta_df.to_dict(orient='index').items()
@@ -86,6 +89,13 @@ class ProjectData():
             return pd_fetch_tsv(self.samples_path, index_col=1)
         return None
     
+    def get_samples_list(self):
+        if self.has_samples_df():
+            samples_df = self.get_samples_df()
+            return samples_df[SAMPLES].aslist()
+        return None
+    
+    
     # Clinical file
     def has_clinical_df(self):
         return (self.clinical_path != None)
@@ -127,9 +137,9 @@ class ProjectData():
             has_all = has_all and self.has_extended_df(mut_type)
         return has_all
     
-    def get_extended_df(self, mut_type):
+    def get_extended_df(self, mut_type, **kwargs):
         if self.has_extended_df(mut_type):
-            return pd_fetch_tsv(self.extended_paths[mut_type])
+            return pd_fetch_tsv(self.extended_paths[mut_type], **kwargs)
         return None
     
 

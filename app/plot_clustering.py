@@ -4,27 +4,27 @@ import scipy.cluster
 from functools import reduce
 
 from web_constants import *
-from plot_processing import *
-from signatures import Signatures
+from signatures import Signatures, get_signatures_by_mut_type
+from project_data import ProjectData, get_selected_project_data
 
-def plot_clustering(chosen_sigs_by_type, projects):
-    result = dict()
-    for sigs_type, chosen_sigs in chosen_sigs_by_type:
-        result[sigs_type] = plot_clustering_by_sigs_type(chosen_sigs, projects, sigs_type)
-    return result
 
-def plot_clustering_by_sigs_type(sigs, projects, sigs_type):
-    signatures = Signatures(sigs_type, chosen_sigs=sigs)
-    sig_names = signatures.get_chosen_names()
-    full_exps_df = pd.DataFrame(index=[], columns=sig_names)
+def plot_clustering(chosen_sigs_by_mut_type, projects):
+    signatures_by_mut_type = get_signatures_by_mut_type(chosen_sigs_by_mut_type)
     
-    project_metadata = PlotProcessing.project_metadata()
-    for proj_id in projects:
-        if project_metadata[proj_id][HAS_COUNTS]:
-            # counts data
-            counts_filepath = project_metadata[proj_id]["counts_sbs_path"]
-            counts_df = PlotProcessing.pd_fetch_tsv(counts_filepath, index_col=0)
-            counts_df = counts_df.dropna(how='any', axis='index')
+    all_sig_names = []
+    for mut_type in MUT_TYPES:
+        signatures = signatures_by_mut_type[mut_type]
+        all_sig_names += signatures.get_chosen_names()
+    
+    full_exps_df = pd.DataFrame(index=[], columns=all_sig_names)
+    
+    project_data = get_selected_project_data(projects)
+    for proj in project_data:
+        proj_id = proj.get_proj_id()
+
+        for mut_type in MUT_TYPES:
+            signatures = signatures_by_mut_type[mut_type]
+            counts_df = proj.get_counts_df(mut_type)
             
             if len(counts_df) > 0:
                 # compute exposures

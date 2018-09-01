@@ -18,6 +18,8 @@ SIG_TYPES = {
   'INDEL': 'INDEL_Alexandrov2018_83'
 }
 
+MUT_TYPES = SIG_TYPES.keys()
+
 SIGS_DIR = os.path.join(DATA_DIR, 'sigs')
 SIGS_FILE_SUFFIX = '_signatures.tsv'
 SIGS_META_FILE_SUFFIX = '_signatures_meta.tsv'

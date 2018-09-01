@@ -1,28 +1,32 @@
 import pandas as pd
 import numpy as np
-from web_constants import *
-from plot_processing import *
-from signatures import Signatures
 
-def plot_samples_with_signatures(sigs, projects):
-    signatures = Signatures(SIGS_FILE, SIGS_META_FILE, chosen_sigs=sigs)
-    sig_names = signatures.get_chosen_names()
-    
+from web_constants import *
+from signatures import Signatures, get_signatures_by_mut_type
+from project_data import ProjectData, get_selected_project_data
+
+def plot_samples_with_signatures(chosen_sigs_by_mut_type, projects):
+    signatures_by_mut_type = get_signatures_by_mut_type(chosen_sigs_by_mut_type)
+
     # array containing an object for each signature
     # example: { signatures: {"SBS 1": {"proj_id": number, ...}, ...}, "projects": { "proj_id": num_samples}, ... }
     result = {
-      "signatures": {},
+      "signatures": dict([(mut_type, {}) for mut_type in MUT_TYPES]),
       "projects": {}
     }
 
-    project_metadata = PlotProcessing.project_metadata()
-    for proj_id in projects:
-        if project_metadata[proj_id][HAS_COUNTS]:
+    project_data = get_selected_project_data(projects)
+    for proj in project_data:
+        proj_id = proj.get_proj_id()
+
+        num_samples = len(proj.get_samples_list())
+        result["projects"][proj_id] = num_samples
+
+        for mut_type in MUT_TYPES:
+            signatures = signatures_by_mut_type[mut_type]
+
             # counts data
-            counts_filepath = project_metadata[proj_id]["counts_sbs_path"]
-            counts_df = PlotProcessing.pd_fetch_tsv(counts_filepath, index_col=0)
-            counts_df = counts_df.dropna(how='any', axis='index')
-            result["projects"][proj_id] = len(counts_df.index.values)
+            counts_df = proj.get_counts_df(mut_type)
             
             if len(counts_df) > 0:
                 # compute exposures
@@ -34,7 +38,7 @@ def plot_samples_with_signatures(sigs, projects):
                 
                 for sig_name, num_samples in samples_with_sig.to_dict().items():
                     try:
-                        result["signatures"][sig_name][proj_id] = num_samples
+                        result["signatures"][mut_type][sig_name][proj_id] = num_samples
                     except KeyError:
-                        result["signatures"][sig_name] = { proj_id: num_samples }
+                        result["signatures"][mut_type][sig_name] = { proj_id: num_samples }
     return result
