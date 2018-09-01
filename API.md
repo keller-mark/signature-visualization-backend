@@ -22,9 +22,8 @@ Table of Contents:
     + Body
 
             {
-				"projects": [
-					{
-						"id": "ICGC-BRCA-EU",
+				"projects": {
+					"ICGC-BRCA-EU": {
 						"name": "Breast ER+ and HER2- Cancer - EU/UK",
 						"num_donors": 569,
 						"source": "ICGC",
@@ -33,7 +32,7 @@ Table of Contents:
 						"has_counts": true
 					},
 					...
-				],
+				},
 				"sigs": {
 					"SBS": [
 						{
