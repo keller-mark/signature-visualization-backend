@@ -13,8 +13,9 @@ from signature_estimation_qp import signature_estimation_qp
 def get_signatures_by_mut_type(chosen_sigs_by_mut_type):
     result = {}
     # where here mut_type == 'SBS' and NOT the sig_type 'SBS_96'
-    for mut_type, chosen_sigs in chosen_sigs_by_mut_type:
+    for mut_type, chosen_sigs in chosen_sigs_by_mut_type.items():
         result[mut_type] = Signatures(sigs_type=SIG_TYPES[mut_type], chosen_sigs=chosen_sigs)
+    return result
 
 
 class Signatures():

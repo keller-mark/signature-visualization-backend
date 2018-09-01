@@ -92,9 +92,8 @@ class ProjectData():
     def get_samples_list(self):
         if self.has_samples_df():
             samples_df = self.get_samples_df()
-            return samples_df[SAMPLES].aslist()
+            return list(samples_df.index.values)
         return None
-    
     
     # Clinical file
     def has_clinical_df(self):
@@ -103,6 +102,7 @@ class ProjectData():
     def get_clinical_df(self):
         if self.has_samples_df() and self.has_clinical_df():
             samples_df = self.get_samples_df()
+            samples_df = samples_df.reset_index()
             clinical_df = pd_fetch_tsv(self.clinical_path)
             clinical_df = samples_df.merge(clinical_df, on=PATIENT, how='left')
             clinical_df = clinical_df.fillna(value='nan')

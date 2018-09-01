@@ -49,7 +49,7 @@ schema_signature = {
   "type": "object",
   "properties": {
     "name": {"type": "string"},
-    "sig_type": {"type": "string"}
+    "mut_type": {"type": "string"}
   }
 }
 @app.route('/signature', methods=['POST'])
@@ -57,7 +57,9 @@ def route_signature():
   req = request.get_json(force=True)
   validate(req, schema_signature)
 
-  output = plot_signature(name=req["name"], sig_type=req["sig_type"])
+  assert(req["mut_type"] in SIG_TYPES.keys())
+
+  output = plot_signature(name=req["name"], sig_type=SIG_TYPES[req["mut_type"]])
   return response_json(app, output)
 
 

@@ -11,7 +11,7 @@ class TestSignature(unittest.TestCase):
         
         payload = {
             "name": "COSMIC 1",
-            "type": "SBS_96"
+            "mut_type": "SBS"
         }
         r = requests.post(url, data=json.dumps(payload))
         r.raise_for_status()
@@ -28,7 +28,7 @@ class TestSignature(unittest.TestCase):
         
         payload = {
             "name": "COSMIC 2",
-            "type": "SBS_96"
+            "mut_type": "SBS"
         }
         r = requests.post(url, data=json.dumps(payload))
         r.raise_for_status()

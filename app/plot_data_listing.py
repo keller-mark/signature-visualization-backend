@@ -16,9 +16,9 @@ def get_signatures_per_cancer_type():
 
 def plot_data_listing():
     # instantiate a signatures object for each signature type
-    signature_types = dict([(mut_type, Signatures(sig_type)) for mut_type, sig_type in SIG_TYPES])
+    signature_types = dict([(mut_type, Signatures(sig_type)) for mut_type, sig_type in SIG_TYPES.items()])
     return {
       "projects": get_all_project_data_as_json(),
-      "sigs": dict([(mt, st.get_metadata()) for mt, st in signature_types]),
+      "sigs": dict([(mt, st.get_metadata()) for mt, st in signature_types.items()]),
       "sig_per_cancer_type": get_signatures_per_cancer_type()
     }
