@@ -23,6 +23,6 @@ class TestDataListing(unittest.TestCase):
         self.assertEqual(brca_obj, res['projects']['ICGC-BRCA-EU'])
         self.assertIn('SBS', list(res['sigs'].keys()))
         self.assertEqual({'name', 'description', 'index', 'publication'}, set(res['sigs']['SBS'][0].keys()))
-        self.assertEqual({'group', 'id', 'cancer-types'}, set(res['sig_per_cancer_type'][0].keys()))
-        self.assertEqual({'name', 'id', 'signatures'}, set(res['sig_per_cancer_type'][0]['cancer-types'][0].keys()))
+        self.assertEqual({'group', 'id', 'cancer-types'}, set(res['sigs_per_cancer_type'][0].keys()))
+        self.assertEqual({'name', 'id', 'signatures'}, set(res['sigs_per_cancer_type'][0]['cancer-types'][0].keys()))
     

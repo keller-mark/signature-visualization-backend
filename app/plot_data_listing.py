@@ -20,5 +20,5 @@ def plot_data_listing():
     return {
       "projects": get_all_project_data_as_json(),
       "sigs": dict([(mt, st.get_metadata()) for mt, st in signature_types.items()]),
-      "sig_per_cancer_type": get_signatures_per_cancer_type()
+      "sigs_per_cancer_type": get_signatures_per_cancer_type()
     }

@@ -50,7 +50,7 @@ Table of Contents:
 						...
 					]
 				},
-				"sig_per_cancer_type": [
+				"sigs_per_cancer_type": [
 					{
 						"group": "COSMIC",
 						"id": "COSMIC",
@@ -58,10 +58,18 @@ Table of Contents:
 							{
 								"name": "Adrenocortical Carcinoma",
 								"id": "COSMIC-ACC",
-								"signatures": [
-									"COSMIC 1",
-									...
-								]
+								"signatures": {
+									"SBS": [
+										"COSMIC 1",
+										...
+									], #optional
+									"DBS": [
+										...
+									], #optional
+									"INDEL": [
+										...
+									]  #optional
+								}
 							},
 							...
 						]
