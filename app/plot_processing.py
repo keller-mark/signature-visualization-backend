@@ -338,16 +338,30 @@ class PlotProcessing():
       gene_events_df = events_df.loc[events_df['gene_id'] == gene_id]
       gene_events_df = gene_events_df.set_index('sample_id')
 
+      event_codes = {
+        "0": "NA",
+        "1": "germ_bi_patho",
+        "2": "germ_bi_patho_double",
+        "3": "germ_bi_vus",
+        "4": "TODO: find out what this one is...", # TODO
+        "5": "som_bi_patho",
+        "6": "som_bi_patho_double",
+        "7": "som_bi_vus",
+        "8": "som_loh",
+        "10": "TODO: find out what this one is..." # TODO
+      }
+
       # TODO: change from donors to samples
       for sample_id in donors:
         try:
           event = gene_events_df.loc[sample_id]['event_type']
         except KeyError:
           event = 0
+
         result[sample_id] = {
           "donor_id": sample_id,
           "proj_id": proj_id,
-          "event": str(event)
+          "event": event_codes[str(event)]
         }
     return result
   

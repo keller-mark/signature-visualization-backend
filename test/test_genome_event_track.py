@@ -6,7 +6,7 @@ from constants_for_tests import *
 
 class TestGenomeEventTrack(unittest.TestCase):
 
-    def test_exposures(self):
+    def test_genome_event_track(self):
         url = API_BASE + '/genome-event-track'
         payload = {
             "projects": ["ICGC-BRCA-EU"],
@@ -17,4 +17,4 @@ class TestGenomeEventTrack(unittest.TestCase):
         res = r.json()
         self.assertEqual(569, len(res.keys()))
         self.assertEqual({'donor_id', 'proj_id', 'event'}, set(res["DO217786"].keys()))
-        self.assertEqual("8", res["DO217786"]["event"])
+        self.assertEqual("som_loh", res["DO217786"]["event"])
