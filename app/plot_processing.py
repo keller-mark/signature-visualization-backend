@@ -6,6 +6,7 @@ import io
 import re
 import sys
 import json
+import pickle
 from functools import reduce
 from yaml import load
 from yaml import Loader
@@ -349,3 +350,11 @@ class PlotProcessing():
           "event": str(event)
         }
     return result
+  
+
+  @staticmethod
+  def autocomplete_gene(gene_id_partial):
+    with open(GENE_LIST_FILE, 'rb') as f:
+      gene_list = pickle.load(f)
+      gene_list_filtered = list(filter(lambda gene_id: gene_id.startswith(gene_id_partial), gene_list))
+    return gene_list_filtered

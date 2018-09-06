@@ -5,6 +5,7 @@ OBJ_DIR = '../obj' if bool(os.environ.get("DEBUG", '')) else '/obj'
 DATA_DIR = 'data'
 DATA_META_FILE = os.path.join(DATA_DIR, 'meta.tsv')
 CHROMOSOME_BANDS_FILE = os.path.join(DATA_DIR, 'chromosome_bands.tsv')
+GENE_LIST_FILE = os.path.join(OBJ_DIR, 'gene_list.pickle')
 
 SIGS_DIR = os.path.join(DATA_DIR, 'sigs')
 SIGS_FILE = os.path.join(SIGS_DIR, 'signatures.tsv')

@@ -118,6 +118,14 @@ def route_genome_event_track():
 
   return response_json(app, output)
 
+@app.route('/autocomplete-gene', methods=['POST'])
+def route_autocomplete_gene():
+  req = request.get_json(force=True)
+  gene_id_partial = json_or(req, 'gene_id_partial', "", r'.*')
+
+  output = PlotProcessing.autocomplete_gene(gene_id_partial)
+  return response_json(app, output)
+
 if __name__ == '__main__':
   app.run(
       host='0.0.0.0',
