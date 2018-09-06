@@ -317,3 +317,35 @@ class PlotProcessing():
 
     label_tree( tree_dict["children"][0] )
     return tree_dict
+
+  @staticmethod
+  def genome_event_track(gene_id, event_type, projects):
+    result = {}
+    
+    project_metadata = PlotProcessing.project_metadata()
+    for proj_id in projects:
+      # TODO: using counts file right now only to get donor list. in future, use sample file
+      counts_filepath = project_metadata[proj_id]["counts_path"]
+      counts_df = PlotProcessing.pd_fetch_tsv(counts_filepath, index_col=0)
+      counts_df = counts_df.dropna(how='any', axis='index')
+      donors = list(counts_df.index.values)
+
+      # TODO: get filename from project_metadata
+      events_filepath = "genome_events/ICGC/test_data.ICGC-BRCA-EU.tsv"
+      events_df = PlotProcessing.pd_fetch_tsv(events_filepath)
+
+      gene_events_df = events_df.loc[events_df['gene_id'] == gene_id]
+      gene_events_df = gene_events_df.set_index('sample_id')
+
+      # TODO: change from donors to samples
+      for sample_id in donors:
+        try:
+          event = gene_events_df.loc[sample_id]['event_type']
+        except KeyError:
+          event = 0
+        result[sample_id] = {
+          "donor_id": sample_id,
+          "proj_id": proj_id,
+          "event": str(event)
+        }
+    return result

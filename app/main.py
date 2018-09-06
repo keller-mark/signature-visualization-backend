@@ -108,6 +108,17 @@ def route_clustering():
 
   return response_json(app, output)
 
+@app.route('/genome-event-track', methods=['POST'])
+def route_genome_event_track():
+  req = request.get_json(force=True)
+  gene_id = json_or(req, 'gene_id', "", r'.*')
+  event_type = json_or(req, 'event_type', "", r'.*')
+  projects = json_or(req, 'projects', [], PROJ_RE)
+
+  output = PlotProcessing.genome_event_track(gene_id, event_type, projects)
+
+  return response_json(app, output)
+
 if __name__ == '__main__':
   app.run(
       host='0.0.0.0',
