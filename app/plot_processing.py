@@ -22,7 +22,7 @@ class PlotProcessing():
     meta_df["has_counts"] = pd.notnull(meta_df["counts_path"])
     meta_df = meta_df.fillna(value="")
     if not filepaths:
-      meta_df = meta_df.drop(columns=['clinical_path', 'ssm_path', 'counts_path'])
+      meta_df = meta_df.drop(columns=['clinical_path', 'ssm_path', 'counts_path', 'genome_events_path'])
     meta_df = meta_df.transpose()
     return meta_df.to_dict()
   
@@ -319,7 +319,7 @@ class PlotProcessing():
     return tree_dict
 
   @staticmethod
-  def genome_event_track(gene_id, event_type, projects):
+  def genome_event_track(gene_id, projects):
     result = {}
     
     project_metadata = PlotProcessing.project_metadata()
