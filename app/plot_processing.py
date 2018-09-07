@@ -343,12 +343,13 @@ class PlotProcessing():
         "1": "germ_bi_patho",
         "2": "germ_bi_patho_double",
         "3": "germ_bi_vus",
-        "4": "TODO: find out what this one is...", # TODO
+        "4": "event_4", # TODO
         "5": "som_bi_patho",
         "6": "som_bi_patho_double",
         "7": "som_bi_vus",
         "8": "som_loh",
-        "10": "TODO: find out what this one is..." # TODO
+        "9": "event_9", # TODO
+        "10": "event_10" # TODO
       }
 
       # TODO: change from donors to samples
@@ -368,6 +369,7 @@ class PlotProcessing():
 
   @staticmethod
   def autocomplete_gene(gene_id_partial):
+    gene_id_partial = gene_id_partial.upper()
     with open(GENE_LIST_FILE, 'rb') as f:
       gene_list = pickle.load(f)
       gene_list_filtered = list(filter(lambda gene_id: gene_id.startswith(gene_id_partial), gene_list))
