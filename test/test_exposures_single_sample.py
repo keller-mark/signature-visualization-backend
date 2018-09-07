@@ -4,13 +4,13 @@ import unittest
 
 from constants_for_tests import *
 
-class TestSamplesWithSignatures(unittest.TestCase):
+class TestExposuresSingleDonor(unittest.TestCase):
 
-    def test_samples_with_signatures(self):
-        url = API_BASE + '/samples-with-signatures'
-        
+    def test_exposures_single_donor(self):
+        url = API_BASE + '/exposures-single-sample'
         payload = {
-            "projects":["ICGC-BRCA-EU"],
+            "sample_id": "SA557034", 
+            "proj_id": "ICGC-BRCA-EU", 
             "signatures":{
                 "SBS": [
                     "COSMIC 1",
@@ -52,8 +52,7 @@ class TestSamplesWithSignatures(unittest.TestCase):
         r = requests.post(url, data=json.dumps(payload))
         r.raise_for_status()
         res = r.json()
-        
-        self.assertEqual({'signatures', 'projects'}, set(res.keys()))
-        self.assertEqual(31, len(list(res['signatures']['SBS'].keys())))
-        self.assertEqual(1139, res['projects']['ICGC-BRCA-EU'])
-    
+        self.assertEqual(1, len(res))
+        self.assertEqual({'sample_id', 'proj_id', 'exposures', 'clinical'}, set(res[0].keys()))
+        self.assertEqual({'SBS', 'DBS', 'INDEL'}, set(res[0]['exposures'].keys()))
+        self.assertEqual(31, len(res[0]['exposures']['SBS']))
