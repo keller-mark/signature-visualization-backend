@@ -10,7 +10,7 @@ class TestDataListing(unittest.TestCase):
         r = requests.post(url)
         r.raise_for_status()
         res = r.json()
-        self.assertEqual(['projects', 'sigs', 'sig_per_cancer_type'], list(res.keys()))
+        self.assertEqual(['projects', 'sigs', 'sigs_per_cancer_type'], list(res.keys()))
         self.assertIn("ICGC-BRCA-EU", list(res['projects'].keys()))
         brca_obj = {
             "name": "Breast ER+ and HER2- Cancer - EU/UK",
