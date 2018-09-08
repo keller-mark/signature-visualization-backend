@@ -12,6 +12,7 @@ from plot_samples_with_signatures import plot_samples_with_signatures
 from plot_signature_exposures import plot_signature_exposures
 from plot_signature_genome_bins import plot_signature_genome_bins
 from plot_genome_event_track import plot_genome_event_track, autocomplete_gene
+from plot_samples import plot_samples
 
 
 from web_constants import *
@@ -264,6 +265,27 @@ Karyotype plot (chromosome bands)
 def route_karyotype():
   output = plot_karyotypes()
   return response_csv(app, output)
+
+
+"""
+Samples listing
+"""
+schema_samples = {
+  "type": "object",
+  "properties": {
+    "projects": projects_schema
+  }
+}
+@app.route('/samples', methods=['POST'])
+def route_samples():
+  req = request.get_json(force=True)
+  validate(req, schema_samples)
+
+  output = plot_samples(req["projects"])
+  if len(output) != len(set(output)):
+    print("WARNING: Duplicate sample IDs")
+  return response_json(app, output)
+
 
 
 if __name__ == '__main__':
