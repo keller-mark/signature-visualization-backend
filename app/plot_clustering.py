@@ -31,6 +31,8 @@ def plot_clustering(chosen_sigs_by_mut_type, projects):
                 exps_df = signatures.get_exposures(counts_df)
 
                 full_exps_df = full_exps_df.append(exps_df, ignore_index=False)
+    
+    full_exps_df = full_exps_df.fillna(value=0)
 
     # Do hierarchical clustering 
     # Reference: https://gist.github.com/mdml/7537455
