@@ -10,17 +10,32 @@ parent_dir_name = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(parent_dir_name + "/signature-estimation-py")
 from signature_estimation_qp import signature_estimation_qp
 
+def get_signatures_by_mut_type(chosen_sigs_by_mut_type):
+    result = {}
+    # where here mut_type == 'SBS' and NOT the sig_type 'SBS_96'
+    for mut_type, chosen_sigs in chosen_sigs_by_mut_type.items():
+        result[mut_type] = Signatures(sigs_type=SIG_TYPES[mut_type], chosen_sigs=chosen_sigs)
+    return result
+
+
 class Signatures():
 
-    def __init__(self, sigs_file, meta_file, chosen_sigs=[]):
+    def __init__(self, sigs_type, chosen_sigs=[]):
+        sigs_file = os.path.join(SIGS_DIR, "{type}{file_suffix}".format(type=sigs_type, file_suffix=SIGS_FILE_SUFFIX))
+        meta_file = os.path.join(SIGS_DIR, "{type}{file_suffix}".format(type=sigs_type, file_suffix=SIGS_META_FILE_SUFFIX))
+        
         self.sigs_df = pd.read_csv(sigs_file, sep='\t', index_col=0)
         self.sigs_df.index = self.sigs_df.index.astype(str)
         self.chosen_sigs = chosen_sigs
+        self.sigs_type = sigs_type
 
         self.meta_df = pd.read_csv(meta_file, sep='\t', dtype=str)
         self.meta_df = self.meta_df.fillna(value="")
         self.meta_df['index'] = self.meta_df['index'].astype(int)
         self.meta_df = self.meta_df.sort_values(by=['index'])
+
+    def get_type(self):
+        return self.sigs_type
 
     def get_all_names(self):
         return list(self.sigs_df.index.values)
