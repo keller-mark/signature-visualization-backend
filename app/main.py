@@ -14,6 +14,8 @@ from plot_signature_genome_bins import plot_signature_genome_bins
 from plot_genome_event_track import plot_genome_event_track, autocomplete_gene
 from plot_samples import plot_samples
 
+from scale_signature_exposures import scale_signature_exposures
+
 
 from web_constants import *
 from response_utils import *
@@ -72,16 +74,29 @@ Exposures plot
 schema_exposures = {
   "type": "object",
   "properties": {
-    "signatures": signatures_schema,
-    "projects": projects_schema
+    "signatures": string_array_schema,
+    "projects": string_array_schema,
+    "mut_type": {"type": "string"}
   }
 }
-@app.route('/exposures', methods=['POST'])
-def route_exposures():
+@app.route('/data-exposures', methods=['POST'])
+def route_domain_exposures():
   req = request.get_json(force=True)
   validate(req, schema_exposures)
 
-  output = plot_signature_exposures(req["signatures"], req["projects"])
+  assert(req["mut_type"] in SIG_TYPES.keys())
+
+  output = plot_signature_exposures(req["signatures"], req["projects"], req["mut_type"])
+  return response_json(app, output)
+
+@app.route('/scale-exposures', methods=['POST'])
+def route_scale_exposures():
+  req = request.get_json(force=True)
+  validate(req, schema_exposures)
+
+  assert(req["mut_type"] in SIG_TYPES.keys())
+
+  output = scale_signature_exposures(req["signatures"], req["projects"], req["mut_type"])
   return response_json(app, output)
 
 
@@ -285,7 +300,6 @@ def route_samples():
   if len(output) != len(set(output)):
     print("WARNING: Duplicate sample IDs")
   return response_json(app, output)
-
 
 
 if __name__ == '__main__':
