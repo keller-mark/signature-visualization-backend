@@ -22,11 +22,12 @@ def plot_exposures(chosen_sigs, projects, mut_type, single_sample_id=None, exp_n
             samples = [single_sample_id]
         else:
             samples = proj.get_samples_list()
-
-        counts_df = proj.get_counts_df(mut_type)
-
-        # TODO: join counts df with sample df, then fill with zeros
-
+        
+        counts_df = pd.DataFrame(index=samples, columns=[])
+        # Join counts df with sample df, then fill with zeros
+        counts_df = counts_df.join(proj.get_counts_df(mut_type), how='outer')
+        counts_df = counts_df.fillna(value=0)
+        
         if single_sample_id != None: # single sample request
             try:
                 counts_df = counts_df.loc[[single_sample_id], :]
@@ -34,7 +35,9 @@ def plot_exposures(chosen_sigs, projects, mut_type, single_sample_id=None, exp_n
                 counts_df = counts_df.drop(counts_df.index)
                 continue
 
-        
+        if counts_df.max().max() == 0:
+            continue
+
         if counts_df.shape[0] > 0 and len(signatures.get_chosen_names()) > 0:
             # compute exposures
             exps_df = signatures.get_exposures(counts_df)
@@ -42,6 +45,7 @@ def plot_exposures(chosen_sigs, projects, mut_type, single_sample_id=None, exp_n
             if not exp_normalize:
                 exps_df = exps_df.apply(lambda row: row * counts_df.loc[row.name, :].sum(), axis=1)
             # convert dfs to single array
+            exps_df = exps_df.fillna(value=0)
             proj_result = exps_df.to_dict(orient='index')
 
             def create_sample_obj(sample_id):
