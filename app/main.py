@@ -9,12 +9,17 @@ from plot_clustering import plot_clustering
 from plot_kataegis import plot_kataegis
 from plot_rainfall import plot_rainfall
 from plot_samples_with_signatures import plot_samples_with_signatures
-from plot_signature_exposures import plot_signature_exposures
+
 from plot_signature_genome_bins import plot_signature_genome_bins
 from plot_genome_event_track import plot_genome_event_track, autocomplete_gene
 from plot_samples import plot_samples
 
-from scale_signature_exposures import scale_signature_exposures
+from plot_exposures import plot_exposures
+from scale_exposures import scale_exposures
+
+from plot_counts import plot_counts
+from scale_counts import scale_counts
+
 
 
 from web_constants import *
@@ -67,6 +72,38 @@ def route_signature():
   output = plot_signature(name=req["name"], sig_type=SIG_TYPES[req["mut_type"]])
   return response_json(app, output)
 
+"""
+Counts plot
+"""
+schema_counts = {
+  "type": "object",
+  "properties": {
+    "projects": string_array_schema
+  }
+}
+@app.route('/plot-counts', methods=['POST'])
+def route_plot_counts():
+  req = request.get_json(force=True)
+  validate(req, schema_counts)
+
+  output = plot_counts(req["projects"])
+  return response_json(app, output)
+
+@app.route('/scale-counts', methods=['POST'])
+def route_scale_counts():
+  req = request.get_json(force=True)
+  validate(req, schema_counts)
+
+  output = scale_counts(req["projects"])
+  return response_json(app, output)
+
+@app.route('/scale-counts-sum', methods=['POST'])
+def route_scale_counts_sum():
+  req = request.get_json(force=True)
+  validate(req, schema_counts)
+
+  output = scale_counts(req["projects"], count_sum=True)
+  return response_json(app, output)
 
 """
 Exposures plot
@@ -79,14 +116,24 @@ schema_exposures = {
     "mut_type": {"type": "string"}
   }
 }
-@app.route('/data-exposures', methods=['POST'])
-def route_domain_exposures():
+@app.route('/plot-exposures', methods=['POST'])
+def route_plot_exposures():
   req = request.get_json(force=True)
   validate(req, schema_exposures)
 
   assert(req["mut_type"] in SIG_TYPES.keys())
 
-  output = plot_signature_exposures(req["signatures"], req["projects"], req["mut_type"])
+  output = plot_exposures(req["signatures"], req["projects"], req["mut_type"])
+  return response_json(app, output)
+
+@app.route('/plot-exposures-normalized', methods=['POST'])
+def route_plot_exposures_normalized():
+  req = request.get_json(force=True)
+  validate(req, schema_exposures)
+
+  assert(req["mut_type"] in SIG_TYPES.keys())
+
+  output = plot_exposures(req["signatures"], req["projects"], req["mut_type"], exp_normalize=True)
   return response_json(app, output)
 
 @app.route('/scale-exposures', methods=['POST'])
@@ -96,7 +143,28 @@ def route_scale_exposures():
 
   assert(req["mut_type"] in SIG_TYPES.keys())
 
-  output = scale_signature_exposures(req["signatures"], req["projects"], req["mut_type"])
+  output = scale_exposures(req["signatures"], req["projects"], req["mut_type"], exp_sum=False)
+  return response_json(app, output)
+
+@app.route('/scale-exposures-normalized', methods=['POST'])
+def route_scale_exposures_normalized():
+  req = request.get_json(force=True)
+  validate(req, schema_exposures)
+
+  assert(req["mut_type"] in SIG_TYPES.keys())
+
+  output = scale_exposures(req["signatures"], req["projects"], req["mut_type"], exp_sum=False, exp_normalize=True)
+  return response_json(app, output)
+
+
+@app.route('/scale-exposures-sum', methods=['POST'])
+def route_scale_exposures_sum():
+  req = request.get_json(force=True)
+  validate(req, schema_exposures)
+
+  assert(req["mut_type"] in SIG_TYPES.keys())
+
+  output = scale_exposures(req["signatures"], req["projects"], req["mut_type"], exp_sum=True)
   return response_json(app, output)
 
 

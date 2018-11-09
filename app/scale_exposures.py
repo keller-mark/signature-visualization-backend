@@ -6,7 +6,7 @@ from signatures import Signatures
 from project_data import ProjectData, get_selected_project_data
 
 
-def scale_signature_exposures(chosen_sigs, projects, mut_type, single_sample_id=None):
+def scale_exposures(chosen_sigs, projects, mut_type, single_sample_id=None, exp_sum=False, exp_normalize=False):
     result = [0, 0]
 
     signatures = Signatures(sigs_type=SIG_TYPES[mut_type], chosen_sigs=chosen_sigs)
@@ -38,10 +38,14 @@ def scale_signature_exposures(chosen_sigs, projects, mut_type, single_sample_id=
             # compute exposures
             exps_df = signatures.get_exposures(counts_df)
             # multiply exposures by total mutations for each donor
-            exps_df = exps_df.apply(lambda row: row * counts_df.loc[row.name, :].sum(), axis=1)
-
-            exps_df = exps_df.sum(axis=1)
-            exps_df_max = exps_df.max()
+            if not exp_normalize:
+                exps_df = exps_df.apply(lambda row: row * counts_df.loc[row.name, :].sum(), axis=1)
+                
+            if exp_sum:
+                exps_df = exps_df.sum(axis=1)
+                exps_df_max = exps_df.max()
+            else:
+                exps_df_max = exps_df.max().max()
             result[1] = max(result[1], exps_df_max)
 
     return result

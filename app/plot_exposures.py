@@ -6,7 +6,7 @@ from signatures import Signatures
 from project_data import ProjectData, get_selected_project_data
 
 
-def plot_signature_exposures(chosen_sigs, projects, mut_type, single_sample_id=None):
+def plot_exposures(chosen_sigs, projects, mut_type, single_sample_id=None, exp_normalize=False):
     result = []
 
     signatures = Signatures(sigs_type=SIG_TYPES[mut_type], chosen_sigs=chosen_sigs)
@@ -39,7 +39,8 @@ def plot_signature_exposures(chosen_sigs, projects, mut_type, single_sample_id=N
             # compute exposures
             exps_df = signatures.get_exposures(counts_df)
             # multiply exposures by total mutations for each donor
-            exps_df = exps_df.apply(lambda row: row * counts_df.loc[row.name, :].sum(), axis=1)
+            if not exp_normalize:
+                exps_df = exps_df.apply(lambda row: row * counts_df.loc[row.name, :].sum(), axis=1)
             # convert dfs to single array
             proj_result = exps_df.to_dict(orient='index')
 
