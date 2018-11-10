@@ -395,9 +395,17 @@ Clinical variable listing
 """
 @app.route('/clinical-variable-list', methods=['POST'])
 def route_clinical_variable_list():
-  req = request.get_json(force=True)
 
   output = CLINICAL_COLUMNS
+  return response_json(app, output) 
+
+"""
+Gene alteration scale
+"""
+@app.route('/scale-gene-alterations', methods=['POST'])
+def route_scale_gene_alterations():
+
+  output = [e.value for e in MUT_CLASS_VALS] + ["None"]
   return response_json(app, output) 
 
 

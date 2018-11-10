@@ -18,11 +18,12 @@ def plot_gene_event_track(gene_id, projects):
         proj_result_df.index.rename("sample_id", inplace=True)
 
         events_df = proj.get_events_df()
-        gene_events_df = events_df.loc[events_df[GENE_SYMBOL] == gene_id][[SAMPLE, MUT_CLASS]]
-        gene_events_df = gene_events_df.rename(columns={SAMPLE: "sample_id", MUT_CLASS: "mut_class"})
-        gene_events_df = gene_events_df.set_index("sample_id", drop=True)
-        
-        proj_result_df = proj_result_df.join(gene_events_df, how='outer')
+        if events_df is not None:
+            gene_events_df = events_df.loc[events_df[GENE_SYMBOL] == gene_id][[SAMPLE, MUT_CLASS]]
+            gene_events_df = gene_events_df.rename(columns={SAMPLE: "sample_id", MUT_CLASS: "mut_class"})
+            gene_events_df = gene_events_df.set_index("sample_id", drop=True)
+            
+            proj_result_df = proj_result_df.join(gene_events_df, how='outer')
 
         proj_result_df = proj_result_df.reset_index()
         proj_result_df = proj_result_df.fillna(value="None")
