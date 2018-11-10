@@ -22,7 +22,8 @@ from scale_counts import scale_counts
 from plot_samples_meta import plot_samples_meta
 
 from plot_gene_event_track import plot_gene_event_track, autocomplete_gene
-
+from plot_clinical_track import plot_clinical_track
+from scale_clinical_track import scale_clinical_track
 
 
 from web_constants import *
@@ -360,6 +361,33 @@ def route_autocomplete_gene():
 
   output = autocomplete_gene(req["gene_id_partial"], req["projects"])
   return response_json(app, output)
+
+"""
+Clinical Variable Tracks
+"""
+schema_clinical_track = {
+  "type": "object",
+  "properties": {
+    "clinical_variable": {"type": "string"},
+    "projects": projects_schema
+  }
+}
+@app.route('/plot-clinical-track', methods=['POST'])
+def route_plot_clinical_track():
+  req = request.get_json(force=True)
+  validate(req, schema_clinical_track)
+
+  output = plot_clinical_track(req["clinical_variable"], req["projects"])
+  return response_json(app, output) 
+
+@app.route('/scale-clinical-track', methods=['POST'])
+def route_scale_clinical_track():
+  req = request.get_json(force=True)
+  validate(req, schema_clinical_track)
+
+  output = scale_clinical_track(req["clinical_variable"], req["projects"])
+  return response_json(app, output) 
+
 
 
 """
