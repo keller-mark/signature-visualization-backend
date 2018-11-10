@@ -390,6 +390,16 @@ def route_scale_samples():
     print("WARNING: Duplicate sample IDs")
   return response_json(app, output)
 
+"""
+Clinical variable listing
+"""
+@app.route('/clinical-variable-list', methods=['POST'])
+def route_clinical_variable_list():
+  req = request.get_json(force=True)
+
+  output = CLINICAL_COLUMNS
+  return response_json(app, output) 
+
 
 
 if __name__ == '__main__':
