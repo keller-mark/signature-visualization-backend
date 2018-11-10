@@ -10,8 +10,7 @@ from plot_clustering import plot_clustering
 from plot_rainfall import plot_rainfall """
 from plot_samples_with_signatures import plot_samples_with_signatures
 
-""" from plot_signature_genome_bins import plot_signature_genome_bins
-from plot_genome_event_track import plot_genome_event_track, autocomplete_gene """
+""" from plot_signature_genome_bins import plot_signature_genome_bins """
 from scale_samples import scale_samples
 
 from plot_exposures import plot_exposures
@@ -21,6 +20,9 @@ from plot_counts import plot_counts
 from scale_counts import scale_counts
 
 from plot_samples_meta import plot_samples_meta
+
+from plot_gene_event_track import plot_gene_event_track, autocomplete_gene
+
 
 
 from web_constants import *
@@ -79,7 +81,7 @@ Samples-by-project
 schema_samples_meta = {
   "type": "object",
   "properties": {
-    "projects": string_array_schema
+    "projects": projects_schema
   }
 }
 @app.route('/plot-samples-meta', methods=['POST'])
@@ -96,7 +98,7 @@ Counts
 schema_counts = {
   "type": "object",
   "properties": {
-    "projects": string_array_schema
+    "projects": projects_schema
   }
 }
 @app.route('/plot-counts', methods=['POST'])
@@ -130,7 +132,7 @@ schema_exposures = {
   "type": "object",
   "properties": {
     "signatures": string_array_schema,
-    "projects": string_array_schema,
+    "projects": projects_schema,
     "mut_type": {"type": "string"}
   }
 }
@@ -325,28 +327,29 @@ def route_samples_with_signatures():
 """
 Genome Event Tracks
 """
-""" schema_genome_event_tracks = {
+schema_gene_event_track = {
   "type": "object",
   "properties": {
     "gene_id": {"type": "string"},
     "projects": projects_schema
   }
 }
-@app.route('/genome-event-track', methods=['POST'])
-def route_genome_event_track():
+@app.route('/plot-gene-event-track', methods=['POST'])
+def route_gene_event_track():
   req = request.get_json(force=True)
-  validate(req, schema_genome_event_tracks)
+  validate(req, schema_gene_event_track)
 
-  output = plot_genome_event_track(req["gene_id"], req["projects"])
-  return response_json(app, output) """
+  output = plot_gene_event_track(req["gene_id"], req["projects"])
+  return response_json(app, output) 
 
 
 """
 Autocomplete gene ID
 """
-""" schema_autocomplete_gene = {
+schema_autocomplete_gene = {
   "type": "object",
   "properties": {
+    "projects": projects_schema,
     "gene_id_partial": {"type": "string"}
   }
 }
@@ -355,9 +358,9 @@ def route_autocomplete_gene():
   req = request.get_json(force=True)
   validate(req, schema_autocomplete_gene)
 
-  output = autocomplete_gene(req["gene_id_partial"])
+  output = autocomplete_gene(req["gene_id_partial"], req["projects"])
   return response_json(app, output)
- """
+
 
 """
 Karyotype
@@ -386,6 +389,7 @@ def route_scale_samples():
   if len(output) != len(set(output)):
     print("WARNING: Duplicate sample IDs")
   return response_json(app, output)
+
 
 
 if __name__ == '__main__':

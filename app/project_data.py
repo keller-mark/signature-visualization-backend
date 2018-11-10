@@ -61,7 +61,7 @@ class ProjectData():
         # Check for a samples file
         self.samples_path = path_or_none(proj_row, 'path_samples')
         # Check for a genome events file
-        self.events_path = path_or_none(proj_row, 'path_events')
+        self.events_path = path_or_none(proj_row, 'path_genes')
 
         for mut_type in SIG_TYPES.keys():
             # Check for an extended file for the mutation type
