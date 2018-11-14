@@ -2,17 +2,28 @@ from flask import Flask, request
 from jsonschema import validate
 
 from plot_data_listing import plot_data_listing
-from plot_signature import plot_signature
-from plot_karyotypes import plot_karyotypes
+""" from plot_signature import plot_signature
+from plot_karyotypes import plot_karyotypes """
 from plot_data_listing import plot_data_listing
 from plot_clustering import plot_clustering
-from plot_kataegis import plot_kataegis
-from plot_rainfall import plot_rainfall
+""" from plot_kataegis import plot_kataegis
+from plot_rainfall import plot_rainfall """
 from plot_samples_with_signatures import plot_samples_with_signatures
-from plot_signature_exposures import plot_signature_exposures
-from plot_signature_genome_bins import plot_signature_genome_bins
-from plot_genome_event_track import plot_genome_event_track, autocomplete_gene
-from plot_samples import plot_samples
+
+""" from plot_signature_genome_bins import plot_signature_genome_bins """
+from scale_samples import scale_samples
+
+from plot_exposures import plot_exposures
+from scale_exposures import scale_exposures
+
+from plot_counts import plot_counts
+from scale_counts import scale_counts
+
+from plot_samples_meta import plot_samples_meta
+
+from plot_gene_event_track import plot_gene_event_track, autocomplete_gene
+from plot_clinical_track import plot_clinical_track
+from scale_clinical_track import scale_clinical_track
 
 
 from web_constants import *
@@ -46,9 +57,9 @@ def route_data_listing():
 
 
 """
-Signature plot
+Signatures
 """
-schema_signature = {
+""" schema_signature = {
   "type": "object",
   "properties": {
     "name": {"type": "string"},
@@ -63,32 +74,125 @@ def route_signature():
   assert(req["mut_type"] in SIG_TYPES.keys())
 
   output = plot_signature(name=req["name"], sig_type=SIG_TYPES[req["mut_type"]])
-  return response_json(app, output)
-
+  return response_json(app, output) """
 
 """
-Exposures plot
+Samples-by-project
+"""
+schema_samples_meta = {
+  "type": "object",
+  "properties": {
+    "projects": projects_schema
+  }
+}
+@app.route('/plot-samples-meta', methods=['POST'])
+def route_plot_samples_meta():
+  req = request.get_json(force=True)
+  validate(req, schema_counts)
+
+  output = plot_samples_meta(req["projects"])
+  return response_json(app, output)
+
+"""
+Counts
+"""
+schema_counts = {
+  "type": "object",
+  "properties": {
+    "projects": projects_schema
+  }
+}
+@app.route('/plot-counts', methods=['POST'])
+def route_plot_counts():
+  req = request.get_json(force=True)
+  validate(req, schema_counts)
+
+  output = plot_counts(req["projects"])
+  return response_json(app, output)
+
+@app.route('/scale-counts', methods=['POST'])
+def route_scale_counts():
+  req = request.get_json(force=True)
+  validate(req, schema_counts)
+
+  output = scale_counts(req["projects"])
+  return response_json(app, output)
+
+@app.route('/scale-counts-sum', methods=['POST'])
+def route_scale_counts_sum():
+  req = request.get_json(force=True)
+  validate(req, schema_counts)
+
+  output = scale_counts(req["projects"], count_sum=True)
+  return response_json(app, output)
+
+"""
+Exposures
 """
 schema_exposures = {
   "type": "object",
   "properties": {
-    "signatures": signatures_schema,
-    "projects": projects_schema
+    "signatures": string_array_schema,
+    "projects": projects_schema,
+    "mut_type": {"type": "string"}
   }
 }
-@app.route('/exposures', methods=['POST'])
-def route_exposures():
+@app.route('/plot-exposures', methods=['POST'])
+def route_plot_exposures():
   req = request.get_json(force=True)
   validate(req, schema_exposures)
 
-  output = plot_signature_exposures(req["signatures"], req["projects"])
+  assert(req["mut_type"] in SIG_TYPES.keys())
+
+  output = plot_exposures(req["signatures"], req["projects"], req["mut_type"])
+  return response_json(app, output)
+
+@app.route('/plot-exposures-normalized', methods=['POST'])
+def route_plot_exposures_normalized():
+  req = request.get_json(force=True)
+  validate(req, schema_exposures)
+
+  assert(req["mut_type"] in SIG_TYPES.keys())
+
+  output = plot_exposures(req["signatures"], req["projects"], req["mut_type"], exp_normalize=True)
+  return response_json(app, output)
+
+@app.route('/scale-exposures', methods=['POST'])
+def route_scale_exposures():
+  req = request.get_json(force=True)
+  validate(req, schema_exposures)
+
+  assert(req["mut_type"] in SIG_TYPES.keys())
+
+  output = scale_exposures(req["signatures"], req["projects"], req["mut_type"], exp_sum=False)
+  return response_json(app, output)
+
+@app.route('/scale-exposures-normalized', methods=['POST'])
+def route_scale_exposures_normalized():
+  req = request.get_json(force=True)
+  validate(req, schema_exposures)
+
+  assert(req["mut_type"] in SIG_TYPES.keys())
+
+  output = scale_exposures(req["signatures"], req["projects"], req["mut_type"], exp_sum=False, exp_normalize=True)
+  return response_json(app, output)
+
+
+@app.route('/scale-exposures-sum', methods=['POST'])
+def route_scale_exposures_sum():
+  req = request.get_json(force=True)
+  validate(req, schema_exposures)
+
+  assert(req["mut_type"] in SIG_TYPES.keys())
+
+  output = scale_exposures(req["signatures"], req["projects"], req["mut_type"], exp_sum=True)
   return response_json(app, output)
 
 
 """
 Exposures plot for single sample
 """
-schema_exposures_single_sample = {
+""" schema_exposures_single_sample = {
   "type": "object",
   "properties": {
     "signatures": signatures_schema,
@@ -102,13 +206,13 @@ def route_exposures_single():
   validate(req, schema_exposures_single_sample)
 
   output = plot_signature_exposures(req["signatures"], [req["proj_id"]], single_sample_id=req["sample_id"])
-  return response_json(app, output)
+  return response_json(app, output) """
 
 
 """
 Signature Genome Bins plot (Manhattan plot with bins for signature exposures)
 """
-schema_signature_genome_bins = {
+""" schema_signature_genome_bins = {
   "type": "object",
   "properties" : {
     "regionWidth": {"type" : "number"},
@@ -122,13 +226,13 @@ def route_signature_genome_bins():
   validate(req, schema_signature_genome_bins)
 
   output = plot_signature_genome_bins(req["regionWidth"], req["signatures"], req["projects"])
-  return response_json(app, output)
+  return response_json(app, output) """
 
 
 """
 Signature Genome Bins plot for single sample
 """
-schema_signature_genome_bins_single = {
+""" schema_signature_genome_bins_single = {
   "type": "object",
   "properties": {
     "regionWidth": {"type" : "number"},
@@ -143,13 +247,13 @@ def route_signature_genome_bins_single():
   validate(req, schema_signature_genome_bins_single)
 
   output = plot_signature_genome_bins(req["regionWidth"], req["signatures"], [req["proj_id"]], single_sample_id=req["sample_id"])
-  return response_json(app, output)
+  return response_json(app, output) """
 
 
 """
 Kataegis plot, indicators of kataegis across genome for multiple samples
 """
-schema_kataegis = {
+""" schema_kataegis = {
   "type": "object",
   "properties": {
     "projects": projects_schema
@@ -161,13 +265,13 @@ def route_kataegis():
   validate(req, schema_kataegis)
 
   output = plot_kataegis(req["projects"])
-  return response_json(app, output)
+  return response_json(app, output) """
 
 
 """
 Rainfall plot
 """
-schema_rainfall = {
+""" schema_rainfall = {
   "type": "object",
   "properties": {
     "proj_id": {"type": "string"},
@@ -180,7 +284,7 @@ def route_kataegis_rainfall():
   validate(req, schema_rainfall)
 
   output = plot_rainfall(req["proj_id"], req["sample_id"])
-  return response_csv(app, output)
+  return response_csv(app, output) """
 
 
 """
@@ -224,20 +328,20 @@ def route_samples_with_signatures():
 """
 Genome Event Tracks
 """
-schema_genome_event_tracks = {
+schema_gene_event_track = {
   "type": "object",
   "properties": {
     "gene_id": {"type": "string"},
     "projects": projects_schema
   }
 }
-@app.route('/genome-event-track', methods=['POST'])
-def route_genome_event_track():
+@app.route('/plot-gene-event-track', methods=['POST'])
+def route_gene_event_track():
   req = request.get_json(force=True)
-  validate(req, schema_genome_event_tracks)
+  validate(req, schema_gene_event_track)
 
-  output = plot_genome_event_track(req["gene_id"], req["projects"])
-  return response_json(app, output)
+  output = plot_gene_event_track(req["gene_id"], req["projects"])
+  return response_json(app, output) 
 
 
 """
@@ -246,6 +350,7 @@ Autocomplete gene ID
 schema_autocomplete_gene = {
   "type": "object",
   "properties": {
+    "projects": projects_schema,
     "gene_id_partial": {"type": "string"}
   }
 }
@@ -254,18 +359,45 @@ def route_autocomplete_gene():
   req = request.get_json(force=True)
   validate(req, schema_autocomplete_gene)
 
-  output = autocomplete_gene(req["gene_id_partial"])
+  output = autocomplete_gene(req["gene_id_partial"], req["projects"])
   return response_json(app, output)
 
+"""
+Clinical Variable Tracks
+"""
+schema_clinical_track = {
+  "type": "object",
+  "properties": {
+    "clinical_variable": {"type": "string"},
+    "projects": projects_schema
+  }
+}
+@app.route('/plot-clinical-track', methods=['POST'])
+def route_plot_clinical_track():
+  req = request.get_json(force=True)
+  validate(req, schema_clinical_track)
+
+  output = plot_clinical_track(req["clinical_variable"], req["projects"])
+  return response_json(app, output) 
+
+@app.route('/scale-clinical-track', methods=['POST'])
+def route_scale_clinical_track():
+  req = request.get_json(force=True)
+  validate(req, schema_clinical_track)
+
+  output = scale_clinical_track(req["clinical_variable"], req["projects"])
+  return response_json(app, output) 
+
+
 
 """
-Karyotype plot (chromosome bands)
+Karyotype
 """
-@app.route('/karyotype', methods=['POST'])
+""" @app.route('/karyotype', methods=['POST'])
 def route_karyotype():
   output = plot_karyotypes()
   return response_csv(app, output)
-
+ """
 
 """
 Samples listing
@@ -276,15 +408,33 @@ schema_samples = {
     "projects": projects_schema
   }
 }
-@app.route('/samples', methods=['POST'])
-def route_samples():
+@app.route('/scale-samples', methods=['POST'])
+def route_scale_samples():
   req = request.get_json(force=True)
   validate(req, schema_samples)
 
-  output = plot_samples(req["projects"])
+  output = scale_samples(req["projects"])
   if len(output) != len(set(output)):
     print("WARNING: Duplicate sample IDs")
   return response_json(app, output)
+
+"""
+Clinical variable listing
+"""
+@app.route('/clinical-variable-list', methods=['POST'])
+def route_clinical_variable_list():
+
+  output = CLINICAL_COLUMNS
+  return response_json(app, output) 
+
+"""
+Gene alteration scale
+"""
+@app.route('/scale-gene-alterations', methods=['POST'])
+def route_scale_gene_alterations():
+
+  output = [e.value for e in MUT_CLASS_VALS] + ["None"]
+  return response_json(app, output) 
 
 
 

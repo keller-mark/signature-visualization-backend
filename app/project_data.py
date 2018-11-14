@@ -31,6 +31,7 @@ def get_all_project_data_as_json():
     def project_data_to_json(obj):
         # Even though this says as_json it is really a list of python objects
         return {
+            "id": obj.get_proj_id(),
             "name": obj.get_proj_name(),
             "num_donors": obj.get_proj_num_donors(),
             "source": obj.get_proj_source(),
@@ -38,7 +39,7 @@ def get_all_project_data_as_json():
             "has_extended": obj.has_all_extended_dfs(),
             "has_counts": obj.has_all_counts_dfs()
         }
-    return dict(map(lambda obj: (obj.get_proj_id(), project_data_to_json(obj)), get_all_project_data()))
+    return list(map(project_data_to_json, get_all_project_data()))
 
 
 """ 
@@ -60,7 +61,7 @@ class ProjectData():
         # Check for a samples file
         self.samples_path = path_or_none(proj_row, 'path_samples')
         # Check for a genome events file
-        self.events_path = path_or_none(proj_row, 'path_events')
+        self.events_path = path_or_none(proj_row, 'path_genes')
 
         for mut_type in SIG_TYPES.keys():
             # Check for an extended file for the mutation type

@@ -1,11 +1,12 @@
 import os
 import re
+from enum import Enum
 
 OBJ_DIR = '../obj' if bool(os.environ.get("DEBUG", '')) else '/obj'
 DATA_DIR = 'data'
 DATA_META_FILE = os.path.join(DATA_DIR, 'meta.tsv')
 CHROMOSOME_BANDS_FILE = os.path.join(DATA_DIR, 'chromosome_bands.tsv')
-GENE_LIST_FILE = os.path.join(OBJ_DIR, 'gene_list.pickle')
+GENES_AGG_FILE = os.path.join(OBJ_DIR, 'genes_agg.tsv')
 
 CATEGORY_TYPES = {
   'SBS': ['SBS_96', 'SBS_6'],
@@ -46,6 +47,9 @@ SEQ_TYPE = 'Sequencing Strategy'
 MUT_TYPE = 'Mutation Type'
 ASSEMBLY = 'Assembly Version'
 
+MUT_CLASS = 'Mutation Classification'
+GENE_SYMBOL = "Gene Symbol"
+
 FPRIME = "5' Flanking Bases"
 TPRIME = "3' Flanking Bases"
 TSTRAND = 'Transcriptional Strand'
@@ -70,7 +74,7 @@ FIRST_THERAPY_RESPONSE = 'First Therapy Response'
 SECOND_THERAPY_TYPE = 'Second Therapy Type'
 SECOND_THERAPY_RESPONSE = 'Second Therapy Response'
 
-CLINICAL_VARIABLES = [TOBACCO_BINARY, TOBACCO_INTENSITY, ALCOHOL_BINARY]
+CLINICAL_COLUMNS = [TOBACCO_BINARY, TOBACCO_INTENSITY, ALCOHOL_BINARY, ALCOHOL_INTENSITY, DIAGNOSIS_AGE, SEX]
 
 CHROMOSOMES = {
   '1': 249250621,
@@ -99,3 +103,14 @@ CHROMOSOMES = {
   'Y': 59373566,
   'M': 16571
 }
+
+class MUT_CLASS_VALS(Enum):
+  SILENT = "Silent"
+  MISSENSE = "Missense"
+  FRAMESHIFT = "Frameshift"
+  SPLICE_SITE = "Splice Site"
+  NONSENSE = "Nonsense"
+  IN_FRAME_INDEL = "in-frame indel"
+  OTHER = "Other mutation"
+  NONSTOP = "Nonstop"
+  TRANSLATION_START_SITE="Translation Start Site"
