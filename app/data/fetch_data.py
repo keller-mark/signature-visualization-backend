@@ -22,6 +22,8 @@ OBJ_DIR = '../../obj' if bool(os.environ.get("DEBUG", '')) else '/obj'
 META_FILE = './meta.tsv' if bool(os.environ.get("DEBUG", '')) else '/app/data/meta.tsv'
 GENES_AGG_FILE = os.path.join(OBJ_DIR, 'genes_agg.tsv')
 
+CLEAN_DATA_PY = 'clean_data.py' if bool(os.environ.get("DEBUG", '')) else '/app/data/clean_data.py'
+
 def create_genes_agg_file():
   genes_agg_df = pd.DataFrame(index=[], columns=["proj_id", GENE_SYMBOL, "count"])
   genes_agg_df.to_csv(GENES_AGG_FILE, sep='\t', index=False)
@@ -35,7 +37,7 @@ def download(file_list):
 
 def clean_samples(proj_id, samples_path, clinical_path, counts_path_sbs, counts_path_dbs, counts_path_indel, genes_path):
   subprocess.run([
-    'python', 'clean_data.py', 
+    'python', CLEAN_DATA_PY, 
     '-s', os.path.join(OBJ_DIR, samples_path), 
     '-c', os.path.join(OBJ_DIR, clinical_path),
     '-g', (os.path.join(OBJ_DIR, genes_path) if not pd.isna(genes_path) else "None"),

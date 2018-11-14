@@ -12,7 +12,7 @@ clinical_scales = {
     ALCOHOL_BINARY: ["Alcohol User", "Alcohol Nonuser"], 
     ALCOHOL_INTENSITY: [0, 100], 
     DIAGNOSIS_AGE: [0, 100], 
-    SEX: ["male", "female"]
+    SEX: ["Male", "Female"]
 }
 
 def scale_clinical_track(clinical_var, projects):
