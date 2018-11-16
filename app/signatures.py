@@ -69,6 +69,8 @@ class Signatures():
         samples = list(counts_df.index)
         categories = self.get_contexts()
 
+        counts_df = counts_df[categories]
+
         M = counts_df.values
         P = self.get_2d_array(sig_names) # (active) signatures matrix
         E = signature_estimation_qp(M, P)
