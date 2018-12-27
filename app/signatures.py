@@ -5,11 +5,18 @@ import pandas as pd
 import numpy as np
 
 from web_constants import *
+from sig_data import *
 
 parent_dir_name = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(parent_dir_name + "/signature-estimation-py")
 from signature_estimation_qp import signature_estimation_qp
 
+def get_signatures_by_mut_type(chosen_sigs_by_mut_type):
+    result = {}
+    for mut_type, chosen_sig_ids in chosen_sigs_by_mut_type.items():
+        chosen_sigs = [get_sig_data(sig_id) for sig_id in chosen_sig_ids]
+        result[mut_type] = Signatures(cat_type=MUT_TYPE_MAP[mut_type], chosen_sigs=chosen_sigs)
+    return result
 
 class Signatures():
 

@@ -25,6 +25,7 @@ from plot_gene_event_track import plot_gene_event_track, autocomplete_gene
 from plot_clinical_track import plot_clinical_track
 from scale_clinical_track import scale_clinical_track
 
+from oncotree import *
 
 from web_constants import *
 from response_utils import *

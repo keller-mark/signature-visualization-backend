@@ -11,26 +11,27 @@ sigs_cancer_type_map_df = pd.DataFrame(data=[], index=[], columns=META_CANCER_TY
 # Load signatures data
 for sig_group_index, sig_group_row in sig_groups_meta_df.iterrows():
     # Load metadata
-    sig_group_meta_df = pd.read_csv(sig_group_row[META_COL_PATH_SIGS_META], sep='\t')
+    sig_group_meta_df = pd_fetch_tsv(OBJ_DIR, sig_group_row[META_COL_PATH_SIGS_META])
     sig_group_meta_df[META_COL_SIG_GROUP] = sig_group_index
     sigs_meta_df = sigs_meta_df.append(sig_group_meta_df, ignore_index=True)
     # Load cancer type mappings
-    sig_group_cancer_type_map_df = pd.read_csv(sig_group_row[META_COL_PATH_SIGS_CANCER_TYPE_MAP], sep='\t')
+    sig_group_cancer_type_map_df = pd_fetch_tsv(OBJ_DIR, sig_group_row[META_COL_PATH_SIGS_CANCER_TYPE_MAP])
     sig_group_cancer_type_map_df[META_COL_SIG_GROUP] = sig_group_index
     sigs_cancer_type_map_df = sigs_cancer_type_map_df.append(sig_group_cancer_type_map_df, ignore_index=True)
     # Load signatures data
     for cat_type in CAT_TYPES:
-        if sig_group_row[META_COL_PATH_SIGS_DATA.format(cat_type=cat_type)] != None:
-            sig_df = pd_fetch_tsv(sig_group_row[META_COL_PATH_SIGS_DATA.format(cat_type=cat_type)], index_col=0)
+        if pd.notnull(sig_group_row[META_COL_PATH_SIGS_DATA.format(cat_type=cat_type)]):
+            sig_df = pd_fetch_tsv(OBJ_DIR, sig_group_row[META_COL_PATH_SIGS_DATA.format(cat_type=cat_type)], index_col=0)
+            sig_df.index = sig_df.index.astype(str)
             # Append to the dataframe for the category type
-            if sig_dfs[cat_type] is None:
-                sig_dfs[cat_type] = sig_df
-            else:
+            try:
                 sig_dfs[cat_type] = sig_dfs[cat_type].append(sig_df)
+            except KeyError:
+                sig_dfs[cat_type] = sig_df
 
 sigs_meta_df = sigs_meta_df.set_index(META_COL_SIG, drop=True)
-sigs_cancer_type_map_df = sigs_cancer_type_map_df.set_index(META_COL_SIG, drop=True)
-
+sigs_meta_df.index = sigs_meta_df.index.astype(str)
+sigs_meta_df = sigs_meta_df.sort_values(by=META_COL_INDEX)
 
 # Function for getting single SigData object
 def get_sig_data(sig_id):
@@ -54,7 +55,8 @@ def get_all_sig_data_as_json():
             "publication": obj.get_publication(),
             "description": obj.get_description(),
             "index": obj.get_index(),
-            "cat_type": obj.get_cat_type()
+            "cat_type": obj.get_cat_type(),
+            "mut_type": obj.get_mut_type()
         }
     return list(map(sig_data_to_json, get_all_sig_data()))
 
@@ -109,16 +111,19 @@ class SigData():
         return self.sig_group
 
     def get_publication(self):
-        return self.publication
+        return self.publication if pd.notnull(self.publication) else ""
     
     def get_description(self):
-        return self.description
+        return self.description if pd.notnull(self.description) else ""
     
     def get_index(self):
         return self.index
 
     def get_cat_type(self):
         return self.cat_type
+    
+    def get_mut_type(self):
+        return CAT_TYPE_MAP[self.cat_type]
     
     def get_cancer_type_map_df(self):
         return self.cancer_type_map_df

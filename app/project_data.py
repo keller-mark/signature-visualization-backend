@@ -80,7 +80,7 @@ class ProjectData():
 
     def get_samples_df(self):
         if self.has_samples_df():
-            return pd_fetch_tsv(self.samples_path, index_col=1)
+            return pd_fetch_tsv(OBJ_DIR, self.samples_path, index_col=1)
         return None
     
     def get_samples_list(self):
@@ -97,7 +97,7 @@ class ProjectData():
         if self.has_samples_df() and self.has_clinical_df():
             samples_df = self.get_samples_df()
             samples_df = samples_df.reset_index()
-            clinical_df = pd_fetch_tsv(self.clinical_path)
+            clinical_df = pd_fetch_tsv(OBJ_DIR, self.clinical_path)
             clinical_df = samples_df.merge(clinical_df, on=PATIENT, how='left')
             clinical_df = clinical_df.fillna(value='nan')
             clinical_df = clinical_df.set_index(SAMPLE)
@@ -110,7 +110,7 @@ class ProjectData():
     
     def get_genes_df(self):
         if self.has_genes_df():
-            genes_df = pd_fetch_tsv(self.genes_path)
+            genes_df = pd_fetch_tsv(OBJ_DIR, self.genes_path)
             return genes_df
         return None
     
@@ -120,7 +120,7 @@ class ProjectData():
     
     def get_counts_df(self, cat_type):
         if self.has_counts_df(cat_type):
-            counts_df = pd_fetch_tsv(self.counts_paths[cat_type], index_col=0)
+            counts_df = pd_fetch_tsv(OBJ_DIR, self.counts_paths[cat_type], index_col=0)
             counts_df = counts_df.dropna(how='any', axis='index')
             return counts_df
         return None
@@ -131,7 +131,7 @@ class ProjectData():
     
     def get_extended_df(self, mut_type, **kwargs):
         if self.has_extended_df(mut_type):
-            return pd_fetch_tsv(self.extended_paths[mut_type], **kwargs)
+            return pd_fetch_tsv(OBJ_DIR, self.extended_paths[mut_type], **kwargs)
         return None
     
 
