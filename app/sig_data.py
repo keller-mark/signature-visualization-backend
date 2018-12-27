@@ -1,12 +1,19 @@
 import pandas as pd
+import json
 from web_constants import *
 from helpers import pd_fetch_tsv, path_or_none
+from oncotree import *
 
 """ Load the metadata file to be able to create SigData objects """
 sig_dfs = {}
 sig_groups_meta_df = pd.read_csv(META_SIGS_FILE, sep='\t', index_col=0)
 sigs_meta_df = pd.DataFrame(data=[], index=[], columns=META_SIGS_COLS + [META_COL_SIG_GROUP])
 sigs_cancer_type_map_df = pd.DataFrame(data=[], index=[], columns=META_CANCER_TYPE_MAP_COLS + [META_COL_SIG_GROUP])
+
+""" Load the Oncotree """
+with open(ONCOTREE_FILE) as f:
+    tree_json = json.load(f)
+tree = OncoTree(tree_json)
 
 # Load signatures data
 for sig_group_index, sig_group_row in sig_groups_meta_df.iterrows():
@@ -59,6 +66,20 @@ def get_all_sig_data_as_json():
             "mut_type": obj.get_mut_type()
         }
     return list(map(sig_data_to_json, get_all_sig_data()))
+
+def get_all_cancer_type_mappings_as_json():
+    result = []
+    for group_ctype_tuple, group_ctype_df in sigs_cancer_type_map_df.groupby([META_COL_SIG_GROUP, META_COL_CANCER_TYPE]):
+        group_ctype_df = group_ctype_df.reset_index(drop=True)
+        oncotree_code = group_ctype_df.loc[0][META_COL_ONCOTREE_CODE]
+        result.append({
+            'group': group_ctype_tuple[0],
+            'cancer_type': group_ctype_tuple[1],
+            'oncotree_code': (oncotree_code if pd.notnull(oncotree_code) else "nan"),
+            'oncotree_name': ((tree.find_node(oncotree_code).name) if pd.notnull(oncotree_code) else "nan"),
+            'sigs': list(group_ctype_df[META_COL_SIG].unique())
+        })
+    return result
 
 """ 
 Class representing a single row of the META_SIGS_FILE

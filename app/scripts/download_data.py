@@ -2,6 +2,7 @@ import pandas as pd
 import subprocess
 import os
 import sys
+import json
 
 # Load our modules
 this_file_path = os.path.abspath(os.path.dirname(__file__))
@@ -87,6 +88,9 @@ def download_oncotree():
   if not os.path.isfile(ONCOTREE_FILE):
     print('* Downloading Oncotree file')
     subprocess.run(['curl', ONCOTREE_URL, '--create-dirs', '-o', ONCOTREE_FILE])
+  else:
+    print('* Not downloading Oncotree file')
+
 
 def load_oncotree():
   with open(ONCOTREE_FILE) as f:
