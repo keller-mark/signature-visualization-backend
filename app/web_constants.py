@@ -6,13 +6,15 @@ OBJ_DIR = '../obj' if bool(os.environ.get("DEBUG", '')) else '/obj'
 
 META_DATA_FILENAME = 'meta-data.tsv'
 META_SIGS_FILENAME = 'meta-sigs.tsv'
-GENES_AGG_FILENAME = 'computed-genes_agg.tsv'
 ONCOTREE_FILENAME = 'oncotree-2018_11_01.json'
+GENES_AGG_FILENAME = 'computed-genes_agg.tsv'
+PROJ_TO_SIGS_FILENAME = 'computed-oncotree_proj_to_sigs_per_group.tsv'
 
 META_DATA_FILE = os.path.join(OBJ_DIR, META_DATA_FILENAME)
 META_SIGS_FILE = os.path.join(OBJ_DIR, META_SIGS_FILENAME)
 GENES_AGG_FILE = os.path.join(OBJ_DIR, GENES_AGG_FILENAME)
 ONCOTREE_FILE = os.path.join(OBJ_DIR, ONCOTREE_FILENAME)
+PROJ_TO_SIGS_FILE = os.path.join(OBJ_DIR, PROJ_TO_SIGS_FILENAME)
 
 
 CAT_TYPES = [

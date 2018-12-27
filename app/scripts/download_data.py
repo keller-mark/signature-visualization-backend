@@ -7,6 +7,7 @@ import sys
 this_file_path = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(os.path.normpath(this_file_path + '/../'))
 from web_constants import *
+from oncotree import *
 
 OBJ_DIR = './obj' if bool(os.environ.get("DEBUG", '')) else '/obj'
 
@@ -14,15 +15,16 @@ META_DATA_FILE = os.path.join(OBJ_DIR, META_DATA_FILENAME)
 META_SIGS_FILE = os.path.join(OBJ_DIR, META_SIGS_FILENAME)
 GENES_AGG_FILE = os.path.join(OBJ_DIR, GENES_AGG_FILENAME)
 ONCOTREE_FILE = os.path.join(OBJ_DIR, ONCOTREE_FILENAME)
+PROJ_TO_SIGS_FILE = os.path.join(OBJ_DIR, PROJ_TO_SIGS_FILENAME)
 
 OBJ_STORE_URL = "https://mutation-signature-explorer.obj.umiacs.umd.edu/"
 ONCOTREE_URL = "http://oncotree.mskcc.org/api/tumorTypes/tree?version=oncotree_2018_11_01"
 
-def read_csv(csv_file_path, **kwargs):
-  return pd.read_csv(os.path.join(OBJ_DIR, csv_file_path), **kwargs)
+def read_tsv(csv_file_path, **kwargs):
+  return pd.read_csv(os.path.join(OBJ_DIR, csv_file_path), sep='\t', **kwargs)
 
-def to_csv(df, csv_file_path, **kwargs):
-  df.to_csv(os.path.join(OBJ_DIR, csv_file_path), **kwargs)
+def to_tsv(df, csv_file_path, **kwargs):
+  df.to_csv(os.path.join(OBJ_DIR, csv_file_path), sep='\t', **kwargs)
 
 def download_files(file_list):
   for file_path in file_list:
@@ -42,17 +44,17 @@ def create_genes_agg_file():
 def clean_data_files(data_row):
   print('* Cleaning samples file')
   # load data
-  samples_df = read_csv(data_row[META_COL_PATH_SAMPLES], sep='\t', usecols=[PATIENT, SAMPLE])
+  samples_df = read_tsv(data_row[META_COL_PATH_SAMPLES], usecols=[PATIENT, SAMPLE])
   samples_df = samples_df.set_index(SAMPLE, drop=True)
   if pd.notnull(data_row[META_COL_PATH_CLINICAL]):
-    clinical_df = read_csv(data_row[META_COL_PATH_CLINICAL], sep='\t')
+    clinical_df = read_tsv(data_row[META_COL_PATH_CLINICAL])
     clinical_df = clinical_df.set_index(PATIENT, drop=True)
 
   # join all counts dfs
   counts_df = pd.DataFrame(index=[], data=[])
   for cat_type_count_path in META_COL_PATH_MUTS_COUNTS_LIST:
     if pd.notnull(data_row[cat_type_count_path]):
-      cat_type_counts_df = read_csv(data_row[cat_type_count_path], sep='\t', index_col=0)
+      cat_type_counts_df = read_tsv(data_row[cat_type_count_path], index_col=0)
       counts_df = counts_df.join(cat_type_counts_df, how='outer')
 
   # filter and save new samples file
@@ -60,7 +62,7 @@ def clean_data_files(data_row):
   samples_counts_df.index = samples_counts_df.index.rename(SAMPLE)
   samples_counts_df = samples_counts_df.reset_index()
   samples_filtered_df = samples_counts_df[[PATIENT, SAMPLE]]
-  to_csv(samples_filtered_df, data_row[META_COL_PATH_SAMPLES], sep='\t', index=False)
+  to_tsv(samples_filtered_df, data_row[META_COL_PATH_SAMPLES], index=False)
 
   # filter and save new clinical file
   print('* Cleaning clinical file')
@@ -70,12 +72,12 @@ def clean_data_files(data_row):
     clinical_samples_df = samples_filtered_df.join(clinical_df, how='left')
     clinical_filtered_df = clinical_samples_df.drop(columns=[SAMPLE])
     clinical_filtered_df = clinical_filtered_df.reset_index()
-    to_csv(clinical_filtered_df, data_row[META_COL_PATH_CLINICAL], sep='\t', index=False)
+    to_tsv(clinical_filtered_df, data_row[META_COL_PATH_CLINICAL], index=False)
 
   if pd.notnull(data_row[META_COL_PATH_GENES]):
     print('* Appending to genes aggregate file')
     genes_agg_df = pd.read_csv(GENES_AGG_FILE, sep='\t')
-    genes_df = read_csv(data_row[META_COL_PATH_GENES], sep='\t')
+    genes_df = read_tsv(data_row[META_COL_PATH_GENES])
     genes_df[META_COL_PROJ] = data_row[META_COL_PROJ]
     genes_df = genes_df.groupby([META_COL_PROJ, GENE_SYMBOL]).size().reset_index(name='count')
     genes_agg_df = genes_agg_df.append(genes_df, ignore_index=True)
@@ -85,7 +87,32 @@ def download_oncotree():
   if not os.path.isfile(ONCOTREE_FILE):
     print('* Downloading Oncotree file')
     subprocess.run(['curl', ONCOTREE_URL, '--create-dirs', '-o', ONCOTREE_FILE])
-  
+
+def load_oncotree():
+  with open(ONCOTREE_FILE) as f:
+    tree_json = json.load(f)
+    return OncoTree(tree_json)
+
+def create_proj_to_sigs_mapping(data_df, sigs_df):
+  print('* Mapping projects to signature cancer types by Oncotree codes')
+  tree = load_oncotree()
+  match_df = pd.DataFrame(index=[], data=[], columns=[META_COL_PROJ, META_COL_SIG_GROUP, META_COL_ONCOTREE_CODE])
+  for data_index, data_row in data_df.iterrows():
+    if pd.notnull(data_row[META_COL_ONCOTREE_CODE]):
+      proj_node = tree.find_node(data_row[META_COL_ONCOTREE_CODE])
+      if proj_node is not None:
+        for sig_group_index, sig_group_row in sigs_df.iterrows():
+          if pd.notnull(sig_group_row[META_COL_PATH_SIGS_CANCER_TYPE_MAP]):
+            sig_group_cancer_type_map_df = read_tsv(sig_group_row[META_COL_PATH_SIGS_CANCER_TYPE_MAP])
+            cancer_type_map_codes = list(sig_group_cancer_type_map_df[META_COL_ONCOTREE_CODE].dropna().unique())
+            sig_group_parent_node = proj_node.find_closest_parent(cancer_type_map_codes)
+            if sig_group_parent_node is not None:
+              match_df = match_df.append({
+                META_COL_PROJ: data_row[META_COL_PROJ],
+                META_COL_SIG_GROUP: sig_group_row[META_COL_SIG_GROUP],
+                META_COL_ONCOTREE_CODE: sig_group_parent_node.code
+              }, ignore_index=True)
+  match_df.to_csv(PROJ_TO_SIGS_FILE, index=False, sep='\t')
 
 if __name__ == "__main__":
   data_df = pd.read_csv(META_DATA_FILE, sep='\t')
@@ -104,5 +131,6 @@ if __name__ == "__main__":
     clean_data_files(data_row)
   
   download_oncotree()
+  create_proj_to_sigs_mapping(data_df, sigs_df)
   
   print('* Done')

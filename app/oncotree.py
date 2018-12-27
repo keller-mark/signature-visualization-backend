@@ -1,12 +1,4 @@
 import json
-from web_constants import *
-from helpers import *
-
-from sig_data import *
-from project_data import *
-
-sigs = get_all_sig_data()
-projs = get_all_project_data()
 
 class OncoNode():
 
@@ -18,7 +10,7 @@ class OncoNode():
         self.level = node_json['level']
         self.parent = parent
         self.children = []
-        for child_code, child in node_json['children'].items():
+        for child in node_json['children'].values():
             self.children.append(OncoNode(child, self))
     
     # From a list of oncotree codes, go up the tree to find the closest ancestor to this node that is in the list
@@ -33,7 +25,6 @@ class OncoNode():
                 return node
             return find_closest_parent_aux(node.parent)
         return find_closest_parent_aux(self)
-
 
 class OncoTree():
 
@@ -52,22 +43,3 @@ class OncoTree():
                     return found
             return None
         return find_node_aux(self.head)
-    
-    
-        
-            
-        
-
-with open(ONCOTREE_FILE) as f:
-    tree_json = json.load(f)
-    tree = OncoTree(tree_json)
-
-    print(tree.find_node('CHRCC').find_closest_parent(['BRCA', 'CCRCC']).code)
-
-
-
-def match_proj_to_sigs(proj_data, sig_group):
-    match_df = pd.DataFrame(index=[], data=[], columns=[META_COL_SIG_GROUP, META_COL_PROJ, META_COL_ONCOTREE_CODE])
-    
-
-
