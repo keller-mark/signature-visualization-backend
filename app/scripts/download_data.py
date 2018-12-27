@@ -10,11 +10,13 @@ from web_constants import *
 
 OBJ_DIR = './obj' if bool(os.environ.get("DEBUG", '')) else '/obj'
 
-META_DATA_FILE = os.path.join(OBJ_DIR, 'meta-data.tsv')
-META_SIGS_FILE = os.path.join(OBJ_DIR, 'meta-sigs.tsv')
-GENES_AGG_FILE = os.path.join(OBJ_DIR, 'computed-genes_agg.tsv')
+META_DATA_FILE = os.path.join(OBJ_DIR, META_DATA_FILENAME)
+META_SIGS_FILE = os.path.join(OBJ_DIR, META_SIGS_FILENAME)
+GENES_AGG_FILE = os.path.join(OBJ_DIR, GENES_AGG_FILENAME)
+ONCOTREE_FILE = os.path.join(OBJ_DIR, ONCOTREE_FILENAME)
 
 OBJ_STORE_URL = "https://mutation-signature-explorer.obj.umiacs.umd.edu/"
+ONCOTREE_URL = "http://oncotree.mskcc.org/api/tumorTypes/tree?version=oncotree_2018_11_01"
 
 def read_csv(csv_file_path, **kwargs):
   return pd.read_csv(os.path.join(OBJ_DIR, csv_file_path), **kwargs)
@@ -78,6 +80,11 @@ def clean_data_files(data_row):
     genes_df = genes_df.groupby([META_COL_PROJ, GENE_SYMBOL]).size().reset_index(name='count')
     genes_agg_df = genes_agg_df.append(genes_df, ignore_index=True)
     genes_agg_df.to_csv(GENES_AGG_FILE, sep='\t', index=False)
+
+def download_oncotree():
+  if not os.path.isfile(ONCOTREE_FILE):
+    print('* Downloading Oncotree file')
+    subprocess.run(['curl', ONCOTREE_URL, '--create-dirs', '-o', ONCOTREE_FILE])
   
 
 if __name__ == "__main__":
@@ -95,5 +102,7 @@ if __name__ == "__main__":
 
   for index, data_row in data_df.iterrows():
     clean_data_files(data_row)
+  
+  download_oncotree()
   
   print('* Done')

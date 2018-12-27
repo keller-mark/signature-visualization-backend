@@ -4,9 +4,16 @@ from enum import Enum
 
 OBJ_DIR = '../obj' if bool(os.environ.get("DEBUG", '')) else '/obj'
 
-META_DATA_FILE = os.path.join(OBJ_DIR, 'meta-data.tsv')
-META_SIGS_FILE = os.path.join(OBJ_DIR, 'meta-sigs.tsv')
-GENES_AGG_FILE = os.path.join(OBJ_DIR, 'computed-genes_agg.tsv')
+META_DATA_FILENAME = 'meta-data.tsv'
+META_SIGS_FILENAME = 'meta-sigs.tsv'
+GENES_AGG_FILENAME = 'computed-genes_agg.tsv'
+ONCOTREE_FILENAME = 'oncotree-2018_11_01.json'
+
+META_DATA_FILE = os.path.join(OBJ_DIR, META_DATA_FILENAME)
+META_SIGS_FILE = os.path.join(OBJ_DIR, META_SIGS_FILENAME)
+GENES_AGG_FILE = os.path.join(OBJ_DIR, GENES_AGG_FILENAME)
+ONCOTREE_FILE = os.path.join(OBJ_DIR, ONCOTREE_FILENAME)
+
 
 CAT_TYPES = [
   'SBS_96',
@@ -135,6 +142,20 @@ META_SIGS_FILE_COLS = [
   META_COL_PATH_SIGS_META,
   META_COL_PATH_SIGS_CANCER_TYPE_MAP
 ] + META_COL_PATH_SIGS_DATA_LIST
+
+META_SIGS_COLS = [
+  META_COL_SIG,
+  META_COL_DESCRIPTION,
+  META_COL_INDEX,
+  META_COL_CAT_TYPE
+]
+
+META_CANCER_TYPE_MAP_COLS = [
+  META_COL_SIG,
+  META_COL_ONCOTREE_CODE,
+  META_COL_CANCER_TYPE,
+  META_COL_CAT_TYPE
+]
 
 # Mutation data columns
 META_COL_PROJ = 'Project'
