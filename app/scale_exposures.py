@@ -2,14 +2,14 @@ import pandas as pd
 import numpy as np
 
 from web_constants import *
-from signatures import Signatures
+from signatures import Signatures, get_signatures_by_mut_type
 from project_data import ProjectData, get_selected_project_data
 
 
 def scale_exposures(chosen_sigs, projects, mut_type, single_sample_id=None, exp_sum=False, exp_normalize=False):
     result = [0, 0]
 
-    signatures = Signatures(sigs_type=SIG_TYPES[mut_type], chosen_sigs=chosen_sigs)
+    signatures = get_signatures_by_mut_type({mut_type: chosen_sigs})[mut_type]
 
     if single_sample_id != None: # single sample request
       assert(len(projects) == 1)

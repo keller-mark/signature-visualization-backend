@@ -31,8 +31,8 @@ class Signatures():
     def get_cat_type(self):
         return self.cat_type
 
-    def get_chosen_sig_names(self):
-        return [sig.get_sig_name() for sig in chosen_sigs]
+    def get_chosen_names(self):
+        return [sig.get_sig_name() for sig in self.chosen_sigs]
     
     def get_contexts(self):
         return list(self.sigs_df.columns.values)

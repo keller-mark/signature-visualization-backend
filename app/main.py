@@ -72,9 +72,9 @@ def route_signature():
   req = request.get_json(force=True)
   validate(req, schema_signature)
 
-  assert(req["mut_type"] in SIG_TYPES.keys())
+  assert(req["mut_type"] in MUT_TYPES)
 
-  output = plot_signature(name=req["name"], sig_type=SIG_TYPES[req["mut_type"]])
+  output = plot_signature(name=req["name"], sig_type=MUT_TYPE_MAP[req["mut_type"]])
   return response_json(app, output) """
 
 """
@@ -143,7 +143,7 @@ def route_plot_exposures():
   req = request.get_json(force=True)
   validate(req, schema_exposures)
 
-  assert(req["mut_type"] in SIG_TYPES.keys())
+  assert(req["mut_type"] in MUT_TYPES)
 
   output = plot_exposures(req["signatures"], req["projects"], req["mut_type"])
   return response_json(app, output)
@@ -153,7 +153,7 @@ def route_plot_exposures_normalized():
   req = request.get_json(force=True)
   validate(req, schema_exposures)
 
-  assert(req["mut_type"] in SIG_TYPES.keys())
+  assert(req["mut_type"] in MUT_TYPES)
 
   output = plot_exposures(req["signatures"], req["projects"], req["mut_type"], exp_normalize=True)
   return response_json(app, output)
@@ -163,7 +163,7 @@ def route_scale_exposures():
   req = request.get_json(force=True)
   validate(req, schema_exposures)
 
-  assert(req["mut_type"] in SIG_TYPES.keys())
+  assert(req["mut_type"] in MUT_TYPES)
 
   output = scale_exposures(req["signatures"], req["projects"], req["mut_type"], exp_sum=False)
   return response_json(app, output)
@@ -173,7 +173,7 @@ def route_scale_exposures_normalized():
   req = request.get_json(force=True)
   validate(req, schema_exposures)
 
-  assert(req["mut_type"] in SIG_TYPES.keys())
+  assert(req["mut_type"] in MUT_TYPES)
 
   output = scale_exposures(req["signatures"], req["projects"], req["mut_type"], exp_sum=False, exp_normalize=True)
   return response_json(app, output)
@@ -184,7 +184,7 @@ def route_scale_exposures_sum():
   req = request.get_json(force=True)
   validate(req, schema_exposures)
 
-  assert(req["mut_type"] in SIG_TYPES.keys())
+  assert(req["mut_type"] in MUT_TYPES)
 
   output = scale_exposures(req["signatures"], req["projects"], req["mut_type"], exp_sum=True)
   return response_json(app, output)

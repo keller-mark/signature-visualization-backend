@@ -15,6 +15,9 @@ with open(ONCOTREE_FILE) as f:
     tree_json = json.load(f)
 tree = OncoTree(tree_json)
 
+def prepend_sig_group_to_sig_name(sig_group, sig_name):
+    return ("%s %s" % (sig_group, sig_name))
+
 # Load signatures data
 for sig_group_index, sig_group_row in sig_groups_meta_df.iterrows():
     # Load metadata
@@ -29,15 +32,27 @@ for sig_group_index, sig_group_row in sig_groups_meta_df.iterrows():
     for cat_type in CAT_TYPES:
         if pd.notnull(sig_group_row[META_COL_PATH_SIGS_DATA.format(cat_type=cat_type)]):
             sig_df = pd_fetch_tsv(OBJ_DIR, sig_group_row[META_COL_PATH_SIGS_DATA.format(cat_type=cat_type)], index_col=0)
-            sig_df.index = sig_df.index.astype(str)
+            sig_df.index = sig_df.index.rename(META_COL_SIG)
+            sig_df = sig_df.reset_index()
+            sig_df[META_COL_SIG] = sig_df[META_COL_SIG].astype(str)
+            # Prepend the signature group to the signature names
+            sig_df[META_COL_SIG] = sig_df.apply(lambda row: prepend_sig_group_to_sig_name(sig_group_index, row[META_COL_SIG]), axis='columns')
+
+            sig_df = sig_df.set_index(META_COL_SIG, drop=True)
             # Append to the dataframe for the category type
             try:
                 sig_dfs[cat_type] = sig_dfs[cat_type].append(sig_df)
             except KeyError:
                 sig_dfs[cat_type] = sig_df
 
+sigs_cancer_type_map_df[META_COL_SIG] = sigs_cancer_type_map_df[META_COL_SIG].astype(str)
+sigs_meta_df[META_COL_SIG] = sigs_meta_df[META_COL_SIG].astype(str)
+
+# Prepend the signature group to the signature names
+sigs_cancer_type_map_df[META_COL_SIG] = sigs_cancer_type_map_df.apply(lambda row: prepend_sig_group_to_sig_name(row[META_COL_SIG_GROUP], row[META_COL_SIG]), axis='columns')
+sigs_meta_df[META_COL_SIG] = sigs_meta_df.apply(lambda row: prepend_sig_group_to_sig_name(row[META_COL_SIG_GROUP], row[META_COL_SIG]), axis='columns')
+
 sigs_meta_df = sigs_meta_df.set_index(META_COL_SIG, drop=True)
-sigs_meta_df.index = sigs_meta_df.index.astype(str)
 sigs_meta_df = sigs_meta_df.sort_values(by=META_COL_INDEX)
 
 # Function for getting single SigData object
@@ -72,13 +87,14 @@ def get_all_cancer_type_mappings_as_json():
     for group_ctype_tuple, group_ctype_df in sigs_cancer_type_map_df.groupby([META_COL_SIG_GROUP, META_COL_CANCER_TYPE]):
         group_ctype_df = group_ctype_df.reset_index(drop=True)
         oncotree_code = group_ctype_df.loc[0][META_COL_ONCOTREE_CODE]
-        result.append({
-            'group': group_ctype_tuple[0],
-            'cancer_type': group_ctype_tuple[1],
-            'oncotree_code': (oncotree_code if pd.notnull(oncotree_code) else "nan"),
-            'oncotree_name': ((tree.find_node(oncotree_code).name) if pd.notnull(oncotree_code) else "nan"),
-            'sigs': list(group_ctype_df[META_COL_SIG].unique())
-        })
+        for sig in list(group_ctype_df[META_COL_SIG].unique()):
+            result.append({
+                'group': group_ctype_tuple[0],
+                'cancer_type': group_ctype_tuple[1],
+                'oncotree_code': (oncotree_code if pd.notnull(oncotree_code) else "nan"),
+                'oncotree_name': ((tree.find_node(oncotree_code).name) if pd.notnull(oncotree_code) else "nan"),
+                'signature': sig
+            })
     return result
 
 """ 

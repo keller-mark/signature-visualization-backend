@@ -75,9 +75,10 @@ class ProjectData():
             # Check for an extended file for the mutation type
             self.extended_paths[mut_type] = path_or_none(proj_row, META_COL_PATH_MUTS_EXTENDED.format(mut_type=mut_type))
         
-        for cat_type in CAT_TYPES:
+        for mut_type in MUT_TYPES:
+            cat_type = MUT_TYPE_MAP[mut_type]
             # Check for a counts file for the category type
-            self.counts_paths[cat_type] = path_or_none(proj_row, META_COL_PATH_MUTS_COUNTS.format(cat_type=cat_type))
+            self.counts_paths[mut_type] = path_or_none(proj_row, META_COL_PATH_MUTS_COUNTS.format(cat_type=cat_type))
     
     # Basic getters
     def get_proj_id(self):
@@ -148,12 +149,12 @@ class ProjectData():
         return None
     
     # Counts files
-    def has_counts_df(self, cat_type):
-        return (self.counts_paths[cat_type] != None)
+    def has_counts_df(self, mut_type):
+        return (self.counts_paths[mut_type] != None)
     
-    def get_counts_df(self, cat_type):
-        if self.has_counts_df(cat_type):
-            counts_df = pd_fetch_tsv(OBJ_DIR, self.counts_paths[cat_type], index_col=0)
+    def get_counts_df(self, mut_type):
+        if self.has_counts_df(mut_type):
+            counts_df = pd_fetch_tsv(OBJ_DIR, self.counts_paths[mut_type], index_col=0)
             counts_df = counts_df.dropna(how='any', axis='index')
             return counts_df
         return None

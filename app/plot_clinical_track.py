@@ -3,7 +3,6 @@ import numpy as np
 import pickle
 
 from web_constants import *
-from signatures import Signatures, get_signatures_by_mut_type
 from project_data import ProjectData, get_selected_project_data
 
 def plot_clinical_track(clinical_var, projects):
@@ -18,7 +17,7 @@ def plot_clinical_track(clinical_var, projects):
         proj_result_df.index.rename("sample_id", inplace=True)
 
         clinical_df = proj.get_clinical_df()
-        if clinical_df is not None:
+        if clinical_df is not None and clinical_var in list(clinical_df.columns.values):
             clinical_df.index.rename("sample_id", inplace=True)
             clinical_df = clinical_df[[clinical_var]]
             clinical_df = clinical_df.rename(columns={clinical_var: ("cv_" + clinical_var)})
