@@ -35,7 +35,7 @@ def get_all_project_data_as_json():
         return {
             "id": obj.get_proj_id(),
             "name": obj.get_proj_name(),
-            "num_donors": obj.get_proj_num_donors(),
+            "num_samples": obj.get_proj_num_samples(),
             "source": obj.get_proj_source(),
             "has_clinical": obj.has_clinical_df(),
             "has_genes": obj.has_genes_df(),
@@ -100,7 +100,7 @@ class ProjectData():
             return self.oncotree_node.get_tissue_node().code
         return None
     
-    def get_proj_num_donors(self):
+    def get_proj_num_samples(self):
         if self.has_samples_df():
             return self.get_samples_df().shape[0]
         return 0
