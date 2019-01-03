@@ -129,8 +129,7 @@ def create_sharing_table():
     table = Table('sharing', metadata, Column('id', Integer(), primary_key=True), Column('slug', String(length=255)), Column('data', Text()), extend_existing=True)
     metadata.create_all()
     print('* Successfully connected to database and created sharing table')
-  except Exception as e:
-    print(e.message)
+  except:
     print('* Unable to connect to database')
 
 if __name__ == "__main__":
