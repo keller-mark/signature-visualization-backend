@@ -25,10 +25,13 @@ from plot_gene_event_track import plot_gene_event_track, autocomplete_gene
 from plot_clinical_track import plot_clinical_track
 from scale_clinical_track import scale_clinical_track
 
+from sharing_state import get_sharing_state, set_sharing_state
+
 from oncotree import *
 
 from web_constants import *
 from response_utils import *
+
 
 app = Flask(__name__)
 
@@ -437,6 +440,43 @@ def route_scale_gene_alterations():
   output = [e.value for e in MUT_CLASS_VALS] + ["None"]
   return response_json(app, output) 
 
+"""
+Sharing: get state
+"""
+schema_sharing_get = {
+  "type": "object",
+  "properties": {
+    "slug": {"type": "string"}
+  }
+}
+@app.route('/sharing-get', methods=['POST'])
+def route_sharing_get():
+  req = request.get_json(force=True)
+  validate(req, schema_sharing_get)
+  try:
+    output = get_sharing_state(req['slug'])
+    return response_json(app, output)
+  except:
+    return response_json_error(app, {"message": "An error has occurred."}, 500)
+
+"""
+Sharing: set state
+"""
+schema_sharing_set = {
+  "type": "object",
+  "properties": {
+    "state": {"type": "string"}
+  }
+}
+@app.route('/sharing-set', methods=['POST'])
+def route_sharing_set():
+  req = request.get_json(force=True)
+  validate(req, schema_sharing_set)
+  try:
+    output = set_sharing_state(req['state'])
+    return response_json(app, output)
+  except:
+    return response_json_error(app, {"message": "An error has occurred."}, 500)
 
 
 if __name__ == '__main__':

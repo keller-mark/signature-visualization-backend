@@ -4,6 +4,9 @@ import os
 import sys
 import json
 
+from sqlalchemy import create_engine
+from sqlalchemy import MetaData, Table, Column, Integer, String, Text
+
 # Load our modules
 this_file_path = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(os.path.normpath(this_file_path + '/../'))
@@ -118,6 +121,18 @@ def create_proj_to_sigs_mapping(data_df, sigs_df):
               }, ignore_index=True)
   match_df.to_csv(PROJ_TO_SIGS_FILE, index=False, sep='\t')
 
+def create_sharing_table():
+  try:
+    engine = create_engine('mysql://imuse:imuse@db:3306/imuse')
+    connection = engine.connect()
+    metadata = MetaData(engine)
+    table = Table('sharing', metadata, Column('id', Integer(), primary_key=True), Column('slug', String(length=255)), Column('data', Text()), extend_existing=True)
+    metadata.create_all()
+    print('* Successfully connected to database and created sharing table')
+  except Exception as e:
+    print(e.message)
+    print('* Unable to connect to database')
+
 if __name__ == "__main__":
   data_df = pd.read_csv(META_DATA_FILE, sep='\t')
   sigs_df = pd.read_csv(META_SIGS_FILE, sep='\t')
@@ -136,5 +151,7 @@ if __name__ == "__main__":
   
   download_oncotree()
   create_proj_to_sigs_mapping(data_df, sigs_df)
+
+  create_sharing_table()
   
   print('* Done')
