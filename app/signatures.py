@@ -37,8 +37,8 @@ class Signatures():
     def get_contexts(self):
         return list(self.sigs_df.columns.values)
 
-    def get_2d_array(self, sig_names):
-        return self.sigs_df.loc[sig_names].values
+    def get_2d_array(self):
+        return self.sigs_df.values
     
     def get_counts(self, ssm_df):
         ssm_df = ssm_df[pd.notnull(ssm_df[CAT])]
@@ -60,7 +60,7 @@ class Signatures():
         counts_df = counts_df[categories]
 
         M = counts_df.values
-        P = self.get_2d_array(sig_names) # (active) signatures matrix
+        P = self.get_2d_array() # (active) signatures matrix
         E = signature_estimation_qp(M, P)
 
         exps_df = pd.DataFrame(E, index=samples, columns=sig_names)

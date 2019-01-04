@@ -6,7 +6,7 @@ from signatures import Signatures, get_signatures_by_mut_type
 from project_data import ProjectData, get_selected_project_data
 
 
-def plot_exposures(chosen_sigs, projects, mut_type, single_sample_id=None, exp_normalize=False):
+def plot_reconstruction_error(chosen_sigs, projects, mut_type, single_sample_id=None, exp_normalize=False):
     result = []
 
     signatures = get_signatures_by_mut_type({mut_type: chosen_sigs})[mut_type]
@@ -44,9 +44,15 @@ def plot_exposures(chosen_sigs, projects, mut_type, single_sample_id=None, exp_n
             exps_df = exps_df.fillna(value=0)
             # multiply exposures by total mutations for each donor
             if not exp_normalize:
-                exps_df = exps_df.apply(lambda row: row * counts_df.loc[row.name, :].sum(), axis=1)
+                counts_totals_series = counts_df.sum(axis='columns')
+                exps_df = exps_df.apply(lambda row: row * counts_totals_series[row.name], axis=1)
+                exps_totals_series = exps_df.sum(axis='columns')
+                exps_df["error"] = counts_totals_series - exps_totals_series
+            else:
+                exps_totals_series = exps_df.sum(axis='columns')
+                exps_df["error"] = 1.0 - exps_totals_series
 
-            proj_result = exps_df.to_dict(orient='index')
+            proj_result = exps_df[["error"]].to_dict(orient='index')
 
             def create_sample_obj(sample_id):
                 sample_obj = proj_result[sample_id]
@@ -55,5 +61,8 @@ def plot_exposures(chosen_sigs, projects, mut_type, single_sample_id=None, exp_n
             proj_result = list(map(create_sample_obj, samples))
             # concatenate project array into result array
             result = (result + proj_result)
+    
+    if single_sample_id != None: # single sample request
+        result = result[0]
 
     return result

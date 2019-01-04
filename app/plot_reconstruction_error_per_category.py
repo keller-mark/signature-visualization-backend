@@ -6,7 +6,7 @@ from signatures import Signatures, get_signatures_by_mut_type
 from project_data import ProjectData, get_selected_project_data
 
 
-def plot_exposures(chosen_sigs, projects, mut_type, single_sample_id=None, exp_normalize=False):
+def plot_reconstruction_error_per_category(chosen_sigs, projects, mut_type, single_sample_id=None, exp_normalize=False):
     result = []
 
     signatures = get_signatures_by_mut_type({mut_type: chosen_sigs})[mut_type]
@@ -42,18 +42,31 @@ def plot_exposures(chosen_sigs, projects, mut_type, single_sample_id=None, exp_n
             # compute exposures
             exps_df = signatures.get_exposures(counts_df)
             exps_df = exps_df.fillna(value=0)
-            # multiply exposures by total mutations for each donor
+            # multiply exposures by total mutations for each sample
+            counts_totals_series = counts_df.sum(axis='columns')
             if not exp_normalize:
-                exps_df = exps_df.apply(lambda row: row * counts_df.loc[row.name, :].sum(), axis=1)
+                exps_df = exps_df.apply(lambda row: row * counts_totals_series[row.name], axis=1)
+            else:
+                counts_df = counts_df.divide(counts_totals_series, axis='index')
+   
+            reconstruction_array = np.dot(exps_df.values, signatures.get_2d_array())
+            reconstruction_df = pd.DataFrame(index=list(counts_df.index.values), columns=signatures.get_contexts(), data=reconstruction_array)
+            reconstruction_df = reconstruction_df[list(counts_df.columns.values)]
 
-            proj_result = exps_df.to_dict(orient='index')
+            reconstruction_df = reconstruction_df.subtract(counts_df, axis='index')
+
+            proj_result = reconstruction_df.to_dict(orient='index')
 
             def create_sample_obj(sample_id):
                 sample_obj = proj_result[sample_id]
                 sample_obj["sample_id"] = sample_id
                 return sample_obj
+
             proj_result = list(map(create_sample_obj, samples))
             # concatenate project array into result array
             result = (result + proj_result)
+    
+    if single_sample_id != None: # single sample request
+        result = result[0]
 
     return result
