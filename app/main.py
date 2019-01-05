@@ -28,9 +28,11 @@ from plot_gene_event_track import plot_gene_event_track, autocomplete_gene
 from plot_clinical_track import plot_clinical_track
 from scale_clinical_track import scale_clinical_track
 
-from plot_reconstruction_error import plot_reconstruction_error
+from plot_counts_per_category import plot_counts_per_category
+from plot_reconstruction_per_category import plot_reconstruction_per_category
 from plot_reconstruction_error_per_category import plot_reconstruction_error_per_category
 from plot_reconstruction_cosine_similarity import plot_reconstruction_cosine_similarity
+from scale_contexts import scale_contexts
 
 
 from sharing_state import get_sharing_state, set_sharing_state
@@ -204,16 +206,6 @@ def route_scale_exposures_sum():
 """
 Reconstruction error
 """
-@app.route('/plot-reconstruction-error', methods=['POST'])
-def route_plot_reconstruction_error():
-  req = request.get_json(force=True)
-  validate(req, schema_exposures)
-
-  assert(req["mut_type"] in MUT_TYPES)
-
-  output = plot_reconstruction_error(req["signatures"], req["projects"], req["mut_type"])
-  return response_json(app, output)
-
 schema_reconstruction_error_single_sample = {
   "type": "object",
   "properties": {
@@ -223,24 +215,24 @@ schema_reconstruction_error_single_sample = {
     "sample_id": {"type": "string"}
   }
 }
-@app.route('/plot-reconstruction-error-single-sample', methods=['POST'])
-def route_plot_reconstruction_error_single_sample():
+@app.route('/plot-counts-normalized-per-category-single-sample', methods=['POST'])
+def route_plot_counts_normalized_per_category_single_sample():
   req = request.get_json(force=True)
   validate(req, schema_reconstruction_error_single_sample)
 
   assert(req["mut_type"] in MUT_TYPES)
 
-  output = plot_reconstruction_error(req["signatures"], req["projects"], req["mut_type"], single_sample_id=req["sample_id"])
+  output = plot_counts_per_category(req["signatures"], req["projects"], req["mut_type"], single_sample_id=req["sample_id"], exp_normalize=True)
   return response_json(app, output)
 
-@app.route('/plot-reconstruction-error-per-category-single-sample', methods=['POST'])
-def route_plot_reconstruction_error_per_category_single_sample():
+@app.route('/plot-reconstruction-normalized-per-category-single-sample', methods=['POST'])
+def route_plot_reconstruction_normalized_per_category_single_sample():
   req = request.get_json(force=True)
   validate(req, schema_reconstruction_error_single_sample)
 
   assert(req["mut_type"] in MUT_TYPES)
 
-  output = plot_reconstruction_error_per_category(req["signatures"], req["projects"], req["mut_type"], single_sample_id=req["sample_id"])
+  output = plot_reconstruction_per_category(req["signatures"], req["projects"], req["mut_type"], single_sample_id=req["sample_id"], exp_normalize=True)
   return response_json(app, output)
 
 @app.route('/plot-reconstruction-normalized-error-per-category-single-sample', methods=['POST'])
@@ -271,6 +263,23 @@ def route_plot_reconstruction_cosine_similarity_single_sample():
   assert(req["mut_type"] in MUT_TYPES)
 
   output = plot_reconstruction_cosine_similarity(req["signatures"], req["projects"], req["mut_type"], single_sample_id=req["sample_id"])
+  return response_json(app, output)
+
+schema_contexts = {
+  "type": "object",
+  "properties": {
+    "signatures": string_array_schema,
+    "mut_type": {"type": "string"}
+  }
+}
+@app.route('/scale-contexts', methods=['POST'])
+def route_scale_contexts():
+  req = request.get_json(force=True)
+  validate(req, schema_contexts)
+
+  assert(req["mut_type"] in MUT_TYPES)
+
+  output = scale_contexts(req["signatures"], req["mut_type"])
   return response_json(app, output)
 
 """
