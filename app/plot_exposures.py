@@ -22,16 +22,18 @@ def plot_exposures(chosen_sigs, projects, mut_type, single_sample_id=None, norma
 
     def create_sample_obj(sample_id):
         sample_obj = exps_dict[sample_id]
-        sample_obj["sample_id"] = sample_id
+        if single_sample_id == None:
+            sample_obj["sample_id"] = sample_id
         return sample_obj
     
     result = list(map(create_sample_obj, samples))
 
     if single_sample_id != None:
-        result = result[0]
+        result_obj = result[0]
+        result = []
         for sig, value in result_obj.items():
             result.append({
-                "sig_" + mut_type + "_" + single_sample_id: sig,
+                "sig_" + mut_type: sig,
                 "exp_" + mut_type + "_" + single_sample_id: value
             })
 

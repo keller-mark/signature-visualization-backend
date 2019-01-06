@@ -211,6 +211,35 @@ def route_scale_exposures_sum():
   output = scale_exposures(req["signatures"], req["projects"], req["mut_type"], exp_sum=True)
   return response_json(app, output)
 
+schema_exposures_single_sample = {
+  "type": "object",
+  "properties": {
+    "signatures": string_array_schema,
+    "projects": projects_schema,
+    "mut_type": {"type": "string"},
+    "sample_id": {"type": "string"}
+  }
+}
+@app.route('/plot-exposures-single-sample', methods=['POST'])
+def route_plot_exposures_single_sample():
+  req = request.get_json(force=True)
+  validate(req, schema_exposures_single_sample)
+
+  assert(req["mut_type"] in MUT_TYPES)
+
+  output = plot_exposures(req["signatures"], req["projects"], req["mut_type"], single_sample_id=req["sample_id"], normalize=False)
+  return response_json(app, output)
+
+@app.route('/scale-exposures-single-sample', methods=['POST'])
+def route_scale_exposures_single_sample():
+  req = request.get_json(force=True)
+  validate(req, schema_exposures_single_sample)
+
+  assert(req["mut_type"] in MUT_TYPES)
+
+  output = scale_exposures(req["signatures"], req["projects"], req["mut_type"], single_sample_id=req["sample_id"], exp_sum=False, exp_normalize=False)
+  return response_json(app, output)
+
 
 """
 Reconstruction error
