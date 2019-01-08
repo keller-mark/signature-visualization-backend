@@ -38,7 +38,7 @@ def plot_signature_genome_bins(region_width, chosen_sigs_by_mut_type, projects, 
         
         for mut_type in MUT_TYPES:
             signatures = signatures_by_mut_type[mut_type]
-            cat_colname = SIG_TYPES[mut_type]
+            cat_colname = MUT_TYPE_MAP[mut_type]
             dtype_for_mut_type = dtype.copy()
             dtype_for_mut_type[cat_colname] = str
             ssm_df = proj.get_extended_df(mut_type, dtype=dtype_for_mut_type, usecols=dtype_for_mut_type.keys())

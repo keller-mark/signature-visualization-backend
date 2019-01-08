@@ -17,7 +17,7 @@ def plot_gene_event_track(gene_id, projects):
         proj_result_df = pd.DataFrame(index=samples, columns=[])
         proj_result_df.index.rename("sample_id", inplace=True)
 
-        events_df = proj.get_events_df()
+        events_df = proj.get_genes_df()
         if events_df is not None:
             gene_events_df = events_df.loc[events_df[GENE_SYMBOL] == gene_id][[SAMPLE, MUT_CLASS]]
             gene_events_df = gene_events_df.rename(columns={SAMPLE: "sample_id", MUT_CLASS: "mut_class"})
@@ -38,7 +38,7 @@ def autocomplete_gene(gene_id_partial, projects):
     gene_id_partial = gene_id_partial.upper()
 
     genes_agg_df = pd.read_csv(GENES_AGG_FILE, sep='\t')
-    genes_agg_df = genes_agg_df.loc[genes_agg_df["proj_id"].isin(projects)]
+    genes_agg_df = genes_agg_df.loc[genes_agg_df[META_COL_PROJ].isin(projects)]
 
     gene_list = genes_agg_df[GENE_SYMBOL].unique().tolist()
 

@@ -18,3 +18,11 @@ def response_json(app, output):
         mimetype='application/json',
         headers=HEADERS
     )
+
+def response_json_error(app, output, status):
+    return app.response_class(
+        response=json.dumps(output),
+        status=status,
+        mimetype='application/json',
+        headers=HEADERS
+    )

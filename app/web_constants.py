@@ -3,33 +3,44 @@ import re
 from enum import Enum
 
 OBJ_DIR = '../obj' if bool(os.environ.get("DEBUG", '')) else '/obj'
-DATA_DIR = 'data'
-DATA_META_FILE = os.path.join(DATA_DIR, 'meta.tsv')
-CHROMOSOME_BANDS_FILE = os.path.join(DATA_DIR, 'chromosome_bands.tsv')
-GENES_AGG_FILE = os.path.join(OBJ_DIR, 'genes_agg.tsv')
 
-CATEGORY_TYPES = {
-  'SBS': ['SBS_96', 'SBS_6'],
-  'DBS': ['DBS_78', 'DBS_10'], 
-  'INDEL': ['INDEL_Alexandrov2018_83', 'INDEL_Alexandrov2018_16']
-}
+META_DATA_FILENAME = 'meta-data.tsv'
+META_SIGS_FILENAME = 'meta-sigs.tsv'
+ONCOTREE_FILENAME = 'oncotree-2018_11_01.json'
+GENES_AGG_FILENAME = 'computed-genes_agg.tsv'
+SAMPLES_AGG_FILENAME = 'computed-samples_agg.tsv'
+PROJ_TO_SIGS_FILENAME = 'computed-oncotree_proj_to_sigs_per_group.tsv'
 
-SIG_TYPES = {
+META_DATA_FILE = os.path.join(OBJ_DIR, META_DATA_FILENAME)
+META_SIGS_FILE = os.path.join(OBJ_DIR, META_SIGS_FILENAME)
+GENES_AGG_FILE = os.path.join(OBJ_DIR, GENES_AGG_FILENAME)
+SAMPLES_AGG_FILE = os.path.join(OBJ_DIR, SAMPLES_AGG_FILENAME)
+ONCOTREE_FILE = os.path.join(OBJ_DIR, ONCOTREE_FILENAME)
+PROJ_TO_SIGS_FILE = os.path.join(OBJ_DIR, PROJ_TO_SIGS_FILENAME)
+
+
+CAT_TYPES = [
+  'SBS_96',
+  'DBS_78',
+  'INDEL_Alexandrov2018_83'
+]
+
+MUT_TYPES = [
+  'SBS',
+  'DBS',
+  'INDEL'
+]
+
+MUT_TYPE_MAP = {
   'SBS': 'SBS_96',
   'DBS': 'DBS_78',
   'INDEL': 'INDEL_Alexandrov2018_83'
 }
 
-MUT_TYPES = SIG_TYPES.keys()
-
-SIGS_DIR = os.path.join(DATA_DIR, 'sigs')
-SIGS_FILE_SUFFIX = '_signatures.tsv'
-SIGS_META_FILE_SUFFIX = '_signatures_meta.tsv'
-SIGS_PER_CANCER_TYPE_FILE = os.path.join(SIGS_DIR, 'per_cancer_type.yaml')
+CAT_TYPE_MAP = dict([(val, key) for key, val in MUT_TYPE_MAP.items()])
 
 # Regular Expressions
 CHROMOSOME_RE = r'^(X|Y|M|[1-9]|1[0-9]|2[0-2])$'
-PROJ_RE = r'^[A-Z0-9]+-[A-Z0-9]+-[A-Z]+$'
 
 # Column names for extended mutation tables
 PATIENT = 'Patient'
@@ -114,3 +125,57 @@ class MUT_CLASS_VALS(Enum):
   OTHER = "Other mutation"
   NONSTOP = "Nonstop"
   TRANSLATION_START_SITE="Translation Start Site"
+
+
+# Signatures columns
+META_COL_SIG = 'Signature'
+META_COL_ONCOTREE_CODE = 'Oncotree Code'
+META_COL_CANCER_TYPE = 'Cancer Type'
+META_COL_CAT_TYPE = 'Category Type'
+META_COL_DESCRIPTION = 'Description'
+META_COL_INDEX = 'Index'
+META_COL_SIG_GROUP = 'Signature Group'
+META_COL_PUBLICATION = 'Publication'
+META_COL_PATH_SIGS_META = 'Path to Meta File'
+META_COL_PATH_SIGS_DATA = 'Path to Signatures {cat_type} File'
+META_COL_PATH_SIGS_CANCER_TYPE_MAP = 'Path to Cancer Type Map File'
+
+META_COL_PATH_SIGS_DATA_LIST = [META_COL_PATH_SIGS_DATA.format(cat_type=val) for val in CAT_TYPES]
+
+META_SIGS_FILE_COLS = [
+  META_COL_PATH_SIGS_META,
+  META_COL_PATH_SIGS_CANCER_TYPE_MAP
+] + META_COL_PATH_SIGS_DATA_LIST
+
+META_SIGS_COLS = [
+  META_COL_SIG,
+  META_COL_DESCRIPTION,
+  META_COL_INDEX,
+  META_COL_CAT_TYPE
+]
+
+META_CANCER_TYPE_MAP_COLS = [
+  META_COL_SIG,
+  META_COL_ONCOTREE_CODE,
+  META_COL_CANCER_TYPE,
+  META_COL_CAT_TYPE
+]
+
+# Mutation data columns
+META_COL_PROJ = 'Project'
+META_COL_PROJ_SOURCE = 'Project Source'
+META_COL_PROJ_NAME = 'Project Name'
+META_COL_PATH_MUTS_EXTENDED = 'Path to Extended {mut_type} File'
+META_COL_PATH_MUTS_COUNTS = 'Path to Counts {cat_type} File'
+META_COL_PATH_CLINICAL = 'Path to Clinical File'
+META_COL_PATH_SAMPLES = 'Path to Samples File'
+META_COL_PATH_GENES = 'Path to Genes File'
+
+META_COL_PATH_MUTS_EXTENDED_LIST = [META_COL_PATH_MUTS_EXTENDED.format(mut_type=val) for val in MUT_TYPES]
+META_COL_PATH_MUTS_COUNTS_LIST = [META_COL_PATH_MUTS_COUNTS.format(cat_type=val) for val in CAT_TYPES]
+
+META_DATA_FILE_COLS = [
+  META_COL_PATH_CLINICAL,
+  META_COL_PATH_SAMPLES,
+  META_COL_PATH_GENES
+] + META_COL_PATH_MUTS_EXTENDED_LIST + META_COL_PATH_MUTS_COUNTS_LIST

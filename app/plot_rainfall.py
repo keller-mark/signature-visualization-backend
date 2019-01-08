@@ -20,7 +20,7 @@ def plot_rainfall(proj_id, sample_id):
     # still restricting to SBS for now
     # TODO: update to include other mutation types later...
     mut_type = 'SBS'
-    cat_colname = SIG_TYPES[mut_type]
+    cat_colname = MUT_TYPE_MAP[mut_type]
     dtype[cat_colname] = str
     
     df_cols = [SAMPLE, CHR, POS_START, cat_colname, MUT_DIST, MUT_DIST_ROLLING_MEAN]
