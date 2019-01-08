@@ -13,6 +13,7 @@ def plot_samples_meta(projects):
         proj_df = proj_df.reset_index()
         proj_df = proj_df.loc[proj_df[SAMPLE].isin(proj_list)]
         proj_df["proj_id"] = proj.get_proj_id()
+        proj_df = proj_df.fillna(value="nan")
         proj_df = proj_df.rename(columns={
             SAMPLE: "sample_id",
             PATIENT: "donor_id"
