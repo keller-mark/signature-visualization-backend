@@ -17,6 +17,8 @@ def scale_exposures(chosen_sigs, projects, mut_type, single_sample_id=None, exp_
         exps_df_max = exps_df.max()
     else:
         exps_df_max = exps_df.max().max()
+    
+    exps_df_max = exps_df_max if pd.notnull(exps_df_max) else 0.0
 
     result = [0, exps_df_max]
     return result

@@ -24,4 +24,6 @@ def compute_exposures(chosen_sigs, projects, mut_type, single_sample_id=None, no
         if not normalize:
             exps_df = exps_df.apply(lambda row: row * counts_df.loc[row.name, :].sum(), axis=1)
     
+    exps_df = exps_df.fillna(value=0)
+    
     return exps_df
