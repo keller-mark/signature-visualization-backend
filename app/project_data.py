@@ -15,6 +15,12 @@ with open(ONCOTREE_FILE) as f:
     tree_json = json.load(f)
 tree = OncoTree(tree_json)
 
+
+def get_prepend_proj_id_to_sample_id_func(proj_id):
+    def prepend_proj_id_to_sample_id(sample_id):
+        return ("%s %s" % (proj_id, sample_id))
+    return prepend_proj_id_to_sample_id
+
 # Factory-type function for getting single ProjectData object
 def get_project_data(proj_id):
     return ProjectData(proj_id, meta_df.loc[proj_id])
@@ -117,7 +123,11 @@ class ProjectData():
 
     def get_samples_df(self):
         if self.has_samples_df():
-            return pd_fetch_tsv(OBJ_DIR, self.samples_path, index_col=1)
+            samples_df = pd_fetch_tsv(OBJ_DIR, self.samples_path)
+            samples_df[SAMPLE] = samples_df[SAMPLE].apply(get_prepend_proj_id_to_sample_id_func(self.get_proj_id()))
+            samples_df[PATIENT] = samples_df[PATIENT].apply(get_prepend_proj_id_to_sample_id_func(self.get_proj_id()))
+            samples_df = samples_df.set_index(SAMPLE, drop=True)
+            return samples_df
         return None
     
     def get_samples_list(self):
@@ -140,6 +150,7 @@ class ProjectData():
             samples_df = self.get_samples_df()
             samples_df = samples_df.reset_index()
             clinical_df = pd_fetch_tsv(OBJ_DIR, self.clinical_path)
+            clinical_df[PATIENT] = clinical_df[PATIENT].apply(get_prepend_proj_id_to_sample_id_func(self.get_proj_id()))
             clinical_df = samples_df.merge(clinical_df, on=PATIENT, how='left')
             clinical_df = clinical_df.fillna(value='nan')
             clinical_df = clinical_df.set_index(SAMPLE)
@@ -163,6 +174,10 @@ class ProjectData():
     def get_counts_df(self, mut_type):
         if self.has_counts_df(mut_type):
             counts_df = pd_fetch_tsv(OBJ_DIR, self.counts_paths[mut_type], index_col=0)
+            counts_df.index = counts_df.index.rename(SAMPLE)
+            counts_df = counts_df.reset_index()
+            counts_df[SAMPLE] = counts_df[SAMPLE].apply(get_prepend_proj_id_to_sample_id_func(self.get_proj_id()))
+            counts_df = counts_df.set_index(SAMPLE, drop=True)
             counts_df = counts_df.dropna(how='any', axis='index')
             return counts_df
         return None
