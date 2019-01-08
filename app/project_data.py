@@ -8,6 +8,8 @@ from oncotree import *
 meta_df = pd.read_csv(META_DATA_FILE, sep='\t', index_col=0)
 sigs_mapping_df = pd.read_csv(PROJ_TO_SIGS_FILE, sep='\t')
 
+samples_agg_df = pd.read_csv(SAMPLES_AGG_FILE, sep='\t', index_col=0)
+
 """ Load the Oncotree """
 with open(ONCOTREE_FILE) as f:
     tree_json = json.load(f)
@@ -101,9 +103,10 @@ class ProjectData():
         return None
     
     def get_proj_num_samples(self):
-        if self.has_samples_df():
-            return self.get_samples_df().shape[0]
-        return 0
+        try:
+            return int(samples_agg_df.loc[self.get_proj_id()]["count"])
+        except:
+            return 0
     
     def get_proj_source(self):
         return self.proj_source
@@ -118,10 +121,15 @@ class ProjectData():
         return None
     
     def get_samples_list(self):
-        if self.has_samples_df():
-            samples_df = self.get_samples_df()
-            return list(samples_df.index.values)
-        return None
+        counts_df = pd.DataFrame(index=[], data=[])
+        for mut_type in MUT_TYPES:
+            if self.has_counts_df(mut_type):
+                cat_type_counts_df = self.get_counts_df(mut_type)
+                counts_df = counts_df.join(cat_type_counts_df, how='outer')
+        
+        counts_df = counts_df.fillna(value=0)
+        counts_df = counts_df.loc[~(counts_df==0).all(axis=1)]
+        return list(counts_df.index.values)
     
     # Clinical file
     def has_clinical_df(self):

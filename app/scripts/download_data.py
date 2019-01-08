@@ -18,6 +18,7 @@ OBJ_DIR = './obj' if bool(os.environ.get("DEBUG", '')) else '/obj'
 META_DATA_FILE = os.path.join(OBJ_DIR, META_DATA_FILENAME)
 META_SIGS_FILE = os.path.join(OBJ_DIR, META_SIGS_FILENAME)
 GENES_AGG_FILE = os.path.join(OBJ_DIR, GENES_AGG_FILENAME)
+SAMPLES_AGG_FILE = os.path.join(OBJ_DIR, SAMPLES_AGG_FILENAME)
 ONCOTREE_FILE = os.path.join(OBJ_DIR, ONCOTREE_FILENAME)
 PROJ_TO_SIGS_FILE = os.path.join(OBJ_DIR, PROJ_TO_SIGS_FILENAME)
 
@@ -45,38 +46,27 @@ def create_genes_agg_file():
   genes_agg_df = pd.DataFrame(index=[], columns=[META_COL_PROJ, GENE_SYMBOL, "count"])
   genes_agg_df.to_csv(GENES_AGG_FILE, sep='\t', index=False)
 
-def clean_data_files(data_row):
-  print('* Cleaning samples file')
-  # load data
-  samples_df = read_tsv(data_row[META_COL_PATH_SAMPLES], usecols=[PATIENT, SAMPLE])
-  samples_df = samples_df.set_index(SAMPLE, drop=True)
-  if pd.notnull(data_row[META_COL_PATH_CLINICAL]):
-    clinical_df = read_tsv(data_row[META_COL_PATH_CLINICAL])
-    clinical_df = clinical_df.set_index(PATIENT, drop=True)
+def create_samples_agg_file():
+  print('* Creating samples aggregate file')
+  samples_agg_df = pd.DataFrame(index=[], columns=[META_COL_PROJ, "count"])
+  samples_agg_df.to_csv(SAMPLES_AGG_FILE, sep='\t', index=False)
 
+def clean_data_files(data_row):
+  print('* Appending to samples aggregate file')
+  samples_agg_df = pd.read_csv(SAMPLES_AGG_FILE, sep='\t')
   # join all counts dfs
   counts_df = pd.DataFrame(index=[], data=[])
   for cat_type_count_path in META_COL_PATH_MUTS_COUNTS_LIST:
     if pd.notnull(data_row[cat_type_count_path]):
       cat_type_counts_df = read_tsv(data_row[cat_type_count_path], index_col=0)
       counts_df = counts_df.join(cat_type_counts_df, how='outer')
-
-  # filter and save new samples file
-  samples_counts_df = counts_df.join(samples_df, how='left')
-  samples_counts_df.index = samples_counts_df.index.rename(SAMPLE)
-  samples_counts_df = samples_counts_df.reset_index()
-  samples_filtered_df = samples_counts_df[[PATIENT, SAMPLE]]
-  to_tsv(samples_filtered_df, data_row[META_COL_PATH_SAMPLES], index=False)
-
-  # filter and save new clinical file
-  print('* Cleaning clinical file')
-  samples_filtered_df = samples_filtered_df.drop_duplicates(subset=[PATIENT])
-  samples_filtered_df = samples_filtered_df.set_index(PATIENT, drop=True)
-  if pd.notnull(data_row[META_COL_PATH_CLINICAL]):
-    clinical_samples_df = samples_filtered_df.join(clinical_df, how='left')
-    clinical_filtered_df = clinical_samples_df.drop(columns=[SAMPLE])
-    clinical_filtered_df = clinical_filtered_df.reset_index()
-    to_tsv(clinical_filtered_df, data_row[META_COL_PATH_CLINICAL], index=False)
+  
+  counts_df = counts_df.fillna(value=0)
+  counts_df = counts_df.loc[~(counts_df==0).all(axis=1)]
+  # compute the number of samples and append a row to the samples agg dataframe
+  num_samples = len(list(counts_df.index.values))
+  samples_agg_df = samples_agg_df.append({META_COL_PROJ: data_row[META_COL_PROJ], "count": num_samples}, ignore_index=True)
+  samples_agg_df.to_csv(SAMPLES_AGG_FILE, sep='\t', index=False)
 
   if pd.notnull(data_row[META_COL_PATH_GENES]):
     print('* Appending to genes aggregate file')
@@ -137,6 +127,7 @@ if __name__ == "__main__":
   sigs_df = pd.read_csv(META_SIGS_FILE, sep='\t')
 
   create_genes_agg_file()
+  create_samples_agg_file()
 
   file_list = []
   for file_column in META_DATA_FILE_COLS:

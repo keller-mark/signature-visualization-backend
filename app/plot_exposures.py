@@ -13,6 +13,8 @@ def plot_exposures(chosen_sigs, projects, mut_type, single_sample_id=None, norma
 
     exps_df = compute_exposures(chosen_sigs, projects, mut_type, single_sample_id=single_sample_id, normalize=normalize)
     
+    default_sample_obj = dict(zip(list(exps_df.columns.values), [0] * len(list(exps_df.columns.values))))
+    
     if single_sample_id == None:
         samples = scale_samples(projects)
     else:
@@ -21,7 +23,11 @@ def plot_exposures(chosen_sigs, projects, mut_type, single_sample_id=None, norma
     exps_dict = exps_df.to_dict(orient='index')
 
     def create_sample_obj(sample_id):
-        sample_obj = exps_dict[sample_id]
+        try:
+            sample_obj = exps_dict[sample_id]
+        except KeyError:
+            sample_obj = default_sample_obj
+
         if single_sample_id == None:
             sample_obj["sample_id"] = sample_id
         return sample_obj
