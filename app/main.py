@@ -3,7 +3,6 @@ from jsonschema import validate
 
 from plot_data_listing import plot_data_listing
 """ 
-from plot_signature import plot_signature
 from plot_karyotypes import plot_karyotypes
 from plot_kataegis import plot_kataegis
 from plot_rainfall import plot_rainfall
@@ -39,6 +38,8 @@ from scale_reconstruction_error import scale_reconstruction_error
 
 # Contexts (categories) scale
 from scale_contexts import scale_contexts
+
+from plot_signature import plot_signature
 
 from plot_reconstruction_cosine_similarity import plot_reconstruction_cosine_similarity
 
@@ -82,22 +83,22 @@ def route_data_listing():
 """
 Signatures
 """
-""" schema_signature = {
+schema_signature = {
   "type": "object",
   "properties": {
-    "name": {"type": "string"},
+    "signature": {"type": "string"},
     "mut_type": {"type": "string"}
   }
 }
-@app.route('/signature', methods=['POST'])
-def route_signature():
+@app.route('/plot-signature', methods=['POST'])
+def route_plot_signature():
   req = request.get_json(force=True)
   validate(req, schema_signature)
 
   assert(req["mut_type"] in MUT_TYPES)
 
-  output = plot_signature(name=req["name"], sig_type=MUT_TYPE_MAP[req["mut_type"]])
-  return response_json(app, output) """
+  output = plot_signature(signature=req["signature"], mut_type=req["mut_type"])
+  return response_json(app, output)
 
 """
 Samples-by-project

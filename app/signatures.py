@@ -39,6 +39,9 @@ class Signatures():
 
     def get_2d_array(self):
         return self.sigs_df.values
+
+    def get_df(self):
+        return self.sigs_df
     
     def get_counts(self, ssm_df):
         ssm_df = ssm_df[pd.notnull(ssm_df[CAT])]
@@ -65,16 +68,7 @@ class Signatures():
 
         exps_df = pd.DataFrame(E, index=samples, columns=sig_names)
         return exps_df
-
-    def get_sig_as_dict(self, sig_name):
-        obj = { "data": [], "meta": {}}
-        try:
-            obj["data"] = list(self.sigs_df.loc[sig_name, :].to_dict().items())
-            obj["meta"] = self.meta_df.loc[self.meta_df['name'] == sig_name, :].to_dict(orient='records')[0]
-        except KeyError:
-            pass
-        return obj
-
+        
     def get_assignments(self, exps_df):
         sig_names = self.get_chosen_names()
         # Assignments dataset (samples x mutation contexts)
