@@ -164,6 +164,7 @@ class ProjectData():
     def get_genes_df(self):
         if self.has_genes_df():
             genes_df = pd_fetch_tsv(OBJ_DIR, self.genes_path)
+            genes_df[SAMPLE] = genes_df[SAMPLE].apply(get_prepend_proj_id_to_sample_id_func(self.get_proj_id()))
             return genes_df
         return None
     
