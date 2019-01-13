@@ -149,6 +149,8 @@ class ProjectData():
         if self.has_samples_df() and self.has_clinical_df():
             samples_df = self.get_samples_df()
             samples_df = samples_df.reset_index()
+            samples_list = self.get_samples_list()
+            samples_df = samples_df.loc[samples_df[SAMPLE].isin(samples_list)]
             clinical_df = pd_fetch_tsv(OBJ_DIR, self.clinical_path)
             clinical_df[PATIENT] = clinical_df[PATIENT].apply(get_prepend_proj_id_to_sample_id_func(self.get_proj_id()))
             clinical_df = samples_df.merge(clinical_df, on=PATIENT, how='left')
