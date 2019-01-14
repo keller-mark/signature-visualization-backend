@@ -23,7 +23,7 @@ from scale_counts import scale_counts
 
 from plot_samples_meta import plot_samples_meta
 
-from plot_gene_event_track import plot_gene_event_track, autocomplete_gene
+from plot_gene_event_track import plot_gene_event_track, autocomplete_gene, plot_pathways_listing
 from plot_clinical_track import plot_clinical_track
 from scale_clinical_track import scale_clinical_track
 
@@ -36,15 +36,9 @@ from scale_counts_per_category import scale_counts_per_category
 from scale_reconstruction import scale_reconstruction
 from scale_reconstruction_error import scale_reconstruction_error
 
-# Contexts (categories) scale
 from scale_contexts import scale_contexts
-
 from plot_signature import plot_signature
-
 from plot_reconstruction_cosine_similarity import plot_reconstruction_cosine_similarity
-
-
-
 from sharing_state import get_sharing_state, set_sharing_state
 
 from oncotree import *
@@ -77,6 +71,11 @@ Data listing
 @app.route('/data-listing', methods=['POST'])
 def route_data_listing():
   output = plot_data_listing()
+  return response_json(app, output)
+
+@app.route('/pathways-listing', methods=['POST'])
+def route_pathways_listing():
+  output = plot_pathways_listing()
   return response_json(app, output)
 
 
@@ -353,103 +352,6 @@ def route_scale_contexts():
   output = scale_contexts(req["signatures"], req["mut_type"])
   return response_json(app, output)
 
-"""
-Exposures plot for single sample
-"""
-""" schema_exposures_single_sample = {
-  "type": "object",
-  "properties": {
-    "signatures": signatures_schema,
-    "proj_id": {"type": "string"},
-    "sample_id": {"type": "string"}
-  }
-}
-@app.route('/exposures-single-sample', methods=['POST'])
-def route_exposures_single():
-  req = request.get_json(force=True)
-  validate(req, schema_exposures_single_sample)
-
-  output = plot_signature_exposures(req["signatures"], [req["proj_id"]], single_sample_id=req["sample_id"])
-  return response_json(app, output) """
-
-
-"""
-Signature Genome Bins plot (Manhattan plot with bins for signature exposures)
-"""
-""" schema_signature_genome_bins = {
-  "type": "object",
-  "properties" : {
-    "regionWidth": {"type" : "number"},
-    "signatures": signatures_schema,
-    "projects": projects_schema
-  }
-}
-@app.route('/signature-genome-bins', methods=['POST'])
-def route_signature_genome_bins():
-  req = request.get_json(force=True)
-  validate(req, schema_signature_genome_bins)
-
-  output = plot_signature_genome_bins(req["regionWidth"], req["signatures"], req["projects"])
-  return response_json(app, output) """
-
-
-"""
-Signature Genome Bins plot for single sample
-"""
-""" schema_signature_genome_bins_single = {
-  "type": "object",
-  "properties": {
-    "regionWidth": {"type" : "number"},
-    "signatures": signatures_schema,
-    "proj_id": {"type": "string"},
-    "sample_id": {"type": "string"}
-  }
-}
-@app.route('/signature-genome-bins-single-sample', methods=['POST'])
-def route_signature_genome_bins_single():
-  req = request.get_json(force=True)
-  validate(req, schema_signature_genome_bins_single)
-
-  output = plot_signature_genome_bins(req["regionWidth"], req["signatures"], [req["proj_id"]], single_sample_id=req["sample_id"])
-  return response_json(app, output) """
-
-
-"""
-Kataegis plot, indicators of kataegis across genome for multiple samples
-"""
-""" schema_kataegis = {
-  "type": "object",
-  "properties": {
-    "projects": projects_schema
-  }
-}
-@app.route('/kataegis', methods=['POST'])
-def route_kataegis():
-  req = request.get_json(force=True)
-  validate(req, schema_kataegis)
-
-  output = plot_kataegis(req["projects"])
-  return response_json(app, output) """
-
-
-"""
-Rainfall plot
-"""
-""" schema_rainfall = {
-  "type": "object",
-  "properties": {
-    "proj_id": {"type": "string"},
-    "sample_id": {"type": "string"}
-  }
-}
-@app.route('/kataegis-rainfall', methods=['POST'])
-def route_kataegis_rainfall():
-  req = request.get_json(force=True)
-  validate(req, schema_rainfall)
-
-  output = plot_rainfall(req["proj_id"], req["sample_id"])
-  return response_csv(app, output) """
-
 
 """
 Hierarchical clustering plot
@@ -551,17 +453,6 @@ def route_scale_clinical_track():
 
   output = scale_clinical_track(req["clinical_variable"], req["projects"])
   return response_json(app, output) 
-
-
-
-"""
-Karyotype
-"""
-""" @app.route('/karyotype', methods=['POST'])
-def route_karyotype():
-  output = plot_karyotypes()
-  return response_csv(app, output)
- """
 
 """
 Samples listing

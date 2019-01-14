@@ -6,6 +6,8 @@ from web_constants import *
 from signatures import Signatures, get_signatures_by_mut_type
 from project_data import ProjectData, get_selected_project_data
 
+from helpers import pd_fetch_tsv
+
 def plot_gene_event_track(gene_id, projects):
     result = []
     
@@ -36,11 +38,26 @@ def plot_gene_event_track(gene_id, projects):
 
 def autocomplete_gene(gene_id_partial, projects):
     gene_id_partial = gene_id_partial.upper()
+    first_letter = gene_id_partial[0]
 
-    genes_agg_df = pd.read_csv(GENES_AGG_FILE, sep='\t')
+    genes_agg_df = pd.read_csv(GENES_AGG_FILE.format(letter=first_letter), sep='\t')
     genes_agg_df = genes_agg_df.loc[genes_agg_df[META_COL_PROJ].isin(projects)]
 
     gene_list = genes_agg_df[GENE_SYMBOL].unique().tolist()
 
     gene_list_filtered = list(filter(lambda gene_id: gene_id.startswith(gene_id_partial), gene_list))
     return gene_list_filtered
+
+def plot_pathways_listing():
+    result = []
+    meta_df = pd.read_csv(META_PATHWAYS_FILE, sep="\t", index_col=0)
+    for group, group_row in meta_df.iterrows():
+        group_df = pd_fetch_tsv(OBJ_DIR, group_row[META_COL_PATH_PATHWAYS])
+        for index, row in group_df.iterrows():
+            result.append({
+                "publication": group_row["Publication"],
+                "pathway_group": group,
+                "gene": row[GENE_SYMBOL],
+                "pathway": row["Pathway"]
+            })
+    return result

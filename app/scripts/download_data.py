@@ -3,6 +3,7 @@ import subprocess
 import os
 import sys
 import json
+import string
 
 from sqlalchemy import create_engine
 from sqlalchemy import MetaData, Table, Column, Integer, String, Text
@@ -17,6 +18,7 @@ OBJ_DIR = './obj' if bool(os.environ.get("DEBUG", '')) else '/obj'
 
 META_DATA_FILE = os.path.join(OBJ_DIR, META_DATA_FILENAME)
 META_SIGS_FILE = os.path.join(OBJ_DIR, META_SIGS_FILENAME)
+META_PATHWAYS_FILE = os.path.join(OBJ_DIR, META_PATHWAYS_FILENAME)
 GENES_AGG_FILE = os.path.join(OBJ_DIR, GENES_AGG_FILENAME)
 SAMPLES_AGG_FILE = os.path.join(OBJ_DIR, SAMPLES_AGG_FILENAME)
 ONCOTREE_FILE = os.path.join(OBJ_DIR, ONCOTREE_FILENAME)
@@ -41,10 +43,12 @@ def download_files(file_list):
     else:
       print('* Not downloading ' + local_file_path)
 
-def create_genes_agg_file():
-  print('* Creating genes aggregate file')
-  genes_agg_df = pd.DataFrame(index=[], columns=[META_COL_PROJ, GENE_SYMBOL, "count"])
-  genes_agg_df.to_csv(GENES_AGG_FILE, sep='\t', index=False)
+def create_genes_agg_files():
+  print('* Creating genes aggregate files')
+  alphabet = string.ascii_uppercase
+  for letter in alphabet:
+    genes_agg_df = pd.DataFrame(index=[], columns=[META_COL_PROJ, GENE_SYMBOL, "count"])
+    genes_agg_df.to_csv(GENES_AGG_FILE.format(letter=letter), sep='\t', index=False)
 
 def create_samples_agg_file():
   print('* Creating samples aggregate file')
@@ -69,13 +73,18 @@ def clean_data_files(data_row):
   samples_agg_df.to_csv(SAMPLES_AGG_FILE, sep='\t', index=False)
 
   if pd.notnull(data_row[META_COL_PATH_GENES]):
-    print('* Appending to genes aggregate file')
-    genes_agg_df = pd.read_csv(GENES_AGG_FILE, sep='\t')
+    print('* Appending to genes aggregate files')
     genes_df = read_tsv(data_row[META_COL_PATH_GENES])
     genes_df[META_COL_PROJ] = data_row[META_COL_PROJ]
     genes_df = genes_df.groupby([META_COL_PROJ, GENE_SYMBOL]).size().reset_index(name='count')
-    genes_agg_df = genes_agg_df.append(genes_df, ignore_index=True)
-    genes_agg_df.to_csv(GENES_AGG_FILE, sep='\t', index=False)
+
+    alphabet = string.ascii_uppercase
+    for letter in alphabet:
+      genes_agg_df = pd.read_csv(GENES_AGG_FILE.format(letter=letter), sep='\t')
+      genes_df_by_letter = genes_df.loc[genes_df[GENE_SYMBOL].str.startswith(letter)]
+      if genes_df_by_letter.shape[0] > 0:
+        genes_agg_df = genes_agg_df.append(genes_df_by_letter, ignore_index=True)
+        genes_agg_df.to_csv(GENES_AGG_FILE.format(letter=letter), sep='\t', index=False)
 
 def download_oncotree():
   if not os.path.isfile(ONCOTREE_FILE):
@@ -125,8 +134,9 @@ def create_sharing_table():
 if __name__ == "__main__":
   data_df = pd.read_csv(META_DATA_FILE, sep='\t')
   sigs_df = pd.read_csv(META_SIGS_FILE, sep='\t')
+  pathways_df = pd.read_csv(META_PATHWAYS_FILE, sep='\t')
 
-  create_genes_agg_file()
+  create_genes_agg_files()
   create_samples_agg_file()
 
   file_list = []
@@ -134,6 +144,8 @@ if __name__ == "__main__":
     file_list += data_df[file_column].dropna().tolist()
   for file_column in META_SIGS_FILE_COLS:
     file_list += sigs_df[file_column].dropna().tolist()
+  for file_column in META_PATHWAYS_FILE_COLS:
+    file_list += pathways_df[file_column].dropna().tolist()
   download_files(file_list)
 
   for index, data_row in data_df.iterrows():

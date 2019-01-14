@@ -6,13 +6,16 @@ OBJ_DIR = '../obj' if bool(os.environ.get("DEBUG", '')) else '/obj'
 
 META_DATA_FILENAME = 'meta-data.tsv'
 META_SIGS_FILENAME = 'meta-sigs.tsv'
+META_PATHWAYS_FILENAME = 'meta-pathways.tsv'
 ONCOTREE_FILENAME = 'oncotree-2018_11_01.json'
-GENES_AGG_FILENAME = 'computed-genes_agg.tsv'
+GENES_AGG_FILENAME = 'computed-genes_agg-{letter}.tsv'
 SAMPLES_AGG_FILENAME = 'computed-samples_agg.tsv'
 PROJ_TO_SIGS_FILENAME = 'computed-oncotree_proj_to_sigs_per_group.tsv'
 
 META_DATA_FILE = os.path.join(OBJ_DIR, META_DATA_FILENAME)
 META_SIGS_FILE = os.path.join(OBJ_DIR, META_SIGS_FILENAME)
+META_PATHWAYS_FILE = os.path.join(OBJ_DIR, META_PATHWAYS_FILENAME)
+
 GENES_AGG_FILE = os.path.join(OBJ_DIR, GENES_AGG_FILENAME)
 SAMPLES_AGG_FILE = os.path.join(OBJ_DIR, SAMPLES_AGG_FILENAME)
 ONCOTREE_FILE = os.path.join(OBJ_DIR, ONCOTREE_FILENAME)
@@ -208,3 +211,11 @@ META_DATA_FILE_COLS = [
   META_COL_PATH_SAMPLES,
   META_COL_PATH_GENES
 ] + META_COL_PATH_MUTS_EXTENDED_LIST + META_COL_PATH_MUTS_COUNTS_LIST
+
+# Pathways data columns
+META_COL_PATHWAYS_GROUP = 'Pathways Group'
+META_COL_PATH_PATHWAYS = 'Path to Pathways File'
+
+META_PATHWAYS_FILE_COLS = [
+  META_COL_PATH_PATHWAYS
+]
