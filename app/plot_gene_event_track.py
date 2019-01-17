@@ -54,10 +54,20 @@ def plot_pathways_listing():
     for group, group_row in meta_df.iterrows():
         group_df = pd_fetch_tsv(OBJ_DIR, group_row[META_COL_PATH_PATHWAYS])
         for index, row in group_df.iterrows():
-            result.append({
+            row_dict = {
                 "publication": group_row["Publication"],
                 "pathway_group": group,
                 "gene": row[GENE_SYMBOL],
-                "pathway": row["Pathway"]
-            })
+                "pathway": row["Pathway"],
+                "core": row["Core"]
+            }
+            if hasattr(row, "Location"):
+                row_dict["location"] = row["Location"]
+            if hasattr(row, "Gene Description"):
+                row_dict["description"] = row["Gene Description"]
+            if hasattr(row, "Core"):
+                row_dict["core"] = row["Core"]
+            else:
+                row_dict["core"] = False
+            result.append(row_dict)
     return result
