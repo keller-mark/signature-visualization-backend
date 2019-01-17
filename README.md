@@ -1,7 +1,9 @@
 # interactive Mutation Signature Explorer (iMuSE) Server
 
+Server-side component of [iMuSE](https://github.com/lrgr/imuse) web app
+
 ### Docker Setup
-We recommend using the docker configuration at [imuse-docker](https://github.com/lrgr/imuse-docker) to run iMuSE and iMuSE Server locally. 
+We recommend using the docker configuration at [iMuSE-docker](https://github.com/lrgr/imuse-docker) to run iMuSE and iMuSE Server locally. 
 
 
 ### Docker-less Setup
@@ -18,6 +20,12 @@ git submodule foreach git pull origin master
 - `pip install flask`
 - `pip install Cython`
 - `pip install -r requirements.txt`
+
+#### Data
+```
+mkdir obj
+python app/scripts/download_data.py
+```
 
 #### Run
 [http://localhost:8000](http://localhost:8000)
