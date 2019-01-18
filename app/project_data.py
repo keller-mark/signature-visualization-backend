@@ -141,6 +141,18 @@ class ProjectData():
         counts_df = counts_df.loc[~(counts_df==0).all(axis=1)]
         return list(counts_df.index.values)
     
+    def get_counts_sum_series(self):
+        counts_df = pd.DataFrame(index=[], data=[])
+        for mut_type in MUT_TYPES:
+            if self.has_counts_df(mut_type):
+                cat_type_counts_df = self.get_counts_df(mut_type)
+                counts_df = counts_df.join(cat_type_counts_df, how='outer')
+        
+        counts_df = counts_df.fillna(value=0)
+        counts_df = counts_df.loc[~(counts_df==0).all(axis=1)]
+        counts_series = counts_df.sum(axis='columns')
+        return counts_series
+    
     # Clinical file
     def has_clinical_df(self):
         return (self.clinical_path != None)

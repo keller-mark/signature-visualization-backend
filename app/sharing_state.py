@@ -1,7 +1,10 @@
 import uuid
 import json
+import pandas as pd
 from sqlalchemy import create_engine
 from sqlalchemy import MetaData, Table, Column, Integer, String, Text
+
+from web_constants import META_FEATURED_FILE
 
 def connect():
     engine = create_engine('mysql://imuse:imuse@db:3306/imuse')
@@ -27,3 +30,8 @@ def set_sharing_state(state):
     conn.execute(ins)
 
     return { "slug": slug }
+
+def plot_featured_listing():
+    df = pd.read_csv(META_FEATURED_FILE, sep="\t")
+    df = df.fillna(value="")
+    return df.to_dict('records')

@@ -39,7 +39,7 @@ from scale_reconstruction_error import scale_reconstruction_error
 from scale_contexts import scale_contexts
 from plot_signature import plot_signature
 from plot_reconstruction_cosine_similarity import plot_reconstruction_cosine_similarity
-from sharing_state import get_sharing_state, set_sharing_state
+from sharing_state import get_sharing_state, set_sharing_state, plot_featured_listing
 
 from oncotree import *
 
@@ -76,6 +76,11 @@ def route_data_listing():
 @app.route('/pathways-listing', methods=['POST'])
 def route_pathways_listing():
   output = plot_pathways_listing()
+  return response_json(app, output)
+
+@app.route('/featured-listing', methods=['POST'])
+def route_featured_listing():
+  output = plot_featured_listing()
   return response_json(app, output)
 
 
