@@ -2,13 +2,7 @@ from flask import Flask, request
 from jsonschema import validate
 
 from plot_data_listing import plot_data_listing
-""" 
-from plot_karyotypes import plot_karyotypes
-from plot_kataegis import plot_kataegis
-from plot_rainfall import plot_rainfall
-from plot_signature_genome_bins import plot_signature_genome_bins
-"""
-from plot_data_listing import plot_data_listing
+
 from plot_clustering import plot_clustering
 
 from plot_samples_with_signatures import plot_samples_with_signatures
