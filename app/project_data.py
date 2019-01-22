@@ -69,7 +69,6 @@ class ProjectData():
         self.oncotree_code = proj_row[META_COL_ONCOTREE_CODE] if pd.notnull(proj_row[META_COL_ONCOTREE_CODE]) else None
         self.oncotree_node = tree.find_node(self.oncotree_code) if pd.notnull(proj_row[META_COL_ONCOTREE_CODE]) else None
         self.proj_source = proj_row[META_COL_PROJ_SOURCE]
-        self.extended_paths = {}
         self.counts_paths = {}
 
         # Check for a clinical file
@@ -79,10 +78,6 @@ class ProjectData():
         # Check for a genome events file
         self.genes_path = path_or_none(proj_row, META_COL_PATH_GENES)
 
-        for mut_type in MUT_TYPES:
-            # Check for an extended file for the mutation type
-            self.extended_paths[mut_type] = path_or_none(proj_row, META_COL_PATH_MUTS_EXTENDED.format(mut_type=mut_type))
-        
         for mut_type in MUT_TYPES:
             cat_type = MUT_TYPE_MAP[mut_type]
             # Check for a counts file for the category type
@@ -195,15 +190,6 @@ class ProjectData():
             counts_df = counts_df.set_index(SAMPLE, drop=True)
             counts_df = counts_df.dropna(how='any', axis='index')
             return counts_df
-        return None
-    
-    # Extended mutation table files
-    def has_extended_df(self, mut_type):
-        return (self.extended_paths[mut_type] != None)
-    
-    def get_extended_df(self, mut_type, **kwargs):
-        if self.has_extended_df(mut_type):
-            return pd_fetch_tsv(OBJ_DIR, self.extended_paths[mut_type], **kwargs)
         return None
     
     def get_sigs_mapping(self):

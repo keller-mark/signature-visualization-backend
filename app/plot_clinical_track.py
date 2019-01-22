@@ -6,7 +6,10 @@ from web_constants import *
 from project_data import ProjectData, get_selected_project_data
 
 def append_icd_desc(row, code_col, desc_col):
-    return ("%s (%s)" % (row[code_col], row[desc_col]))
+    if row[desc_col] != 'nan':
+        return ("%s (%s)" % (row[code_col], row[desc_col]))
+    else:
+        return row[code_col]
 
 def plot_clinical_track(clinical_var, projects):
     result = []

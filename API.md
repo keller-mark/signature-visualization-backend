@@ -28,7 +28,6 @@ Table of Contents:
 						"num_donors": 569,
 						"source": "ICGC",
 						"has_clinical": true,
-						"has_extended": true,
 						"has_counts": true
 					},
 					...

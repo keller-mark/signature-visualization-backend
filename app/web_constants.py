@@ -58,7 +58,7 @@ POS_START = 'Start Position'
 POS_END = 'End Position'
 REF = 'Reference Sequence'
 VAR = 'Variant Sequence'
-GSTRAND = 'Genomic Strand' # Watson-Crick Strand
+GSTRAND = 'Genomic Strand'
 SEQ_TYPE = 'Sequencing Strategy'
 MUT_TYPE = 'Mutation Type'
 ASSEMBLY = 'Assembly Version'
@@ -97,6 +97,9 @@ ICD_O_3_SITE_CODE = 'ICD-O-3 Site Code'
 ICD_O_3_SITE_DESC = 'ICD-O-3 Site Description'
 ICD_O_3_HISTOLOGY_CODE = 'ICD-O-3 Histology Code'
 ICD_O_3_HISTOLOGY_DESC = 'ICD-O-3 Histology Description'
+SURVIVAL_DAYS_TO_DEATH = 'Days to Death'
+SURVIVAL_DAYS_TO_LAST_FOLLOWUP = 'Days to Last Followup'
+SURVIVAL_OVERALL = 'Overall Survival'
 
 CLINICAL_COLUMNS = [
   TOBACCO_BINARY, 
@@ -110,12 +113,9 @@ CLINICAL_COLUMNS = [
   STAGE_PATHOLOGIC_T,
   STAGE_PATHOLOGIC_N,
   STAGE_PATHOLOGIC_M,
-  STAGE_CLINICAL,
-  STAGE_CLINICAL_T,
-  STAGE_CLINICAL_N,
-  STAGE_CLINICAL_M,
   ICD_O_3_SITE_CODE,
-  ICD_O_3_HISTOLOGY_CODE
+  ICD_O_3_HISTOLOGY_CODE,
+  SURVIVAL_OVERALL
 ]
 
 CHROMOSOMES = {
@@ -196,20 +196,18 @@ META_CANCER_TYPE_MAP_COLS = [
 META_COL_PROJ = 'Project'
 META_COL_PROJ_SOURCE = 'Project Source'
 META_COL_PROJ_NAME = 'Project Name'
-META_COL_PATH_MUTS_EXTENDED = 'Path to Extended {mut_type} File'
 META_COL_PATH_MUTS_COUNTS = 'Path to Counts {cat_type} File'
 META_COL_PATH_CLINICAL = 'Path to Clinical File'
 META_COL_PATH_SAMPLES = 'Path to Samples File'
 META_COL_PATH_GENES = 'Path to Genes File'
 
-META_COL_PATH_MUTS_EXTENDED_LIST = [META_COL_PATH_MUTS_EXTENDED.format(mut_type=val) for val in MUT_TYPES]
 META_COL_PATH_MUTS_COUNTS_LIST = [META_COL_PATH_MUTS_COUNTS.format(cat_type=val) for val in CAT_TYPES]
 
 META_DATA_FILE_COLS = [
   META_COL_PATH_CLINICAL,
   META_COL_PATH_SAMPLES,
   META_COL_PATH_GENES
-] + META_COL_PATH_MUTS_EXTENDED_LIST + META_COL_PATH_MUTS_COUNTS_LIST
+] + META_COL_PATH_MUTS_COUNTS_LIST
 
 # Pathways data columns
 META_COL_PATHWAYS_GROUP = 'Pathways Group'

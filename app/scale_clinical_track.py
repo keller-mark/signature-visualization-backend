@@ -19,7 +19,10 @@ clinical_scales = {
 }
 
 def append_icd_desc(row, code_col, desc_col):
-    return ("%s (%s)" % (row[code_col], row[desc_col]))
+    if row[desc_col] != 'nan':
+        return ("%s (%s)" % (row[code_col], row[desc_col]))
+    else:
+        return row[code_col]
 
 def scale_clinical_track(clinical_var, projects):
     try:
@@ -36,6 +39,9 @@ def scale_clinical_track(clinical_var, projects):
             else:
                 proj_clinical_df = pd.DataFrame(index=samples, data=[], columns=[])
             clinical_df = clinical_df.append(proj_clinical_df, ignore_index=False)
+        
+        if clinical_var == SURVIVAL_OVERALL:
+            return [0, clinical_df[SURVIVAL_OVERALL].max()]
         
         # If ICD code, try to append description column values
         clinical_columns = list(clinical_df.columns.values)

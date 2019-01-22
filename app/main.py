@@ -5,8 +5,6 @@ from plot_data_listing import plot_data_listing
 
 from plot_clustering import plot_clustering
 
-from plot_samples_with_signatures import plot_samples_with_signatures
-
 from scale_samples import scale_samples
 
 from plot_exposures import plot_exposures
@@ -20,6 +18,9 @@ from plot_samples_meta import plot_samples_meta
 from plot_gene_event_track import plot_gene_event_track, autocomplete_gene, plot_pathways_listing
 from plot_clinical_track import plot_clinical_track
 from scale_clinical_track import scale_clinical_track
+
+from plot_survival import plot_survival
+
 
 # Reconstruction plots
 from plot_counts_per_category import plot_counts_per_category
@@ -372,25 +373,6 @@ def route_clustering():
 
 
 """
-Samples with signatures plot
-"""
-schema_samples_with_signatures = {
-  "type": "object",
-  "properties": {
-    "signatures": signatures_schema,
-    "projects": projects_schema
-  }
-}
-@app.route('/samples-with-signatures', methods=['POST'])
-def route_samples_with_signatures():
-  req = request.get_json(force=True)
-  validate(req, schema_samples_with_signatures)
-
-  output = plot_samples_with_signatures(req["signatures"], req["projects"])
-  return response_json(app, output)
-
-
-"""
 Genome Event Tracks
 """
 schema_gene_event_track = {
@@ -443,7 +425,7 @@ def route_plot_clinical_track():
   validate(req, schema_clinical_track)
 
   output = plot_clinical_track(req["clinical_variable"], req["projects"])
-  return response_json(app, output) 
+  return response_json(app, output)
 
 @app.route('/scale-clinical-track', methods=['POST'])
 def route_scale_clinical_track():
@@ -451,7 +433,21 @@ def route_scale_clinical_track():
   validate(req, schema_clinical_track)
 
   output = scale_clinical_track(req["clinical_variable"], req["projects"])
-  return response_json(app, output) 
+  return response_json(app, output)
+
+schema_survival = {
+  "type": "object",
+  "properties": {
+    "projects": projects_schema
+  }
+}
+@app.route('/plot-survival', methods=['POST'])
+def route_plot_survival():
+  req = request.get_json(force=True)
+  validate(req, schema_survival)
+
+  output = plot_survival(req["projects"])
+  return response_json(app, output)
 
 """
 Samples listing

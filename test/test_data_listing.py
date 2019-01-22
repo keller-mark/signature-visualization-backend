@@ -17,7 +17,6 @@ class TestDataListing(unittest.TestCase):
             "num_donors": 569,
             "source": "ICGC",
             "has_clinical": True,
-            "has_extended": True,
             "has_counts": True
         }
         self.assertEqual(brca_obj, res['projects']['ICGC-BRCA-EU'])
