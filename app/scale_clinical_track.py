@@ -41,7 +41,11 @@ def scale_clinical_track(clinical_var, projects):
             clinical_df = clinical_df.append(proj_clinical_df, ignore_index=False)
         
         if clinical_var == SURVIVAL_OVERALL:
-            return [0, clinical_df[SURVIVAL_OVERALL].max()]
+            try:
+                clinical_df[SURVIVAL_OVERALL] = clinical_df[SURVIVAL_OVERALL].astype(float)
+                return [0, clinical_df[SURVIVAL_OVERALL].max()]
+            except:
+                return [0, 1]
         
         # If ICD code, try to append description column values
         clinical_columns = list(clinical_df.columns.values)
