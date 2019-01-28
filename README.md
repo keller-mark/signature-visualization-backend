@@ -3,7 +3,7 @@
 Server-side component of [iMuSE](https://github.com/lrgr/imuse) web app
 
 ### Docker Setup
-We recommend using the docker configuration at [iMuSE-docker](https://github.com/lrgr/imuse-docker) to run iMuSE and iMuSE Server locally. 
+We recommend using the docker configuration at [imuse-docker](https://github.com/lrgr/imuse-docker) to run iMuSE and iMuSE Server locally. 
 
 
 ### Docker-less Setup
