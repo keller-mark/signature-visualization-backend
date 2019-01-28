@@ -1,4 +1,4 @@
-# interactive Mutation Signature Explorer (iMuSE) Server
+# iMuSE Server
 
 Server-side component of [iMuSE](https://github.com/lrgr/imuse) web app
 
