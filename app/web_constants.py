@@ -8,6 +8,7 @@ META_DATA_FILENAME = 'meta-data.tsv'
 META_SIGS_FILENAME = 'meta-sigs.tsv'
 META_PATHWAYS_FILENAME = 'meta-pathways.tsv'
 META_FEATURED_FILENAME = 'meta-featured.tsv'
+META_CLINICAL_FILENAME = 'meta-clinical.tsv'
 ONCOTREE_FILENAME = 'oncotree-2018_11_01.json'
 GENES_AGG_FILENAME = 'computed-genes_agg-{letter}.tsv'
 SAMPLES_AGG_FILENAME = 'computed-samples_agg.tsv'
@@ -17,6 +18,7 @@ META_DATA_FILE = os.path.join(OBJ_DIR, META_DATA_FILENAME)
 META_SIGS_FILE = os.path.join(OBJ_DIR, META_SIGS_FILENAME)
 META_PATHWAYS_FILE = os.path.join(OBJ_DIR, META_PATHWAYS_FILENAME)
 META_FEATURED_FILE = os.path.join(OBJ_DIR, META_FEATURED_FILENAME)
+META_CLINICAL_FILE = os.path.join(OBJ_DIR, META_CLINICAL_FILENAME)
 
 GENES_AGG_FILE = os.path.join(OBJ_DIR, GENES_AGG_FILENAME)
 SAMPLES_AGG_FILE = os.path.join(OBJ_DIR, SAMPLES_AGG_FILENAME)
@@ -74,49 +76,13 @@ NEAREST_MUT = 'Distance to Nearest Mutation'
 MUT_DIST_ROLLING_MEAN = 'Rolling Mean of 6 Mutation Distances'
 KATAEGIS = 'Kataegis'
 
-# Column names for donor clinical data tables
-TOBACCO_BINARY = 'Tobacco User'
-TOBACCO_INTENSITY = 'Tobacco Intensity'
-ALCOHOL_BINARY = 'Alcohol User'
-ALCOHOL_INTENSITY = 'Alcohol Intensity'
-DIAGNOSIS_AGE = 'Diagnosis Age'
-SEX = 'Sex'
-VITAL_STATUS = 'Vital Status'
-RECURRENCE = 'Recurrence'
-RADIATION_THERAPY = 'Radiation Therapy'
-STAGE_PATHOLOGIC = 'Pathologic Stage'
-STAGE_PATHOLOGIC_T = 'Pathologic T'
-STAGE_PATHOLOGIC_N = 'Pathologic N'
-STAGE_PATHOLOGIC_M = 'Pathologic M'
-STAGE_CLINICAL = 'Clinical Stage'
-STAGE_CLINICAL_M = 'Clinical M'
-STAGE_CLINICAL_N = 'Clinical N'
-STAGE_CLINICAL_T = 'Clinical T'
-RESIDUAL_TUMOR = 'Residual Tumor'
+# Special clinical variables
 ICD_O_3_SITE_CODE = 'ICD-O-3 Site Code'
 ICD_O_3_SITE_DESC = 'ICD-O-3 Site Description'
 ICD_O_3_HISTOLOGY_CODE = 'ICD-O-3 Histology Code'
 ICD_O_3_HISTOLOGY_DESC = 'ICD-O-3 Histology Description'
 SURVIVAL_DAYS_TO_DEATH = 'Days to Death'
 SURVIVAL_DAYS_TO_LAST_FOLLOWUP = 'Days to Last Followup'
-SURVIVAL_OVERALL = 'Overall Survival'
-
-CLINICAL_COLUMNS = [
-  TOBACCO_BINARY, 
-  TOBACCO_INTENSITY, 
-  ALCOHOL_BINARY, 
-  DIAGNOSIS_AGE, 
-  SEX,
-  VITAL_STATUS,
-  RADIATION_THERAPY,
-  STAGE_PATHOLOGIC,
-  STAGE_PATHOLOGIC_T,
-  STAGE_PATHOLOGIC_N,
-  STAGE_PATHOLOGIC_M,
-  ICD_O_3_SITE_CODE,
-  ICD_O_3_HISTOLOGY_CODE,
-  SURVIVAL_OVERALL
-]
 
 CHROMOSOMES = {
   '1': 249250621,
@@ -216,3 +182,9 @@ META_COL_PATH_PATHWAYS = 'Path to Pathways File'
 META_PATHWAYS_FILE_COLS = [
   META_COL_PATH_PATHWAYS
 ]
+
+# Clinical variables columns
+META_COL_CLINICAL_COL = 'Clinical Column'
+META_COL_CLINICAL_SCALE_TYPE = 'Scale Type'
+META_COL_CLINICAL_EXTENT = 'Extent'
+META_COL_CLINICAL_VALUE = 'Value'
