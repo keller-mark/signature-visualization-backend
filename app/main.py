@@ -16,8 +16,8 @@ from scale_counts import scale_counts
 from plot_samples_meta import plot_samples_meta
 
 from plot_gene_event_track import plot_gene_event_track, autocomplete_gene, plot_pathways_listing
-from plot_clinical_track import plot_clinical_track
-from scale_clinical_track import scale_clinical_track
+from plot_clinical import plot_clinical, plot_clinical_variables, plot_clinical_scale_types
+from scale_clinical import scale_clinical
 
 from plot_survival import plot_survival
 
@@ -412,27 +412,27 @@ def route_autocomplete_gene():
 """
 Clinical Variable Tracks
 """
-schema_clinical_track = {
+schema_clinical = {
   "type": "object",
   "properties": {
     "clinical_variable": {"type": "string"},
     "projects": projects_schema
   }
 }
-@app.route('/plot-clinical-track', methods=['POST'])
-def route_plot_clinical_track():
+@app.route('/plot-clinical', methods=['POST'])
+def route_plot_clinical():
   req = request.get_json(force=True)
-  validate(req, schema_clinical_track)
+  validate(req, schema_clinical)
 
-  output = plot_clinical_track(req["clinical_variable"], req["projects"])
+  output = plot_clinical(req["projects"])
   return response_json(app, output)
 
-@app.route('/scale-clinical-track', methods=['POST'])
-def route_scale_clinical_track():
+@app.route('/scale-clinical', methods=['POST'])
+def route_scale_clinical():
   req = request.get_json(force=True)
-  validate(req, schema_clinical_track)
+  validate(req, schema_clinical)
 
-  output = scale_clinical_track(req["clinical_variable"], req["projects"])
+  output = scale_clinical(req["projects"])
   return response_json(app, output)
 
 schema_survival = {
@@ -474,7 +474,7 @@ Clinical variable listing
 @app.route('/clinical-variable-list', methods=['POST'])
 def route_clinical_variable_list():
 
-  output = CLINICAL_COLUMNS
+  output = plot_clinical_scale_types()
   return response_json(app, output) 
 
 """
