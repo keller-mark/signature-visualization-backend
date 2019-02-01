@@ -16,7 +16,7 @@ from scale_counts import scale_counts
 from plot_samples_meta import plot_samples_meta
 
 from plot_gene_event_track import plot_gene_event_track, autocomplete_gene, plot_pathways_listing
-from plot_clinical import plot_clinical, plot_clinical_variables
+from plot_clinical import plot_clinical, plot_clinical_variables, plot_clinical_scale_types
 from scale_clinical import scale_clinical
 
 from plot_survival import plot_survival
@@ -474,7 +474,7 @@ Clinical variable listing
 @app.route('/clinical-variable-list', methods=['POST'])
 def route_clinical_variable_list():
 
-  output = plot_clinical_variables()
+  output = plot_clinical_scale_types()
   return response_json(app, output) 
 
 """
