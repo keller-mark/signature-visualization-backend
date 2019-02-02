@@ -7,7 +7,7 @@ from sqlalchemy import MetaData, Table, Column, Integer, String, Text
 from web_constants import META_FEATURED_FILE
 
 def connect():
-    engine = create_engine('mysql://imuse:imuse@db:3306/imuse')
+    engine = create_engine('mysql://explosig:explosig@db:3306/explosig')
     conn = engine.connect()
     metadata = MetaData(engine, reflect=True)
     table = metadata.tables['sharing']

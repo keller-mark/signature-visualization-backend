@@ -124,7 +124,7 @@ def create_proj_to_sigs_mapping(data_df, sigs_df):
 
 def create_sharing_table():
   try:
-    engine = create_engine('mysql://imuse:imuse@db:3306/imuse')
+    engine = create_engine('mysql://explosig:explosig@db:3306/explosig')
     connection = engine.connect()
     metadata = MetaData(engine)
     table = Table('sharing', metadata, Column('id', Integer(), primary_key=True), Column('slug', String(length=255)), Column('data', Text()), extend_existing=True)

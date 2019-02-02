@@ -2,5 +2,5 @@
 __pycache__
 venv
 .vscode
-imuse-server-deployment.yaml
-imuse-server-service.yaml
+*-server-deployment.yaml
+*-server-service.yaml
