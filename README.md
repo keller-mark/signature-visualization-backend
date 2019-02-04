@@ -1,13 +1,13 @@
-# iMuSE Server
+# ExploSig Server
 
-Server-side component of [iMuSE](https://github.com/lrgr/imuse) web app
+Server-side component of [ExploSig](https://github.com/lrgr/explosig) web app
 
 ### Docker Setup
-We recommend using the docker configuration at [imuse-docker](https://github.com/lrgr/imuse-docker) to run iMuSE and iMuSE Server locally. 
+We recommend using the docker configuration at [explosig-docker](https://github.com/lrgr/explosig-docker) to run ExploSig and ExploSig Server locally. 
 
 
 ### Docker-less Setup
-For development purposes, iMuSE Server can be run without Docker (and without the database to store exports of user state/history).
+For development purposes, ExploSig Server can be run without Docker (and without the database to store exports of user state/history).
 
 #### Submodules
 ```
@@ -36,7 +36,7 @@ cd app && python main.py
 
 ### Build
 ```
-docker build -t imuse-server .
+docker build -t explosig-server .
 ```
 
 ### Integration Tests

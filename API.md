@@ -1,6 +1,6 @@
 FORMAT: 1A
 
-# iMuSE Server API
+# ExploSig Server API
 Note that this API does NOT follow the traditional RESTful HTTP verb conventions. All requests are made via `POST`.
 
 Table of Contents:
