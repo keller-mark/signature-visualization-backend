@@ -20,6 +20,7 @@ META_DATA_FILE = os.path.join(OBJ_DIR, META_DATA_FILENAME)
 META_SIGS_FILE = os.path.join(OBJ_DIR, META_SIGS_FILENAME)
 META_PATHWAYS_FILE = os.path.join(OBJ_DIR, META_PATHWAYS_FILENAME)
 META_FEATURED_FILE = os.path.join(OBJ_DIR, META_FEATURED_FILENAME)
+META_TRICOUNTS_FILE = os.path.join(OBJ_DIR, META_TRICOUNTS_FILENAME)
 
 GENES_AGG_FILE = os.path.join(OBJ_DIR, GENES_AGG_FILENAME)
 SAMPLES_AGG_FILE = os.path.join(OBJ_DIR, SAMPLES_AGG_FILENAME)
@@ -137,6 +138,7 @@ if __name__ == "__main__":
   data_df = pd.read_csv(META_DATA_FILE, sep='\t')
   sigs_df = pd.read_csv(META_SIGS_FILE, sep='\t')
   pathways_df = pd.read_csv(META_PATHWAYS_FILE, sep='\t')
+  tricounts_df = pd.read_csv(META_TRICOUNTS_FILE, sep='\t')
 
   create_genes_agg_files()
   create_samples_agg_file()
@@ -148,6 +150,8 @@ if __name__ == "__main__":
     file_list += sigs_df[file_column].dropna().tolist()
   for file_column in META_PATHWAYS_FILE_COLS:
     file_list += pathways_df[file_column].dropna().tolist()
+  for file_column in META_TRICOUNTS_FILE_COLS:
+    file_list += tricounts_df[file_column].dropna().tolist()
   download_files(file_list)
 
   for index, data_row in data_df.iterrows():
