@@ -1,6 +1,6 @@
 # ExploSig Server
 
-Server-side component of [ExploSig](https://github.com/lrgr/explosig) web app
+_server-side component of [ExploSig](https://github.com/lrgr/explosig) web app_
 
 ### Docker Setup
 We recommend using the docker configuration at [explosig-docker](https://github.com/lrgr/explosig-docker) to run ExploSig and ExploSig Server locally. 
@@ -27,6 +27,8 @@ mkdir obj
 python app/scripts/download_data.py
 ```
 
+See the explosig-docker [wiki](https://github.com/lrgr/explosig-docker/wiki) for details regarding file formats. 
+
 #### Run
 [http://localhost:8000](http://localhost:8000)
 ```
@@ -42,6 +44,7 @@ docker build -t explosig-server .
 ### Integration Tests
 To run the integration tests, start the service at localhost on port 8000 (see instructions above), then run the following:
 ```
+pip install -r test/requirements.txt
 python -m unittest discover -s test
 ```
 Alternatively, you could change the `API_BASE` variable in `test/constants_for_tests.py` and run the tests against any running instance of the app.
