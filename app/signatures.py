@@ -9,7 +9,7 @@ from sig_data import *
 
 parent_dir_name = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(parent_dir_name + "/signature-estimation-py")
-from signature_estimation_qp import signature_estimation_qp
+from signature_estimation import signature_estimation, QP
 
 def get_signatures_by_mut_type(chosen_sigs_by_mut_type):
     result = {}
@@ -64,7 +64,7 @@ class Signatures():
 
         M = counts_df.values
         P = self.get_2d_array() # (active) signatures matrix
-        E = signature_estimation_qp(M, P)
+        E = signature_estimation(M, P, QP)
 
         exps_df = pd.DataFrame(E, index=samples, columns=sig_names)
         return exps_df
