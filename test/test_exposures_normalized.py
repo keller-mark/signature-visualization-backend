@@ -4,15 +4,14 @@ import unittest
 
 from constants_for_tests import *
 
-class TestExposuresSingleSample(unittest.TestCase):
+class TestExposuresNormalized(unittest.TestCase):
 
-    def test_exposures_single_sample(self):
-        url = API_BASE + '/plot-exposures-single-sample'
+    def test_exposures_normalized(self):
+        url = API_BASE + '/plot-exposures-normalized'
         payload = {
-            "sample_id": "TCGA-BRCA_BRCA_mc3.v0.2.8.WXS TCGA-AN-A046-01A-21W-A050-09", 
             "projects": [
                 "TCGA-BRCA_BRCA_mc3.v0.2.8.WXS"
-            ], 
+            ],
             "signatures": [
                 "COSMIC 1",
                 "COSMIC 2",
@@ -52,7 +51,7 @@ class TestExposuresSingleSample(unittest.TestCase):
         r.raise_for_status()
         res = r.json()
 
-        self.assertEqual(30, len(res))
-        self.assertEqual({'sig_SBS', 'exp_SBS_TCGA-BRCA_BRCA_mc3.v0.2.8.WXS TCGA-AN-A046-01A-21W-A050-09'}, set(res[0].keys()))
-        self.assertEqual('COSMIC 1', res[0]['sig_SBS'])
-        self.assertAlmostEqual(108.97955986816336, res[0]['exp_SBS_TCGA-BRCA_BRCA_mc3.v0.2.8.WXS TCGA-AN-A046-01A-21W-A050-09'])
+        self.assertEqual(1020, len(res))
+        self.assertEqual({'sample_id'}.union(set(payload['signatures'])), set(res[0].keys()))
+        self.assertEqual("TCGA-BRCA_BRCA_mc3.v0.2.8.WXS TCGA-AN-A046-01A-21W-A050-09", res[0]['sample_id'])
+        self.assertAlmostEqual(0.014405758079070043, res[0]['COSMIC 1'])

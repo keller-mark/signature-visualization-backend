@@ -9,7 +9,9 @@ class TestClustering(unittest.TestCase):
     def test_clustering(self):
         url = API_BASE + '/clustering'
         payload = {
-            "projects":["ICGC-BRCA-EU"],
+            "projects": [
+                "TCGA-BRCA_BRCA_mc3.v0.2.8.WXS"
+            ],
             "signatures":{
                 "SBS": [
                     "COSMIC 1",
@@ -27,7 +29,8 @@ class TestClustering(unittest.TestCase):
                 ],
                 "DBS": [],
                 "INDEL": []
-            }
+            },
+            "tricounts_method": "None"
         }
         r = requests.post(url, data=json.dumps(payload))
         r.raise_for_status()

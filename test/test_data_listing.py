@@ -3,6 +3,8 @@ import unittest
 
 from constants_for_tests import *
 
+""" All JSON objects should look how we expect """
+
 class TestDataListing(unittest.TestCase):
 
     def test_data_listing(self):
@@ -10,18 +12,64 @@ class TestDataListing(unittest.TestCase):
         r = requests.post(url)
         r.raise_for_status()
         res = r.json()
-        self.assertEqual(['projects', 'sigs', 'sigs_per_cancer_type'], list(res.keys()))
-        self.assertIn("ICGC-BRCA-EU", list(res['projects'].keys()))
-        brca_obj = {
-            "name": "Breast ER+ and HER2- Cancer - EU/UK",
-            "num_donors": 569,
-            "source": "ICGC",
-            "has_clinical": True,
-            "has_counts": True
+
+        toplevel_keys = {
+            'projects', 
+            'signatures', 
+            'cancer_type_map', 
+            'tissue_types', 
+            'tricounts_methods'
         }
-        self.assertEqual(brca_obj, res['projects']['ICGC-BRCA-EU'])
-        self.assertIn('SBS', list(res['sigs'].keys()))
-        self.assertEqual({'name', 'description', 'index', 'publication'}, set(res['sigs']['SBS'][0].keys()))
-        self.assertEqual({'group', 'id', 'cancer-types'}, set(res['sigs_per_cancer_type'][0].keys()))
-        self.assertEqual({'name', 'id', 'signatures'}, set(res['sigs_per_cancer_type'][0]['cancer-types'][0].keys()))
+        self.assertEqual(toplevel_keys, set(res.keys()))
+
+        project_keys = {
+            'id',
+            'name',
+            'num_samples',
+            'source',
+            'has_clinical',
+            'has_genes',
+            'sigs_mapping',
+            'oncotree_code',
+            'oncotree_name',
+            'oncotree_tissue_code'
+        }
+        sigs_mapping_keys = {
+            'sig_group',
+            'oncotree_code',
+            'oncotree_name'
+        }
+        for project in res['projects']:
+            self.assertEqual(project_keys, set(project.keys()))
+            for sigs_mapping in project['sigs_mapping']:
+                self.assertEqual(sigs_mapping_keys, set(sigs_mapping.keys()))
+        
+        sigs_keys = {
+            'id',
+            'group',
+            'publication',
+            'description',
+            'index',
+            'cat_type',
+            'mut_type'
+        }
+        for sig in res['signatures']:
+            self.assertEqual(sigs_keys, set(sig.keys()))
+        
+        cancer_type_map_keys = {
+            'group',
+            'cancer_type',
+            'oncotree_code',
+            'oncotree_name',
+            'signature'
+        }
+        for cancer_type_map in res['cancer_type_map']:
+            self.assertEqual(cancer_type_map_keys, set(cancer_type_map.keys()))
+
+        tissue_type_keys = {
+            'oncotree_code',
+            'oncotree_name'
+        }
+        for tissue_type in res['tissue_types']:
+            self.assertEqual(tissue_type_keys, set(tissue_type.keys()))
     

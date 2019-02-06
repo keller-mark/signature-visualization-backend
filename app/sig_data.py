@@ -18,7 +18,7 @@ tree = OncoTree(tree_json)
 def prepend_sig_group_to_sig_name(sig_group, sig_name):
     return ("%s %s" % (sig_group, sig_name))
 
-# Load signatures data
+""" Load signatures data """
 for sig_group_index, sig_group_row in sig_groups_meta_df.iterrows():
     # Load metadata
     sig_group_meta_df = pd_fetch_tsv(OBJ_DIR, sig_group_row[META_COL_PATH_SIGS_META])
@@ -54,6 +54,16 @@ sigs_meta_df[META_COL_SIG] = sigs_meta_df.apply(lambda row: prepend_sig_group_to
 
 sigs_meta_df = sigs_meta_df.set_index(META_COL_SIG, drop=True)
 sigs_meta_df = sigs_meta_df.sort_values(by=META_COL_INDEX)
+
+
+""" Load tri-counts data """
+tricounts_dfs = {}
+tricounts_meta_df = pd.read_csv(META_TRICOUNTS_FILE, sep='\t', index_col=0)
+for tricounts_method, tricounts_row in tricounts_meta_df.iterrows():
+    tricounts_dfs[tricounts_method] = pd_fetch_tsv(OBJ_DIR, tricounts_row[META_COL_PATH_TRICOUNTS])
+
+def get_tricounts_methods():
+    return list(tricounts_dfs.keys())
 
 # Function for getting single SigData object
 def get_sig_data(sig_id):
