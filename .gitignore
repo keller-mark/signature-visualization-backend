@@ -4,3 +4,5 @@ venv
 .vscode
 *-server-deployment.yaml
 *-server-service.yaml
+mysql
+obj

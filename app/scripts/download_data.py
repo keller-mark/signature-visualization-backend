@@ -4,9 +4,10 @@ import os
 import sys
 import json
 import string
+from datetime import datetime
 
 from sqlalchemy import create_engine
-from sqlalchemy import MetaData, Table, Column, Integer, String, Text
+from sqlalchemy import MetaData, Table, Column, Integer, String, Text, DateTime
 
 # Load our modules
 this_file_path = os.path.abspath(os.path.dirname(__file__))
@@ -125,10 +126,28 @@ def create_proj_to_sigs_mapping(data_df, sigs_df):
 
 def create_sharing_table():
   try:
-    engine = create_engine('mysql://explosig:explosig@db:3306/explosig')
+    engine = create_engine("mysql://{user}:{password}@db:3306/explosig".format(
+      user=os.environ['EXPLOSIG_DB_USER'],
+      password=os.environ['EXPLOSIG_DB_PASSWORD']
+    ))
     connection = engine.connect()
     metadata = MetaData(engine)
-    table = Table('sharing', metadata, Column('id', Integer(), primary_key=True), Column('slug', String(length=255)), Column('data', Text()), extend_existing=True)
+    Table(
+      'sharing', 
+      metadata, 
+      Column('id', Integer(), primary_key=True), 
+      Column('slug', String(length=255)), 
+      Column('data', Text()), 
+      extend_existing=True
+    )
+    Table(
+      'auth', 
+      metadata, 
+      Column('id', Integer(), primary_key=True), 
+      Column('token', String(length=255)), 
+      Column('created', DateTime(), default=datetime.now), 
+      extend_existing=True
+    )
     metadata.create_all()
     print('* Successfully connected to database and created sharing table')
   except:
