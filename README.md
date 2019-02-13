@@ -16,10 +16,9 @@ git submodule foreach git pull origin master
 ```
 
 #### Dependencies
-- python 3.6
-- `pip install flask`
-- `pip install Cython`
-- `pip install -r requirements.txt`
+- Python 3.6
+- Flask `pip install flask==1.0.2`
+- install the additional dependencies specified in the Dockerfile (the `pip install` commands, starting on line 13)
 
 #### Data
 ```

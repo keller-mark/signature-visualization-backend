@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 class NotAuthenticated(Exception):
     def __init__(self, message):
         Exception.__init__(self)
-        self.status_code = 403
+        self.status_code = 401 # Unauthorized
         self.message = message
 
     def to_dict(self):
