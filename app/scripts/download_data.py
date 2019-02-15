@@ -76,27 +76,12 @@ def clean_data_files(data_row):
   samples_agg_df = samples_agg_df.append({META_COL_PROJ: data_row[META_COL_PROJ], "count": num_samples}, ignore_index=True)
   samples_agg_df.to_csv(SAMPLES_AGG_FILE, sep='\t', index=False)
 
-  if pd.notnull(data_row[META_COL_PATH_GENES]):
-    print('* Appending to genes aggregate files')
-    genes_df = read_tsv(data_row[META_COL_PATH_GENES])
-    genes_df[META_COL_PROJ] = data_row[META_COL_PROJ]
-    genes_df = genes_df.groupby([META_COL_PROJ, GENE_SYMBOL]).size().reset_index(name='count')
-
-    alphabet = string.ascii_uppercase
-    for letter in alphabet:
-      genes_agg_df = pd.read_csv(GENES_AGG_FILE.format(letter=letter), sep='\t')
-      genes_df_by_letter = genes_df.loc[genes_df[GENE_SYMBOL].str.startswith(letter)]
-      if genes_df_by_letter.shape[0] > 0:
-        genes_agg_df = genes_agg_df.append(genes_df_by_letter, ignore_index=True)
-        genes_agg_df.to_csv(GENES_AGG_FILE.format(letter=letter), sep='\t', index=False)
-
 def download_oncotree():
   if not os.path.isfile(ONCOTREE_FILE):
     print('* Downloading Oncotree file')
     subprocess.run(['curl', ONCOTREE_URL, '--create-dirs', '-o', ONCOTREE_FILE])
   else:
     print('* Not downloading Oncotree file')
-
 
 def load_oncotree():
   with open(ONCOTREE_FILE) as f:
@@ -153,6 +138,9 @@ def create_sharing_table():
   except:
     print('* Unable to connect to database')
 
+def append_to_genes_agg_files_in_bg():
+  subprocess.Popen(['python', os.path.join(this_file_path, 'compute_genes.py')])
+
 if __name__ == "__main__":
   data_df = pd.read_csv(META_DATA_FILE, sep='\t')
   sigs_df = pd.read_csv(META_SIGS_FILE, sep='\t')
@@ -180,5 +168,6 @@ if __name__ == "__main__":
   create_proj_to_sigs_mapping(data_df, sigs_df)
 
   create_sharing_table()
+  append_to_genes_agg_files_in_bg()
   
   print('* Done')

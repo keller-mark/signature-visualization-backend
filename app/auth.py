@@ -1,4 +1,5 @@
 import os
+import uuid
 from argon2 import PasswordHasher
 from db import connect
 from datetime import datetime, timedelta
@@ -24,7 +25,7 @@ def login(password):
             ph = PasswordHasher()
             ph.verify(os.environ['EXPLOSIG_PASSWORD_HASH'], password)
             # Password is correct, generate token, insert into database
-            token = str(uuid.uuid4())[:8]
+            token = str(uuid.uuid4())
             ins = table.insert().values(token=token, created=datetime.now())
             conn.execute(ins)
             # Success
