@@ -108,7 +108,8 @@ schema_signature = {
   "type": "object",
   "properties": {
     "signature": {"type": "string"},
-    "mut_type": {"type": "string"}
+    "mut_type": {"type": "string"},
+    "tricounts_method": {"type": "string"}
   }
 }
 @app.route('/plot-signature', methods=['POST'])
@@ -117,7 +118,7 @@ def route_plot_signature():
 
   assert(req["mut_type"] in MUT_TYPES)
 
-  output = plot_signature(signature=req["signature"], mut_type=req["mut_type"])
+  output = plot_signature(signature=req["signature"], mut_type=req["mut_type"], tricounts_method=req["tricounts_method"])
   return response_json(app, output)
 
 """
