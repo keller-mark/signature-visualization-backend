@@ -29,7 +29,6 @@ def plot_reconstruction_cosine_similarity(chosen_sigs, projects, mut_type, singl
         try:
             cosine_similarity = 1.0 - distance.cosine(reconstruction_df.loc[sample_id, :].values, counts_df.loc[sample_id, :].values)
         except:
-            print("ERROR") # TODO fix
             cosine_similarity = 0.0
         sample_obj["cosine_similarity_" + mut_type] = cosine_similarity if pd.notnull(cosine_similarity) else 0.0
         sample_obj["sample_id"] = sample_id

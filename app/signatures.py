@@ -104,7 +104,7 @@ class Signatures():
                 tricounts_by_categories_df = tricounts_by_categories_df.set_index('Category', drop=True)
                 tricounts_by_categories_df = tricounts_by_categories_df.transpose()
                 tricounts_by_categories_df = tricounts_by_categories_df[categories] # Enforce category ordering
-                tricounts_by_categories_series = tricounts_by_categories_df.loc['Proportion']
+                tricounts_by_categories_series = tricounts_by_categories_df.loc['Proportion'].astype(float)
 
                 sigs_df = self.sigs_df.copy()
                 # Divide by trinucleotide proportions
