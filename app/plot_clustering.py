@@ -8,8 +8,8 @@ from signatures import Signatures, get_signatures_by_mut_type
 from project_data import ProjectData, get_selected_project_data
 
 
-def plot_clustering(chosen_sigs_by_mut_type, projects):
-    signatures_by_mut_type = get_signatures_by_mut_type(chosen_sigs_by_mut_type)
+def plot_clustering(chosen_sigs_by_mut_type, projects, tricounts_method=None):
+    signatures_by_mut_type = get_signatures_by_mut_type(chosen_sigs_by_mut_type, tricounts_method=tricounts_method)
     
     all_sig_names = []
     for mut_type in MUT_TYPES:

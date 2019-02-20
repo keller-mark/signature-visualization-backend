@@ -5,7 +5,7 @@ from web_constants import *
 from signatures import Signatures, get_signatures_by_mut_type
 
 
-def plot_signature(signature, mut_type, tricounts_method):
+def plot_signature(signature, mut_type, tricounts_method=None):
 
     signatures = get_signatures_by_mut_type({mut_type: [signature]}, tricounts_method=tricounts_method)[mut_type]
     sigs_df = signatures.get_df()

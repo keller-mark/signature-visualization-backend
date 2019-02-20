@@ -8,10 +8,10 @@ from project_data import ProjectData, get_selected_project_data
 from compute_exposures import compute_exposures
 from scale_samples import scale_samples
 
-def plot_exposures(chosen_sigs, projects, mut_type, single_sample_id=None, normalize=False):
+def plot_exposures(chosen_sigs, projects, mut_type, single_sample_id=None, normalize=False, tricounts_method=None):
     result = []
 
-    exps_df = compute_exposures(chosen_sigs, projects, mut_type, single_sample_id=single_sample_id, normalize=normalize)
+    exps_df = compute_exposures(chosen_sigs, projects, mut_type, single_sample_id=single_sample_id, normalize=normalize, tricounts_method=tricounts_method)
     
     default_sample_obj = dict(zip(list(exps_df.columns.values), [0] * len(list(exps_df.columns.values))))
     

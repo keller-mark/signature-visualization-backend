@@ -8,10 +8,10 @@ from project_data import ProjectData, get_selected_project_data
 from compute_reconstruction_error import compute_reconstruction_error
 from scale_samples import scale_samples
 
-def plot_reconstruction_error(chosen_sigs, projects, mut_type, single_sample_id=None, normalize=False):
+def plot_reconstruction_error(chosen_sigs, projects, mut_type, single_sample_id=None, normalize=False, tricounts_method=None):
     result = []
 
-    reconstruction_error_df = compute_reconstruction_error(chosen_sigs, projects, mut_type, single_sample_id=single_sample_id, normalize=normalize)
+    reconstruction_error_df = compute_reconstruction_error(chosen_sigs, projects, mut_type, single_sample_id=single_sample_id, normalize=normalize, tricounts_method=tricounts_method)
     reconstruction_error_dict = reconstruction_error_df.to_dict(orient='index')
 
     if single_sample_id == None:

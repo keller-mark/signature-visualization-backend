@@ -7,9 +7,9 @@ from project_data import ProjectData, get_selected_project_data
 
 from compute_counts import compute_counts
 
-def compute_exposures(chosen_sigs, projects, mut_type, single_sample_id=None, normalize=False):
+def compute_exposures(chosen_sigs, projects, mut_type, single_sample_id=None, normalize=False, tricounts_method=None):
 
-    signatures = get_signatures_by_mut_type({mut_type: chosen_sigs})[mut_type]
+    signatures = get_signatures_by_mut_type({mut_type: chosen_sigs}, tricounts_method=tricounts_method)[mut_type]
     project_data = get_selected_project_data(projects)
 
     counts_df = compute_counts(chosen_sigs, projects, mut_type, single_sample_id=single_sample_id, normalize=False)

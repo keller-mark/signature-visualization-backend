@@ -118,7 +118,7 @@ def route_plot_signature():
 
   assert(req["mut_type"] in MUT_TYPES)
 
-  output = plot_signature(signature=req["signature"], mut_type=req["mut_type"], tricounts_method=req["tricounts_method"])
+  output = plot_signature(req["signature"], req["mut_type"], tricounts_method=req["tricounts_method"])
   return response_json(app, output)
 
 """
@@ -177,7 +177,8 @@ schema_exposures = {
   "properties": {
     "signatures": string_array_schema,
     "projects": projects_schema,
-    "mut_type": {"type": "string"}
+    "mut_type": {"type": "string"},
+    "tricounts_method": {"type": "string"}
   }
 }
 @app.route('/plot-exposures', methods=['POST'])
@@ -186,7 +187,7 @@ def route_plot_exposures():
 
   assert(req["mut_type"] in MUT_TYPES)
 
-  output = plot_exposures(req["signatures"], req["projects"], req["mut_type"])
+  output = plot_exposures(req["signatures"], req["projects"], req["mut_type"], tricounts_method=req["tricounts_method"])
   return response_json(app, output)
 
 @app.route('/plot-exposures-normalized', methods=['POST'])
@@ -195,7 +196,7 @@ def route_plot_exposures_normalized():
 
   assert(req["mut_type"] in MUT_TYPES)
 
-  output = plot_exposures(req["signatures"], req["projects"], req["mut_type"], normalize=True)
+  output = plot_exposures(req["signatures"], req["projects"], req["mut_type"], normalize=True, tricounts_method=req["tricounts_method"])
   return response_json(app, output)
 
 @app.route('/scale-exposures', methods=['POST'])
@@ -204,7 +205,7 @@ def route_scale_exposures():
 
   assert(req["mut_type"] in MUT_TYPES)
 
-  output = scale_exposures(req["signatures"], req["projects"], req["mut_type"], exp_sum=False)
+  output = scale_exposures(req["signatures"], req["projects"], req["mut_type"], exp_sum=False, tricounts_method=req["tricounts_method"])
   return response_json(app, output)
 
 @app.route('/scale-exposures-normalized', methods=['POST'])
@@ -213,7 +214,7 @@ def route_scale_exposures_normalized():
 
   assert(req["mut_type"] in MUT_TYPES)
 
-  output = scale_exposures(req["signatures"], req["projects"], req["mut_type"], exp_sum=False, exp_normalize=True)
+  output = scale_exposures(req["signatures"], req["projects"], req["mut_type"], exp_sum=False, exp_normalize=True, tricounts_method=req["tricounts_method"])
   return response_json(app, output)
 
 
@@ -223,7 +224,7 @@ def route_scale_exposures_sum():
 
   assert(req["mut_type"] in MUT_TYPES)
 
-  output = scale_exposures(req["signatures"], req["projects"], req["mut_type"], exp_sum=True)
+  output = scale_exposures(req["signatures"], req["projects"], req["mut_type"], exp_sum=True, tricounts_method=req["tricounts_method"])
   return response_json(app, output)
 
 schema_exposures_single_sample = {
@@ -232,7 +233,8 @@ schema_exposures_single_sample = {
     "signatures": string_array_schema,
     "projects": projects_schema,
     "mut_type": {"type": "string"},
-    "sample_id": {"type": "string"}
+    "sample_id": {"type": "string"},
+    "tricounts_method": {"type": "string"}
   }
 }
 @app.route('/plot-exposures-single-sample', methods=['POST'])
@@ -241,7 +243,7 @@ def route_plot_exposures_single_sample():
 
   assert(req["mut_type"] in MUT_TYPES)
 
-  output = plot_exposures(req["signatures"], req["projects"], req["mut_type"], single_sample_id=req["sample_id"], normalize=False)
+  output = plot_exposures(req["signatures"], req["projects"], req["mut_type"], single_sample_id=req["sample_id"], normalize=False, tricounts_method=req["tricounts_method"])
   return response_json(app, output)
 
 @app.route('/scale-exposures-single-sample', methods=['POST'])
@@ -250,7 +252,7 @@ def route_scale_exposures_single_sample():
 
   assert(req["mut_type"] in MUT_TYPES)
 
-  output = scale_exposures(req["signatures"], req["projects"], req["mut_type"], single_sample_id=req["sample_id"], exp_sum=False, exp_normalize=False)
+  output = scale_exposures(req["signatures"], req["projects"], req["mut_type"], single_sample_id=req["sample_id"], exp_sum=False, exp_normalize=False, tricounts_method=req["tricounts_method"])
   return response_json(app, output)
 
 
@@ -272,7 +274,7 @@ def route_plot_reconstruction_single_sample():
 
   assert(req["mut_type"] in MUT_TYPES)
 
-  output = plot_reconstruction(req["signatures"], req["projects"], req["mut_type"], single_sample_id=req["sample_id"], normalize=False)
+  output = plot_reconstruction(req["signatures"], req["projects"], req["mut_type"], single_sample_id=req["sample_id"], normalize=False, tricounts_method=req["tricounts_method"])
   return response_json(app, output)
 
 @app.route('/plot-reconstruction-error-single-sample', methods=['POST'])
@@ -281,16 +283,16 @@ def route_plot_reconstruction_error_single_sample():
 
   assert(req["mut_type"] in MUT_TYPES)
 
-  output = plot_reconstruction_error(req["signatures"], req["projects"], req["mut_type"], single_sample_id=req["sample_id"], normalize=False)
+  output = plot_reconstruction_error(req["signatures"], req["projects"], req["mut_type"], single_sample_id=req["sample_id"], normalize=False, tricounts_method=req["tricounts_method"])
   return response_json(app, output)
 
 @app.route('/plot-reconstruction-cosine-similarity', methods=['POST'])
 def route_plot_reconstruction_cosine_similarity():
-  req = check_req(request, schema=schema_exposures_single_sample)
+  req = check_req(request, schema=schema_exposures)
 
   assert(req["mut_type"] in MUT_TYPES)
 
-  output = plot_reconstruction_cosine_similarity(req["signatures"], req["projects"], req["mut_type"])
+  output = plot_reconstruction_cosine_similarity(req["signatures"], req["projects"], req["mut_type"], tricounts_method=req["tricounts_method"])
   return response_json(app, output)
 
 @app.route('/plot-reconstruction-cosine-similarity-single-sample', methods=['POST'])
@@ -299,7 +301,7 @@ def route_plot_reconstruction_cosine_similarity_single_sample():
 
   assert(req["mut_type"] in MUT_TYPES)
 
-  output = plot_reconstruction_cosine_similarity(req["signatures"], req["projects"], req["mut_type"], single_sample_id=req["sample_id"])
+  output = plot_reconstruction_cosine_similarity(req["signatures"], req["projects"], req["mut_type"], single_sample_id=req["sample_id"], tricounts_method=req["tricounts_method"])
   return response_json(app, output)
 
 
@@ -318,7 +320,7 @@ def route_scale_reconstruction_single_sample():
 
   assert(req["mut_type"] in MUT_TYPES)
 
-  output = scale_reconstruction(req["signatures"], req["projects"], req["mut_type"], single_sample_id=req["sample_id"], normalize=False)
+  output = scale_reconstruction(req["signatures"], req["projects"], req["mut_type"], single_sample_id=req["sample_id"], normalize=False, tricounts_method=req["tricounts_method"])
   return response_json(app, output)
 
 @app.route('/scale-reconstruction-error-single-sample', methods=['POST'])
@@ -327,7 +329,7 @@ def route_scale_reconstruction_error_single_sample():
 
   assert(req["mut_type"] in MUT_TYPES)
 
-  output = scale_reconstruction_error(req["signatures"], req["projects"], req["mut_type"], single_sample_id=req["sample_id"], normalize=False)
+  output = scale_reconstruction_error(req["signatures"], req["projects"], req["mut_type"], single_sample_id=req["sample_id"], normalize=False, tricounts_method=req["tricounts_method"])
   return response_json(app, output)
 
 
@@ -355,14 +357,15 @@ schema_clustering = {
   "type": "object",
   "properties": {
     "signatures": signatures_schema,
-    "projects": projects_schema
+    "projects": projects_schema,
+    "tricounts_method": {"type": "string"}
   }
 }
 @app.route('/clustering', methods=['POST'])
 def route_clustering():
   req = check_req(request, schema=schema_clustering)
 
-  output = plot_clustering(req["signatures"], req["projects"])
+  output = plot_clustering(req["signatures"], req["projects"], tricounts_method=req["tricounts_method"])
   return response_json(app, output)
 
 

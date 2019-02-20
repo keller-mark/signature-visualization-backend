@@ -8,10 +8,10 @@ from project_data import ProjectData, get_selected_project_data
 from compute_counts import compute_counts
 from compute_reconstruction import compute_reconstruction
 
-def compute_reconstruction_error(chosen_sigs, projects, mut_type, single_sample_id=None, normalize=False):
+def compute_reconstruction_error(chosen_sigs, projects, mut_type, single_sample_id=None, normalize=False, tricounts_method=None):
     
     counts_df = compute_counts(chosen_sigs, projects, mut_type, single_sample_id=single_sample_id, normalize=normalize)
-    reconstruction_df = compute_reconstruction(chosen_sigs, projects, mut_type, single_sample_id=single_sample_id, normalize=normalize)
+    reconstruction_df = compute_reconstruction(chosen_sigs, projects, mut_type, single_sample_id=single_sample_id, normalize=normalize, tricounts_method=tricounts_method)
     
     reconstruction_df = reconstruction_df.subtract(counts_df, axis='index')
     return reconstruction_df
