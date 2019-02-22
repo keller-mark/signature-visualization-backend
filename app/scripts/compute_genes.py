@@ -25,9 +25,9 @@ def to_tsv(df, csv_file_path, **kwargs):
 
 def clean_data_files(data_row):
   
-  if pd.notnull(data_row[META_COL_PATH_GENES]):
+  if pd.notnull(data_row[META_COL_PATH_GENE_MUT]):
     print('* Appending to genes aggregate files')
-    genes_df = read_tsv(data_row[META_COL_PATH_GENES])
+    genes_df = read_tsv(data_row[META_COL_PATH_GENE_MUT])
     genes_df[META_COL_PROJ] = data_row[META_COL_PROJ]
     genes_df = genes_df.groupby([META_COL_PROJ, GENE_SYMBOL]).size().reset_index(name='count')
 

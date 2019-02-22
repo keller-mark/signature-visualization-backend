@@ -17,7 +17,9 @@ from scale_counts import scale_counts
 
 from plot_samples_meta import plot_samples_meta
 
-from plot_gene_event_track import plot_gene_event_track, autocomplete_gene, plot_pathways_listing
+from plot_gene_mut_track import plot_gene_mut_track, autocomplete_gene, plot_pathways_listing
+from plot_gene_exp_track import plot_gene_exp_track
+from plot_gene_cna_track import plot_gene_cna_track
 from plot_clinical import plot_clinical, plot_clinical_variables, plot_clinical_scale_types
 from scale_clinical import scale_clinical
 from plot_survival import plot_survival
@@ -375,11 +377,25 @@ schema_gene_event_track = {
     "projects": projects_schema
   }
 }
-@app.route('/plot-gene-event-track', methods=['POST'])
-def route_gene_event_track():
+@app.route('/plot-gene-mut-track', methods=['POST'])
+def route_gene_mut_track():
   req = check_req(request, schema=schema_gene_event_track)
 
-  output = plot_gene_event_track(req["gene_id"], req["projects"])
+  output = plot_gene_mut_track(req["gene_id"], req["projects"])
+  return response_json(app, output)
+
+@app.route('/plot-gene-exp-track', methods=['POST'])
+def route_gene_exp_track():
+  req = check_req(request, schema=schema_gene_event_track)
+
+  output = plot_gene_exp_track(req["gene_id"], req["projects"])
+  return response_json(app, output)
+
+@app.route('/plot-gene-cna-track', methods=['POST'])
+def route_gene_cna_track():
+  req = check_req(request, schema=schema_gene_event_track)
+
+  output = plot_gene_cna_track(req["gene_id"], req["projects"])
   return response_json(app, output) 
 
 
