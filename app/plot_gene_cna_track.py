@@ -24,6 +24,7 @@ def plot_gene_cna_track(gene_id, projects):
             cna_df = cna_df.drop(labels=[GENE_SYMBOL], axis='columns')
             cna_df = cna_df.rename(columns={SAMPLE: "sample_id"})
             cna_df = cna_df.set_index("sample_id", drop=True)
+            cna_df['copy_number'] = cna_df['copy_number'].astype(str)
             
             proj_result_df = proj_result_df.join(cna_df, how='outer')
 
