@@ -201,7 +201,8 @@ class ProjectData():
     
     def get_gene_cna_df(self):
         if self.has_gene_cna_df():
-            genes_df = pd_fetch_tsv(OBJ_DIR, self.gene_cna_path, index_col=0)
+            genes_df = pd_fetch_tsv(OBJ_DIR, self.gene_cna_path)
+            genes_df = genes_df.set_index(genes_df.columns.values[0])
             genes_df = genes_df.transpose()
             genes_df.index = genes_df.index.rename(SAMPLE)
             genes_df = genes_df.reset_index()
@@ -215,7 +216,8 @@ class ProjectData():
     
     def get_counts_df(self, mut_type):
         if self.has_counts_df(mut_type):
-            counts_df = pd_fetch_tsv(OBJ_DIR, self.counts_paths[mut_type], index_col=0)
+            counts_df = pd_fetch_tsv(OBJ_DIR, self.counts_paths[mut_type])
+            counts_df = counts_df.set_index(counts_df.columns.values[0])
             counts_df.index = counts_df.index.rename(SAMPLE)
             counts_df = counts_df.reset_index()
             counts_df[SAMPLE] = counts_df[SAMPLE].apply(get_prepend_proj_id_to_sample_id_func(self.get_proj_id(), self.get_proj_source()))

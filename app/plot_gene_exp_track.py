@@ -11,7 +11,9 @@ def threshold_expression_values(val):
         return "Under"
     if val >= 2:
         return "Over"
-    return "None"
+    if val in [-1, 0, 1]:
+        return "Not differentially expressed"
+    return "nan"
 
 def plot_gene_exp_track(gene_id, projects):
     result = []
@@ -34,7 +36,7 @@ def plot_gene_exp_track(gene_id, projects):
             proj_result_df = proj_result_df.join(expr_df, how='outer')
 
         proj_result_df = proj_result_df.reset_index()
-        proj_result_df = proj_result_df.fillna(value="None")
+        proj_result_df = proj_result_df.fillna(value="nan")
         proj_result = proj_result_df.to_dict('records')
         result = (result + proj_result)
         

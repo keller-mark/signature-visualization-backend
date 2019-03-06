@@ -20,6 +20,7 @@ RUN conda install -y -c conda-forge jsonschema==2.6.0
 RUN conda install -y -c conda-forge SQLAlchemy==1.2.15
 RUN conda install -y -c conda-forge mysqlclient==1.3.14
 RUN conda install -y -c conda-forge argon2_cffi==19.1.0
+RUN conda install -y -c conda-forge python-snappy==0.5.3
 
 # Create folder to mount volume
 RUN mkdir -p /obj

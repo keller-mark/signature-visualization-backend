@@ -141,6 +141,9 @@ def create_sharing_table():
 def append_to_genes_agg_files_in_bg():
   subprocess.Popen(['python', os.path.join(this_file_path, 'compute_genes.py')])
 
+def convert_data_files_in_bg():
+  subprocess.Popen(['python', os.path.join(this_file_path, 'convert_data.py')])
+
 if __name__ == "__main__":
   data_df = pd.read_csv(META_DATA_FILE, sep='\t')
   sigs_df = pd.read_csv(META_SIGS_FILE, sep='\t')
@@ -169,5 +172,6 @@ if __name__ == "__main__":
 
   create_sharing_table()
   append_to_genes_agg_files_in_bg()
+  convert_data_files_in_bg()
   
   print('* Done')
