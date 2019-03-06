@@ -11,7 +11,7 @@ def threshold_expression_values(val):
         return "Under"
     if val >= 2:
         return "Over"
-    if val in [-1, 0, 1]:
+    if val > -2 and val < 2:
         return "Not differentially expressed"
     return "nan"
 
