@@ -16,8 +16,6 @@ RUN conda install -y scipy
 RUN conda install -y scikit-learn
 RUN conda install -y -c omnia quadprog==0.1.6
 RUN conda install -y -c conda-forge fastparquet==0.2.1
-
-
 RUN conda install -y -c conda-forge jsonschema==2.6.0
 RUN conda install -y -c conda-forge SQLAlchemy==1.2.15
 RUN conda install -y -c conda-forge mysqlclient==1.3.14

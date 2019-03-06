@@ -16,9 +16,12 @@ git submodule foreach git pull origin master
 ```
 
 #### Dependencies
-- Python 3.6
-- Flask `pip install flask==1.0.2`
-- install the additional dependencies specified in the Dockerfile (the `pip install` commands, starting on line 13)
+- Conda
+
+```sh
+conda env create -f environment.yml
+source activate explosig-server-dev-env
+```
 
 #### Data
 ```
