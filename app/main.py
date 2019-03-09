@@ -23,7 +23,7 @@ from plot_samples_meta import plot_samples_meta
 from plot_gene_mut_track import plot_gene_mut_track, autocomplete_gene, plot_pathways_listing
 from plot_gene_exp_track import plot_gene_exp_track
 from plot_gene_cna_track import plot_gene_cna_track
-from plot_clinical import plot_clinical, plot_clinical_variables, plot_clinical_scale_types
+from plot_clinical import plot_clinical
 from scale_clinical import scale_clinical
 from plot_survival import plot_survival
 
@@ -31,10 +31,6 @@ from plot_survival import plot_survival
 from plot_counts_per_category import plot_counts_per_category
 from plot_reconstruction import plot_reconstruction
 from plot_reconstruction_error import plot_reconstruction_error
-# Reconstruction scales
-from scale_counts_per_category import scale_counts_per_category
-from scale_reconstruction import scale_reconstruction
-from scale_reconstruction_error import scale_reconstruction_error
 
 from scale_contexts import scale_contexts
 from plot_signature import plot_signature
@@ -99,12 +95,6 @@ async def route_featured_listing(request):
   output = plot_featured_listing()
   return response_json(app, output)
 
-@app.route('/clinical-variable-list', methods=['POST'])
-async def route_clinical_variable_list(request):
-  req = await check_req(request)
-  output = plot_clinical_scale_types()
-  return response_json(app, output) 
-
 
 """
 Signatures
@@ -157,22 +147,6 @@ async def route_plot_counts(request):
   output = plot_counts(req["projects"])
   return response_json(app, output)
 
-# TODO: delegate as many "scale" requests to client as possible
-@app.route('/scale-counts', methods=['POST'])
-async def route_scale_counts(request):
-  req = await check_req(request, schema=schema_counts)
-
-  output = scale_counts(req["projects"])
-  return response_json(app, output)
-
-@app.route('/scale-counts-sum', methods=['POST'])
-async def route_scale_counts_sum(request):
-  req = await check_req(request)
-  validate(req, schema_counts)
-
-  output = scale_counts(req["projects"], count_sum=True)
-  return response_json(app, output)
-
 """
 Exposures
 """
@@ -202,14 +176,6 @@ async def route_plot_exposures_normalized(request):
   output = plot_exposures(req["signatures"], req["projects"], req["mut_type"], normalize=True)
   return response_json(app, output)
 
-@app.route('/scale-exposures', methods=['POST'])
-async def route_scale_exposures(request):
-  req = await check_req(request, schema=schema_exposures)
-
-  assert(req["mut_type"] in MUT_TYPES)
-
-  output = scale_exposures(req["signatures"], req["projects"], req["mut_type"], exp_sum=False)
-  return response_json(app, output)
 
 @app.route('/scale-exposures-normalized', methods=['POST'])
 async def route_scale_exposures_normalized(request):
@@ -218,16 +184,6 @@ async def route_scale_exposures_normalized(request):
   assert(req["mut_type"] in MUT_TYPES)
 
   output = scale_exposures(req["signatures"], req["projects"], req["mut_type"], exp_sum=False, exp_normalize=True)
-  return response_json(app, output)
-
-
-@app.route('/scale-exposures-sum', methods=['POST'])
-async def route_scale_exposures_sum(request):
-  req = await check_req(request, schema=schema_exposures)
-
-  assert(req["mut_type"] in MUT_TYPES)
-
-  output = scale_exposures(req["signatures"], req["projects"], req["mut_type"], exp_sum=True)
   return response_json(app, output)
 
 schema_exposures_single_sample = {
@@ -246,15 +202,6 @@ async def route_plot_exposures_single_sample(request):
   assert(req["mut_type"] in MUT_TYPES)
 
   output = plot_exposures(req["signatures"], req["projects"], req["mut_type"], single_sample_id=req["sample_id"], normalize=False)
-  return response_json(app, output)
-
-@app.route('/scale-exposures-single-sample', methods=['POST'])
-async def route_scale_exposures_single_sample(request):
-  req = await check_req(request, schema=schema_exposures_single_sample)
-
-  assert(req["mut_type"] in MUT_TYPES)
-
-  output = scale_exposures(req["signatures"], req["projects"], req["mut_type"], single_sample_id=req["sample_id"], exp_sum=False, exp_normalize=False)
   return response_json(app, output)
 
 
@@ -307,32 +254,6 @@ async def route_plot_reconstruction_cosine_similarity_single_sample(request):
   return response_json(app, output)
 
 
-@app.route('/scale-counts-per-category-single-sample', methods=['POST'])
-async def route_scale_counts_per_category_single_sample(request):
-  req = await check_req(request, schema=schema_exposures_single_sample)
-
-  assert(req["mut_type"] in MUT_TYPES)
-
-  output = scale_counts_per_category(req["signatures"], req["projects"], req["mut_type"], single_sample_id=req["sample_id"], normalize=False)
-  return response_json(app, output)
-
-@app.route('/scale-reconstruction-single-sample', methods=['POST'])
-async def route_scale_reconstruction_single_sample(request):
-  req = await check_req(request, schema=schema_exposures_single_sample)
-
-  assert(req["mut_type"] in MUT_TYPES)
-
-  output = scale_reconstruction(req["signatures"], req["projects"], req["mut_type"], single_sample_id=req["sample_id"], normalize=False)
-  return response_json(app, output)
-
-@app.route('/scale-reconstruction-error-single-sample', methods=['POST'])
-async def route_scale_reconstruction_error_single_sample(request):
-  req = await check_req(request, schema=schema_exposures_single_sample)
-
-  assert(req["mut_type"] in MUT_TYPES)
-
-  output = scale_reconstruction_error(req["signatures"], req["projects"], req["mut_type"], single_sample_id=req["sample_id"], normalize=False)
-  return response_json(app, output)
 
 
 schema_contexts = {
