@@ -135,14 +135,15 @@ def create_sharing_table():
     )
     metadata.create_all()
     print('* Successfully connected to database and created sharing table')
-  except:
+  except Exception as e:
+    print(e)
     print('* Unable to connect to database')
 
 def append_to_genes_agg_files_in_bg():
-  subprocess.Popen(['python', os.path.join(this_file_path, 'compute_genes.py')])
+  subprocess.Popen(['python', os.path.join(this_file_path, 'compute_genes.py')], shell=True)
 
 def convert_data_files_in_bg():
-  subprocess.Popen(['python', os.path.join(this_file_path, 'convert_data.py')])
+  subprocess.Popen(['python', os.path.join(this_file_path, 'convert_data.py')], shell=True)
 
 if __name__ == "__main__":
   data_df = pd.read_csv(META_DATA_FILE, sep='\t')

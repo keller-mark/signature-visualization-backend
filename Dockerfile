@@ -1,14 +1,5 @@
 FROM mkeller7/conda-starlette:python3.7
 
-# Install numpy dependencies
-#RUN echo "http://dl-4.alpinelinux.org/alpine/v3.8/community" >> /etc/apk/repositories
-#RUN apk add --update --no-cache ca-certificates gcc g++ curl
-#RUN apk add --update --no-cache openblas-dev==0.3.0-r0
-# Install argon2-cffi dependencies
-#RUN apk add --update --no-cache libffi-dev==3.2.1-r4
-# Install mysql dependencies
-#RUN apk add --update --no-cache mariadb-dev==10.2.22-r0
-
 # Install conda packages
 RUN conda install -y numpy
 RUN conda install -y pandas
@@ -21,6 +12,12 @@ RUN conda install -y -c conda-forge SQLAlchemy==1.2.15
 RUN conda install -y -c conda-forge mysqlclient==1.3.14
 RUN conda install -y -c conda-forge argon2_cffi==19.1.0
 RUN conda install -y -c conda-forge python-snappy==0.5.3
+
+# TODO: check if these are really needed
+RUN apt-get update --fix-missing && \
+    apt-get install -y openssl mysql-server mysql-client && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # Create folder to mount volume
 RUN mkdir -p /obj
