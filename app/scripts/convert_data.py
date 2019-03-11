@@ -21,10 +21,10 @@ def to_parquet(df, tsv_file_path):
     df.to_parquet(os.path.join(OBJ_DIR, parquet_file_path), engine='fastparquet', compression='snappy', index=False)
 
 def convert_data_file(tsv_file_path):
-    print('* Converting tsv file to parquet')
     to_parquet(read_tsv(tsv_file_path), tsv_file_path)
 
 if __name__ == "__main__":
+    print('* Converting tsv files to parquet files')
     data_df = pd.read_csv(META_DATA_FILE, sep='\t')
   
     file_list = []
