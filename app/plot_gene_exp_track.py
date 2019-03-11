@@ -11,7 +11,7 @@ def threshold_expression_values(val):
         return "Under"
     if val >= 2:
         return "Over"
-    return "None"
+    return "Not differentially expressed"
 
 def plot_gene_exp_track(gene_id, projects):
     result = []
@@ -30,11 +30,12 @@ def plot_gene_exp_track(gene_id, projects):
             expr_df = expr_df.rename(columns={SAMPLE: "sample_id", GENE_EXPRESSION_RNA_SEQ_MRNA_Z: "gene_expression"})
             expr_df = expr_df.set_index("sample_id", drop=True)
             expr_df["gene_expression"] = expr_df["gene_expression"].apply(threshold_expression_values)
-            
             proj_result_df = proj_result_df.join(expr_df, how='outer')
 
+            proj_result_df = proj_result_df.fillna(value="Not differentially expressed")
+
         proj_result_df = proj_result_df.reset_index()
-        proj_result_df = proj_result_df.fillna(value="None")
+        proj_result_df = proj_result_df.fillna(value="nan")
         proj_result = proj_result_df.to_dict('records')
         result = (result + proj_result)
         

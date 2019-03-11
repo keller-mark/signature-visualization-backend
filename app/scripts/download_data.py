@@ -135,11 +135,9 @@ def create_sharing_table():
     )
     metadata.create_all()
     print('* Successfully connected to database and created sharing table')
-  except:
+  except Exception as e:
+    print(e)
     print('* Unable to connect to database')
-
-def append_to_genes_agg_files_in_bg():
-  subprocess.Popen(['python', os.path.join(this_file_path, 'compute_genes.py')])
 
 if __name__ == "__main__":
   data_df = pd.read_csv(META_DATA_FILE, sep='\t')
@@ -168,6 +166,5 @@ if __name__ == "__main__":
   create_proj_to_sigs_mapping(data_df, sigs_df)
 
   create_sharing_table()
-  append_to_genes_agg_files_in_bg()
   
   print('* Done')

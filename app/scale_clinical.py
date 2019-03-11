@@ -6,7 +6,7 @@ from web_constants import *
 from signatures import Signatures, get_signatures_by_mut_type
 from project_data import ProjectData, get_selected_project_data
 
-from plot_clinical import plot_clinical, plot_clinical_variables, meta_clinical_df
+from plot_clinical import plot_clinical, get_clinical_variables, meta_clinical_df
 
 def clinical_var_infer_extent(clinical_var, meta_clinical_df):
     return (meta_clinical_df.loc[(meta_clinical_df[META_COL_CLINICAL_COL] == clinical_var) & \
@@ -22,7 +22,7 @@ def clear_list_of_nan(l):
 def scale_clinical(projects):
     result = {}
     clinical_df = plot_clinical(projects, return_df=True)
-    for clinical_var in plot_clinical_variables():
+    for clinical_var in get_clinical_variables():
         if clinical_var_infer_extent(clinical_var, meta_clinical_df):
             if clinical_var_is_continuous(clinical_var, meta_clinical_df):
                 # infer and continuous
