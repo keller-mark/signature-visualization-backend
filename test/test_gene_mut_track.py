@@ -4,10 +4,10 @@ import unittest
 
 from constants_for_tests import *
 
-class TestGeneEventTrack(unittest.TestCase):
+class TestGeneMutTrack(unittest.TestCase):
 
-    def test_gene_event_track(self):
-        url = API_BASE + '/plot-gene-event-track'
+    def test_gene_mut_track(self):
+        url = API_BASE + '/plot-gene-mut-track'
         payload = {
             "projects": [
                 "TCGA-BRCA_BRCA_mc3.v0.2.8.WXS"

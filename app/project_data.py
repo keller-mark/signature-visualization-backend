@@ -15,9 +15,12 @@ with open(ONCOTREE_FILE) as f:
     tree_json = json.load(f)
 tree = OncoTree(tree_json)
 
-
-def get_prepend_proj_id_to_sample_id_func(proj_id):
+def get_prepend_proj_id_to_sample_id_func(proj_id, proj_source):
     def prepend_proj_id_to_sample_id(sample_id):
+        if proj_source == "TCGA":
+            # special case for TCGA, trim ends of sample IDs
+            # for convenience but also to match PanCanAtlas samples to cBioPortal samples
+            sample_id = sample_id[:15]
         return ("%s %s" % (proj_id, sample_id))
     return prepend_proj_id_to_sample_id
 
@@ -46,7 +49,9 @@ def get_all_project_data_as_json():
             "num_samples": obj.get_proj_num_samples(),
             "source": obj.get_proj_source(),
             "has_clinical": obj.has_clinical_df(),
-            "has_genes": obj.has_genes_df(),
+            "has_gene_mut": obj.has_gene_mut_df(),
+            "has_gene_exp": obj.has_gene_exp_df(),
+            "has_gene_cna": obj.has_gene_cna_df(),
             "sigs_mapping": obj.get_sigs_mapping(),
             "oncotree_code": (oncotree_code if oncotree_code is not None else "nan"),
             "oncotree_name": (oncotree_name if oncotree_name is not None else "nan"),
@@ -75,8 +80,10 @@ class ProjectData():
         self.clinical_path = path_or_none(proj_row, META_COL_PATH_CLINICAL)
         # Check for a samples file
         self.samples_path = path_or_none(proj_row, META_COL_PATH_SAMPLES)
-        # Check for a genome events file
-        self.genes_path = path_or_none(proj_row, META_COL_PATH_GENES)
+        # Check for a gene mutation file
+        self.gene_mut_path = path_or_none(proj_row, META_COL_PATH_GENE_MUT)
+        self.gene_exp_path = path_or_none(proj_row, META_COL_PATH_GENE_EXP)
+        self.gene_cna_path = path_or_none(proj_row, META_COL_PATH_GENE_CNA)
 
         for mut_type in MUT_TYPES:
             cat_type = MUT_TYPE_MAP[mut_type]
@@ -119,8 +126,8 @@ class ProjectData():
     def get_samples_df(self):
         if self.has_samples_df():
             samples_df = pd_fetch_tsv(OBJ_DIR, self.samples_path)
-            samples_df[SAMPLE] = samples_df[SAMPLE].apply(get_prepend_proj_id_to_sample_id_func(self.get_proj_id()))
-            samples_df[PATIENT] = samples_df[PATIENT].apply(get_prepend_proj_id_to_sample_id_func(self.get_proj_id()))
+            samples_df[SAMPLE] = samples_df[SAMPLE].apply(get_prepend_proj_id_to_sample_id_func(self.get_proj_id(), self.get_proj_source()))
+            samples_df[PATIENT] = samples_df[PATIENT].apply(get_prepend_proj_id_to_sample_id_func(self.get_proj_id(), self.get_proj_source()))
             samples_df = samples_df.set_index(SAMPLE, drop=True)
             return samples_df
         return None
@@ -159,21 +166,47 @@ class ProjectData():
             samples_list = self.get_samples_list()
             samples_df = samples_df.loc[samples_df[SAMPLE].isin(samples_list)]
             clinical_df = pd_fetch_tsv(OBJ_DIR, self.clinical_path)
-            clinical_df[PATIENT] = clinical_df[PATIENT].apply(get_prepend_proj_id_to_sample_id_func(self.get_proj_id()))
+            clinical_df[PATIENT] = clinical_df[PATIENT].apply(get_prepend_proj_id_to_sample_id_func(self.get_proj_id(), self.get_proj_source()))
             clinical_df = samples_df.merge(clinical_df, on=PATIENT, how='left')
             clinical_df = clinical_df.fillna(value='nan')
             clinical_df = clinical_df.set_index(SAMPLE)
             return clinical_df
         return None
     
-    # Genomic events file
-    def has_genes_df(self):
-        return (self.genes_path != None)
+    # Gene mutation file
+    def has_gene_mut_df(self):
+        return (self.gene_mut_path != None)
     
-    def get_genes_df(self):
-        if self.has_genes_df():
-            genes_df = pd_fetch_tsv(OBJ_DIR, self.genes_path)
-            genes_df[SAMPLE] = genes_df[SAMPLE].apply(get_prepend_proj_id_to_sample_id_func(self.get_proj_id()))
+    def get_gene_mut_df(self):
+        if self.has_gene_mut_df():
+            genes_df = pd_fetch_tsv(OBJ_DIR, self.gene_mut_path)
+            genes_df[SAMPLE] = genes_df[SAMPLE].apply(get_prepend_proj_id_to_sample_id_func(self.get_proj_id(), self.get_proj_source()))
+            return genes_df
+        return None
+    
+    # Gene expression file
+    def has_gene_exp_df(self):
+        return (self.gene_exp_path != None)
+    
+    def get_gene_exp_df(self):
+        if self.has_gene_exp_df():
+            genes_df = pd_fetch_tsv(OBJ_DIR, self.gene_exp_path)
+            genes_df[SAMPLE] = genes_df[SAMPLE].apply(get_prepend_proj_id_to_sample_id_func(self.get_proj_id(), self.get_proj_source()))
+            return genes_df
+        return None
+    
+    # Gene CNA file
+    def has_gene_cna_df(self):
+        return (self.gene_cna_path != None)
+    
+    def get_gene_cna_df(self):
+        if self.has_gene_cna_df():
+            genes_df = pd_fetch_tsv(OBJ_DIR, self.gene_cna_path)
+            genes_df = genes_df.set_index(genes_df.columns.values[0])
+            genes_df = genes_df.transpose()
+            genes_df.index = genes_df.index.rename(SAMPLE)
+            genes_df = genes_df.reset_index()
+            genes_df[SAMPLE] = genes_df[SAMPLE].apply(get_prepend_proj_id_to_sample_id_func(self.get_proj_id(), self.get_proj_source()))
             return genes_df
         return None
     
@@ -183,10 +216,11 @@ class ProjectData():
     
     def get_counts_df(self, mut_type):
         if self.has_counts_df(mut_type):
-            counts_df = pd_fetch_tsv(OBJ_DIR, self.counts_paths[mut_type], index_col=0)
+            counts_df = pd_fetch_tsv(OBJ_DIR, self.counts_paths[mut_type])
+            counts_df = counts_df.set_index(counts_df.columns.values[0])
             counts_df.index = counts_df.index.rename(SAMPLE)
             counts_df = counts_df.reset_index()
-            counts_df[SAMPLE] = counts_df[SAMPLE].apply(get_prepend_proj_id_to_sample_id_func(self.get_proj_id()))
+            counts_df[SAMPLE] = counts_df[SAMPLE].apply(get_prepend_proj_id_to_sample_id_func(self.get_proj_id(), self.get_proj_source()))
             counts_df = counts_df.set_index(SAMPLE, drop=True)
             counts_df = counts_df.dropna(how='any', axis='index')
             return counts_df

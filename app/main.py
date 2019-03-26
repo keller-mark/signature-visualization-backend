@@ -1,4 +1,7 @@
-from flask import Flask, request, jsonify
+from starlette.applications import Starlette
+import uvicorn
+import os
+
 from jsonschema import validate
 from response_utils import *
 from web_constants import *
@@ -17,8 +20,10 @@ from scale_counts import scale_counts
 
 from plot_samples_meta import plot_samples_meta
 
-from plot_gene_event_track import plot_gene_event_track, autocomplete_gene, plot_pathways_listing
-from plot_clinical import plot_clinical, plot_clinical_variables, plot_clinical_scale_types
+from plot_gene_mut_track import plot_gene_mut_track, autocomplete_gene, plot_pathways_listing
+from plot_gene_exp_track import plot_gene_exp_track
+from plot_gene_cna_track import plot_gene_cna_track
+from plot_clinical import plot_clinical
 from scale_clinical import scale_clinical
 from plot_survival import plot_survival
 
@@ -26,10 +31,6 @@ from plot_survival import plot_survival
 from plot_counts_per_category import plot_counts_per_category
 from plot_reconstruction import plot_reconstruction
 from plot_reconstruction_error import plot_reconstruction_error
-# Reconstruction scales
-from scale_counts_per_category import scale_counts_per_category
-from scale_reconstruction import scale_reconstruction
-from scale_reconstruction_error import scale_reconstruction_error
 
 from scale_contexts import scale_contexts
 from plot_signature import plot_signature
@@ -40,17 +41,17 @@ from sharing_state import get_sharing_state, set_sharing_state, plot_featured_li
 from auth import NotAuthenticated, login, logout, check_token
 
 
-app = Flask(__name__)
+app = Starlette(debug=bool(os.environ.get('DEBUG', '')))
 
 """ 
 Authentication helpers 
 """
-@app.errorhandler(NotAuthenticated)
-def handle_not_authenticated(error):
-    return response_json_error(app, error.to_dict(), error.status_code)
+@app.exception_handler(NotAuthenticated)
+async def handle_not_authenticated(request, exc):
+    return response_json_error(app, {"detail": exc.detail}, exc.status_code)
 
-def check_req(request, schema=None):
-  req = request.get_json(force=True)
+async def check_req(request, schema=None):
+  req = await request.json()
   check_token(req)
   if schema != None:
     validate(req, schema)
@@ -76,29 +77,23 @@ signatures_schema = {
 Data listing
 """
 @app.route('/data-listing', methods=['POST'])
-def route_data_listing():
-  req = check_req(request)
+async def route_data_listing(request):
+  req = await check_req(request)
   output = plot_data_listing()
   return response_json(app, output)
 
 # TODO: combine the below listing requests into the one data listing request
 @app.route('/pathways-listing', methods=['POST'])
-def route_pathways_listing():
-  req = check_req(request)
+async def route_pathways_listing(request):
+  req = await check_req(request)
   output = plot_pathways_listing()
   return response_json(app, output)
 
 @app.route('/featured-listing', methods=['POST'])
-def route_featured_listing():
-  req = check_req(request)
+async def route_featured_listing(request):
+  req = await check_req(request)
   output = plot_featured_listing()
   return response_json(app, output)
-
-@app.route('/clinical-variable-list', methods=['POST'])
-def route_clinical_variable_list():
-  req = check_req(request)
-  output = plot_clinical_scale_types()
-  return response_json(app, output) 
 
 
 """
@@ -113,8 +108,8 @@ schema_signature = {
   }
 }
 @app.route('/plot-signature', methods=['POST'])
-def route_plot_signature():
-  req = check_req(request, schema=schema_signature)
+async def route_plot_signature(request):
+  req = await check_req(request, schema=schema_signature)
 
   assert(req["mut_type"] in MUT_TYPES)
 
@@ -131,8 +126,8 @@ schema_samples_meta = {
   }
 }
 @app.route('/plot-samples-meta', methods=['POST'])
-def route_plot_samples_meta():
-  req = check_req(request, schema=schema_counts)
+async def route_plot_samples_meta(request):
+  req = await check_req(request, schema=schema_counts)
 
   output = plot_samples_meta(req["projects"])
   return response_json(app, output)
@@ -147,26 +142,10 @@ schema_counts = {
   }
 }
 @app.route('/plot-counts', methods=['POST'])
-def route_plot_counts():
-  req = check_req(request, schema=schema_counts)
+async def route_plot_counts(request):
+  req = await check_req(request, schema=schema_counts)
 
   output = plot_counts(req["projects"])
-  return response_json(app, output)
-
-# TODO: delegate as many "scale" requests to client as possible
-@app.route('/scale-counts', methods=['POST'])
-def route_scale_counts():
-  req = check_req(request, schema=schema_counts)
-
-  output = scale_counts(req["projects"])
-  return response_json(app, output)
-
-@app.route('/scale-counts-sum', methods=['POST'])
-def route_scale_counts_sum():
-  req = check_req(request)
-  validate(req, schema_counts)
-
-  output = scale_counts(req["projects"], count_sum=True)
   return response_json(app, output)
 
 """
@@ -182,8 +161,8 @@ schema_exposures = {
   }
 }
 @app.route('/plot-exposures', methods=['POST'])
-def route_plot_exposures():
-  req = check_req(request, schema=schema_exposures)
+async def route_plot_exposures(request):
+  req = await check_req(request, schema=schema_exposures)
 
   assert(req["mut_type"] in MUT_TYPES)
 
@@ -191,40 +170,22 @@ def route_plot_exposures():
   return response_json(app, output)
 
 @app.route('/plot-exposures-normalized', methods=['POST'])
-def route_plot_exposures_normalized():
-  req = check_req(request, schema=schema_exposures)
+async def route_plot_exposures_normalized(request):
+  req = await check_req(request, schema=schema_exposures)
 
   assert(req["mut_type"] in MUT_TYPES)
 
   output = plot_exposures(req["signatures"], req["projects"], req["mut_type"], normalize=True, tricounts_method=req["tricounts_method"])
   return response_json(app, output)
 
-@app.route('/scale-exposures', methods=['POST'])
-def route_scale_exposures():
-  req = check_req(request, schema=schema_exposures)
-
-  assert(req["mut_type"] in MUT_TYPES)
-
-  output = scale_exposures(req["signatures"], req["projects"], req["mut_type"], exp_sum=False, tricounts_method=req["tricounts_method"])
-  return response_json(app, output)
 
 @app.route('/scale-exposures-normalized', methods=['POST'])
-def route_scale_exposures_normalized():
-  req = check_req(request, schema=schema_exposures)
+async def route_scale_exposures_normalized(request):
+  req = await check_req(request, schema=schema_exposures)
 
   assert(req["mut_type"] in MUT_TYPES)
 
   output = scale_exposures(req["signatures"], req["projects"], req["mut_type"], exp_sum=False, exp_normalize=True, tricounts_method=req["tricounts_method"])
-  return response_json(app, output)
-
-
-@app.route('/scale-exposures-sum', methods=['POST'])
-def route_scale_exposures_sum():
-  req = check_req(request, schema=schema_exposures)
-
-  assert(req["mut_type"] in MUT_TYPES)
-
-  output = scale_exposures(req["signatures"], req["projects"], req["mut_type"], exp_sum=True, tricounts_method=req["tricounts_method"])
   return response_json(app, output)
 
 schema_exposures_single_sample = {
@@ -238,21 +199,12 @@ schema_exposures_single_sample = {
   }
 }
 @app.route('/plot-exposures-single-sample', methods=['POST'])
-def route_plot_exposures_single_sample():
-  req = check_req(request, schema=schema_exposures_single_sample)
+async def route_plot_exposures_single_sample(request):
+  req = await check_req(request, schema=schema_exposures_single_sample)
 
   assert(req["mut_type"] in MUT_TYPES)
 
   output = plot_exposures(req["signatures"], req["projects"], req["mut_type"], single_sample_id=req["sample_id"], normalize=False, tricounts_method=req["tricounts_method"])
-  return response_json(app, output)
-
-@app.route('/scale-exposures-single-sample', methods=['POST'])
-def route_scale_exposures_single_sample():
-  req = check_req(request, schema=schema_exposures_single_sample)
-
-  assert(req["mut_type"] in MUT_TYPES)
-
-  output = scale_exposures(req["signatures"], req["projects"], req["mut_type"], single_sample_id=req["sample_id"], exp_sum=False, exp_normalize=False, tricounts_method=req["tricounts_method"])
   return response_json(app, output)
 
 
@@ -260,8 +212,8 @@ def route_scale_exposures_single_sample():
 Reconstruction error
 """
 @app.route('/plot-counts-per-category-single-sample', methods=['POST'])
-def route_plot_counts_per_category_single_sample():
-  req = check_req(request, schema=schema_exposures_single_sample)
+async def route_plot_counts_per_category_single_sample(request):
+  req = await check_req(request, schema=schema_exposures_single_sample)
 
   assert(req["mut_type"] in MUT_TYPES)
 
@@ -269,8 +221,8 @@ def route_plot_counts_per_category_single_sample():
   return response_json(app, output)
 
 @app.route('/plot-reconstruction-single-sample', methods=['POST'])
-def route_plot_reconstruction_single_sample():
-  req = check_req(request, schema=schema_exposures_single_sample)
+async def route_plot_reconstruction_single_sample(request):
+  req = await check_req(request, schema=schema_exposures_single_sample)
 
   assert(req["mut_type"] in MUT_TYPES)
 
@@ -278,8 +230,8 @@ def route_plot_reconstruction_single_sample():
   return response_json(app, output)
 
 @app.route('/plot-reconstruction-error-single-sample', methods=['POST'])
-def route_plot_reconstruction_error_single_sample():
-  req = check_req(request, schema=schema_exposures_single_sample)
+async def route_plot_reconstruction_error_single_sample(request):
+  req = await check_req(request, schema=schema_exposures_single_sample)
 
   assert(req["mut_type"] in MUT_TYPES)
 
@@ -287,8 +239,8 @@ def route_plot_reconstruction_error_single_sample():
   return response_json(app, output)
 
 @app.route('/plot-reconstruction-cosine-similarity', methods=['POST'])
-def route_plot_reconstruction_cosine_similarity():
-  req = check_req(request, schema=schema_exposures)
+async def route_plot_reconstruction_cosine_similarity(request):
+  req = await check_req(request, schema=schema_exposures)
 
   assert(req["mut_type"] in MUT_TYPES)
 
@@ -296,8 +248,8 @@ def route_plot_reconstruction_cosine_similarity():
   return response_json(app, output)
 
 @app.route('/plot-reconstruction-cosine-similarity-single-sample', methods=['POST'])
-def route_plot_reconstruction_cosine_similarity_single_sample():
-  req = check_req(request, schema=schema_exposures_single_sample)
+async def route_plot_reconstruction_cosine_similarity_single_sample(request):
+  req = await check_req(request, schema=schema_exposures_single_sample)
 
   assert(req["mut_type"] in MUT_TYPES)
 
@@ -305,32 +257,6 @@ def route_plot_reconstruction_cosine_similarity_single_sample():
   return response_json(app, output)
 
 
-@app.route('/scale-counts-per-category-single-sample', methods=['POST'])
-def route_scale_counts_per_category_single_sample():
-  req = check_req(request, schema=schema_exposures_single_sample)
-
-  assert(req["mut_type"] in MUT_TYPES)
-
-  output = scale_counts_per_category(req["signatures"], req["projects"], req["mut_type"], single_sample_id=req["sample_id"], normalize=False)
-  return response_json(app, output)
-
-@app.route('/scale-reconstruction-single-sample', methods=['POST'])
-def route_scale_reconstruction_single_sample():
-  req = check_req(request, schema=schema_exposures_single_sample)
-
-  assert(req["mut_type"] in MUT_TYPES)
-
-  output = scale_reconstruction(req["signatures"], req["projects"], req["mut_type"], single_sample_id=req["sample_id"], normalize=False, tricounts_method=req["tricounts_method"])
-  return response_json(app, output)
-
-@app.route('/scale-reconstruction-error-single-sample', methods=['POST'])
-def route_scale_reconstruction_error_single_sample():
-  req = check_req(request, schema=schema_exposures_single_sample)
-
-  assert(req["mut_type"] in MUT_TYPES)
-
-  output = scale_reconstruction_error(req["signatures"], req["projects"], req["mut_type"], single_sample_id=req["sample_id"], normalize=False, tricounts_method=req["tricounts_method"])
-  return response_json(app, output)
 
 
 schema_contexts = {
@@ -341,8 +267,8 @@ schema_contexts = {
   }
 }
 @app.route('/scale-contexts', methods=['POST'])
-def route_scale_contexts():
-  req = check_req(request, schema=schema_contexts)
+async def route_scale_contexts(request):
+  req = await check_req(request, schema=schema_contexts)
 
   assert(req["mut_type"] in MUT_TYPES)
 
@@ -362,8 +288,8 @@ schema_clustering = {
   }
 }
 @app.route('/clustering', methods=['POST'])
-def route_clustering():
-  req = check_req(request, schema=schema_clustering)
+async def route_clustering(request):
+  req = await check_req(request, schema=schema_clustering)
 
   output = plot_clustering(req["signatures"], req["projects"], tricounts_method=req["tricounts_method"])
   return response_json(app, output)
@@ -379,11 +305,25 @@ schema_gene_event_track = {
     "projects": projects_schema
   }
 }
-@app.route('/plot-gene-event-track', methods=['POST'])
-def route_gene_event_track():
-  req = check_req(request, schema=schema_gene_event_track)
+@app.route('/plot-gene-mut-track', methods=['POST'])
+async def route_gene_mut_track(request):
+  req = await check_req(request, schema=schema_gene_event_track)
 
-  output = plot_gene_event_track(req["gene_id"], req["projects"])
+  output = plot_gene_mut_track(req["gene_id"], req["projects"])
+  return response_json(app, output)
+
+@app.route('/plot-gene-exp-track', methods=['POST'])
+async def route_gene_exp_track(request):
+  req = await check_req(request, schema=schema_gene_event_track)
+
+  output = plot_gene_exp_track(req["gene_id"], req["projects"])
+  return response_json(app, output)
+
+@app.route('/plot-gene-cna-track', methods=['POST'])
+async def route_gene_cna_track(request):
+  req = await check_req(request, schema=schema_gene_event_track)
+
+  output = plot_gene_cna_track(req["gene_id"], req["projects"])
   return response_json(app, output) 
 
 
@@ -398,8 +338,8 @@ schema_autocomplete_gene = {
   }
 }
 @app.route('/autocomplete-gene', methods=['POST'])
-def route_autocomplete_gene():
-  req = check_req(request, schema=schema_autocomplete_gene)
+async def route_autocomplete_gene(request):
+  req = await check_req(request, schema=schema_autocomplete_gene)
 
   output = autocomplete_gene(req["gene_id_partial"], req["projects"])
   return response_json(app, output)
@@ -415,15 +355,15 @@ schema_clinical = {
   }
 }
 @app.route('/plot-clinical', methods=['POST'])
-def route_plot_clinical():
-  req = check_req(request, schema=schema_clinical)
+async def route_plot_clinical(request):
+  req = await check_req(request, schema=schema_clinical)
 
   output = plot_clinical(req["projects"])
   return response_json(app, output)
 
 @app.route('/scale-clinical', methods=['POST'])
-def route_scale_clinical():
-  req = check_req(request, schema=schema_clinical)
+async def route_scale_clinical(request):
+  req = await check_req(request, schema=schema_clinical)
 
   output = scale_clinical(req["projects"])
   return response_json(app, output)
@@ -435,8 +375,8 @@ schema_survival = {
   }
 }
 @app.route('/plot-survival', methods=['POST'])
-def route_plot_survival():
-  req = check_req(request, schema=schema_survival)
+async def route_plot_survival(request):
+  req = await check_req(request, schema=schema_survival)
 
   output = plot_survival(req["projects"])
   return response_json(app, output)
@@ -451,8 +391,8 @@ schema_samples = {
   }
 }
 @app.route('/scale-samples', methods=['POST'])
-def route_scale_samples():
-  req = check_req(request, schema=schema_samples)
+async def route_scale_samples(request):
+  req = await check_req(request, schema=schema_samples)
 
   output = scale_samples(req["projects"])
   if len(output) != len(set(output)):
@@ -465,8 +405,8 @@ def route_scale_samples():
 Gene alteration scale
 """
 @app.route('/scale-gene-alterations', methods=['POST'])
-def route_scale_gene_alterations():
-  req = check_req(request)
+async def route_scale_gene_alterations(request):
+  req = await check_req(request)
   output = [e.value for e in MUT_CLASS_VALS] + ["None"]
   return response_json(app, output) 
 
@@ -480,8 +420,8 @@ schema_sharing_get = {
   }
 }
 @app.route('/sharing-get', methods=['POST'])
-def route_sharing_get():
-  req = check_req(request, schema=schema_sharing_get)
+async def route_sharing_get(request):
+  req = await check_req(request, schema=schema_sharing_get)
   try:
     output = get_sharing_state(req['slug'])
     return response_json(app, output)
@@ -498,8 +438,8 @@ schema_sharing_set = {
   }
 }
 @app.route('/sharing-set', methods=['POST'])
-def route_sharing_set():
-  req = check_req(request, schema=schema_sharing_set)
+async def route_sharing_set(request):
+  req = await check_req(request, schema=schema_sharing_set)
   try:
     output = set_sharing_state(req['state'])
     return response_json(app, output)
@@ -516,31 +456,25 @@ schema_login = {
   }
 }
 @app.route('/login', methods=['POST'])
-def route_login():
-  req = request.get_json(force=True)
+async def route_login(request):
+  req = request.json()
   validate(req, schema_login)
   output = login(req['password'])
   return response_json(app, output)
 
 @app.route('/check-token', methods=['POST'])
-def route_check_token():
-  check_req(request)
+async def route_check_token(request):
+  await check_req(request)
   output = {'message': 'Authentication successful.'}
   return response_json(app, output)
 
 @app.route('/logout', methods=['POST'])
-def route_logout():
-  req = check_req(request)
+async def route_logout(request):
+  req = await check_req(request)
   logout(req['token'])
   output = {'message': 'Logout successful.'}
   return response_json(app, output)
-  
 
 
 if __name__ == '__main__':
-  app.run(
-      host='0.0.0.0',
-      debug=bool(os.environ.get('DEBUG', '')), 
-      port=int(os.environ.get('PORT', 8000)),
-      use_reloader=True
-  )
+    uvicorn.run(app, host='0.0.0.0', port=int(os.environ.get('PORT', 8000)))

@@ -1,14 +1,31 @@
 import pandas as pd
 import numpy as np
-import pickle
 
 from web_constants import *
-from signatures import Signatures, get_signatures_by_mut_type
 from project_data import ProjectData, get_selected_project_data
 
 from helpers import pd_fetch_tsv
 
-def plot_gene_event_track(gene_id, projects):
+MUT_CLASS_PRIORITIES = [
+    MUT_CLASS_VALS.SILENT.value, 
+    MUT_CLASS_VALS.OTHER.value,
+    MUT_CLASS_VALS.TRANSLATION_START_SITE.value,
+    MUT_CLASS_VALS.SPLICE_SITE.value,
+    MUT_CLASS_VALS.MISSENSE.value,
+    MUT_CLASS_VALS.IN_FRAME_INDEL.value,
+    MUT_CLASS_VALS.NONSTOP.value,
+    MUT_CLASS_VALS.NONSENSE.value,
+    MUT_CLASS_VALS.FRAMESHIFT.value
+]
+
+def convert_mut_class_to_priority(val):
+    if pd.isna(val):
+        return -1
+    if val in MUT_CLASS_PRIORITIES:
+        return MUT_CLASS_PRIORITIES.index(val)
+    return -1
+
+def plot_gene_mut_track(gene_id, projects):
     result = []
     
     project_data = get_selected_project_data(projects)
@@ -19,13 +36,17 @@ def plot_gene_event_track(gene_id, projects):
         proj_result_df = pd.DataFrame(index=samples, columns=[])
         proj_result_df.index.rename("sample_id", inplace=True)
 
-        events_df = proj.get_genes_df()
-        if events_df is not None:
-            gene_events_df = events_df.loc[events_df[GENE_SYMBOL] == gene_id][[SAMPLE, MUT_CLASS]]
-            gene_events_df = gene_events_df.rename(columns={SAMPLE: "sample_id", MUT_CLASS: "mut_class"})
-            gene_events_df = gene_events_df.set_index("sample_id", drop=True)
+        mut_df = proj.get_gene_mut_df()
+        if mut_df is not None:
+            mut_df = mut_df.loc[mut_df[GENE_SYMBOL] == gene_id][[SAMPLE, MUT_CLASS]]
+            mut_df["priority"] = mut_df[MUT_CLASS].apply(convert_mut_class_to_priority).astype(int)
+            mut_df = mut_df.sort_values(by=["priority"], ascending=True)
+            mut_df = mut_df.drop_duplicates(subset=[SAMPLE], keep='last')
+            mut_df = mut_df.drop(labels=['priority'], axis='columns')
+            mut_df = mut_df.rename(columns={SAMPLE: "sample_id", MUT_CLASS: "mut_class"})
+            mut_df = mut_df.set_index("sample_id", drop=True)
             
-            proj_result_df = proj_result_df.join(gene_events_df, how='outer')
+            proj_result_df = proj_result_df.join(mut_df, how='outer')
 
         proj_result_df = proj_result_df.reset_index()
         proj_result_df = proj_result_df.fillna(value="None")

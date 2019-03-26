@@ -15,16 +15,16 @@ def append_icd_desc(row, code_col, desc_col):
     else:
         return row[code_col]
 
-def plot_clinical_variables():
+def get_clinical_variables():
     return list(meta_clinical_df[META_COL_CLINICAL_COL].unique())
 
-def plot_clinical_scale_types():
+def get_clinical_variable_scale_types():
     return meta_clinical_df.drop_duplicates(subset=[META_COL_CLINICAL_COL])[[META_COL_CLINICAL_COL, META_COL_CLINICAL_SCALE_TYPE]].to_dict('records')
 
 def plot_clinical(projects, return_df=False):
     result = []
 
-    clinical_vars = plot_clinical_variables()
+    clinical_vars = get_clinical_variables()
     project_data = get_selected_project_data(projects)
 
     clinical_df = pd.DataFrame(index=[], data=[], columns=clinical_vars + [ICD_O_3_SITE_DESC, ICD_O_3_HISTOLOGY_DESC])

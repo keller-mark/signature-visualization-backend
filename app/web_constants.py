@@ -87,6 +87,10 @@ ICD_O_3_HISTOLOGY_DESC = 'ICD-O-3 Histology Description'
 SURVIVAL_DAYS_TO_DEATH = 'Days to Death'
 SURVIVAL_DAYS_TO_LAST_FOLLOWUP = 'Days to Last Followup'
 
+# Column names for gene expression tables
+GENE_EXPRESSION_RNA_SEQ_MRNA_Z = 'RNA Seq v2 mRNA median Zscore'
+
+
 CHROMOSOMES = {
   '1': 249250621,
   '2': 243199373,
@@ -168,14 +172,18 @@ META_COL_PROJ_NAME = 'Project Name'
 META_COL_PATH_MUTS_COUNTS = 'Path to Counts {cat_type} File'
 META_COL_PATH_CLINICAL = 'Path to Clinical File'
 META_COL_PATH_SAMPLES = 'Path to Samples File'
-META_COL_PATH_GENES = 'Path to Genes File'
+META_COL_PATH_GENE_MUT = 'Path to Gene Mutation File'
+META_COL_PATH_GENE_EXP = 'Path to Gene Expression File'
+META_COL_PATH_GENE_CNA = 'Path to Gene CNA File'
 
 META_COL_PATH_MUTS_COUNTS_LIST = [META_COL_PATH_MUTS_COUNTS.format(cat_type=val) for val in CAT_TYPES]
 
 META_DATA_FILE_COLS = [
   META_COL_PATH_CLINICAL,
   META_COL_PATH_SAMPLES,
-  META_COL_PATH_GENES
+  META_COL_PATH_GENE_MUT,
+  META_COL_PATH_GENE_EXP,
+  META_COL_PATH_GENE_CNA
 ] + META_COL_PATH_MUTS_COUNTS_LIST
 
 # Pathways data columns
