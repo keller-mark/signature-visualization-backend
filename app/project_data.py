@@ -74,6 +74,7 @@ class ProjectData():
         self.oncotree_code = proj_row[META_COL_ONCOTREE_CODE] if pd.notnull(proj_row[META_COL_ONCOTREE_CODE]) else None
         self.oncotree_node = tree.find_node(self.oncotree_code) if pd.notnull(proj_row[META_COL_ONCOTREE_CODE]) else None
         self.proj_source = proj_row[META_COL_PROJ_SOURCE]
+        self.seq_type = proj_row[SEQ_TYPE]
         self.counts_paths = {}
 
         # Check for a clinical file
@@ -118,6 +119,9 @@ class ProjectData():
     
     def get_proj_source(self):
         return self.proj_source
+    
+    def get_seq_type(self):
+        return self.seq_type
     
     # Samples file
     def has_samples_df(self):

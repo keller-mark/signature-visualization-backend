@@ -100,6 +100,7 @@ class Signatures():
         categories = self.get_contexts()
         if cat_type == "SBS_96": # TODO: remove this constraint once mapping from trinucleotides to DBS/INDEL categories in place
             if tricounts_method != None and tricounts_method != "None" and tricounts_method in get_tricounts_methods():
+                print("Normalizing by tricount freqs")
                 tricounts_by_categories_df = get_tricounts_by_categories_df(cat_type, categories, tricounts_method)
                 tricounts_by_categories_df = tricounts_by_categories_df.set_index('Category', drop=True)
                 tricounts_by_categories_df = tricounts_by_categories_df.transpose()
