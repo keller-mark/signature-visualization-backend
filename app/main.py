@@ -457,7 +457,7 @@ schema_login = {
 }
 @app.route('/login', methods=['POST'])
 async def route_login(request):
-  req = request.json()
+  req = await request.json()
   validate(req, schema_login)
   output = login(req['password'])
   return response_json(app, output)
