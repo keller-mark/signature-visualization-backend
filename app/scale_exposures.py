@@ -7,10 +7,10 @@ from project_data import ProjectData, get_selected_project_data
 
 from compute_exposures import compute_exposures
 
-def scale_exposures(chosen_sigs, projects, mut_type, single_sample_id=None, exp_sum=False, exp_normalize=False):
+def scale_exposures(chosen_sigs, projects, mut_type, single_sample_id=None, exp_sum=False, exp_normalize=False, tricounts_method=None):
     result = [0, 0]
 
-    exps_df = compute_exposures(chosen_sigs, projects, mut_type, single_sample_id=single_sample_id, normalize=exp_normalize)
+    exps_df = compute_exposures(chosen_sigs, projects, mut_type, single_sample_id=single_sample_id, normalize=exp_normalize, tricounts_method=tricounts_method)
                 
     if exp_sum:
         exps_df = exps_df.sum(axis=1)

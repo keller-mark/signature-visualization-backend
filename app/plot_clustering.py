@@ -6,10 +6,11 @@ from functools import reduce
 from web_constants import *
 from signatures import Signatures, get_signatures_by_mut_type
 from project_data import ProjectData, get_selected_project_data
+from compute_exposures import compute_exposures
 
-
-def plot_clustering(chosen_sigs_by_mut_type, projects):
-    signatures_by_mut_type = get_signatures_by_mut_type(chosen_sigs_by_mut_type)
+def plot_clustering(chosen_sigs_by_mut_type, projects, tricounts_method=None):
+        
+    signatures_by_mut_type = get_signatures_by_mut_type(chosen_sigs_by_mut_type, tricounts_method=tricounts_method)
     
     all_sig_names = []
     for mut_type in MUT_TYPES:
@@ -17,20 +18,10 @@ def plot_clustering(chosen_sigs_by_mut_type, projects):
         all_sig_names += signatures.get_chosen_names()
     
     full_exps_df = pd.DataFrame(index=[], columns=all_sig_names)
-    
-    project_data = get_selected_project_data(projects)
-    for proj in project_data:
-        proj_id = proj.get_proj_id()
 
-        for mut_type in MUT_TYPES:
-            signatures = signatures_by_mut_type[mut_type]
-            counts_df = proj.get_counts_df(mut_type)
-            
-            if counts_df.shape[0] > 0 and len(signatures.get_chosen_names()) > 0:
-                # compute exposures
-                exps_df = signatures.get_exposures(counts_df)
-
-                full_exps_df = full_exps_df.append(exps_df, ignore_index=False)
+    for mut_type in MUT_TYPES:
+        exps_df = compute_exposures(chosen_sigs_by_mut_type[mut_type], projects, mut_type, normalize=True, tricounts_method=tricounts_method)
+        full_exps_df = pd.concat([full_exps_df, exps_df], axis=1, join='outer', sort=False)
     
     full_exps_df = full_exps_df.fillna(value=0)
 

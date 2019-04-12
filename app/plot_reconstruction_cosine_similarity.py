@@ -11,10 +11,10 @@ from compute_counts import compute_counts
 from compute_reconstruction import compute_reconstruction
 from scale_samples import scale_samples
 
-def plot_reconstruction_cosine_similarity(chosen_sigs, projects, mut_type, single_sample_id=None):
+def plot_reconstruction_cosine_similarity(chosen_sigs, projects, mut_type, single_sample_id=None, tricounts_method=None):
     result = []
 
-    reconstruction_df = compute_reconstruction(chosen_sigs, projects, mut_type, single_sample_id=single_sample_id, normalize=False)
+    reconstruction_df = compute_reconstruction(chosen_sigs, projects, mut_type, single_sample_id=single_sample_id, normalize=False, tricounts_method=tricounts_method)
     counts_df = compute_counts(chosen_sigs, projects, mut_type, single_sample_id=single_sample_id, normalize=False)
 
     counts_max = counts_df.max().max()

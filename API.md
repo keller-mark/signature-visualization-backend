@@ -45,11 +45,6 @@ Table of Contents:
 						
 					},
 					...
-				],
-				"tricounts_methods": [
-					"Genome",
-					"Exome",
-					...
 				]
 			}
 

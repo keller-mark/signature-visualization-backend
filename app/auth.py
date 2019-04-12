@@ -10,9 +10,6 @@ class NotAuthenticated(Exception):
         self.status_code = 401 # Unauthorized
         self.message = message
 
-    def to_dict(self):
-        return { 'message': self.message }
-
 def is_protected():
     password_hash = os.environ.get('EXPLOSIG_PASSWORD_HASH')
     return (password_hash != None and len(password_hash) > 0)

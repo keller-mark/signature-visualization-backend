@@ -6,27 +6,30 @@ import numpy as np
 
 from web_constants import *
 from sig_data import *
+from tricounts_data import *
 
 parent_dir_name = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(parent_dir_name + "/signature-estimation-py")
 from signature_estimation import signature_estimation, QP
 
-def get_signatures_by_mut_type(chosen_sigs_by_mut_type):
+def get_signatures_by_mut_type(chosen_sigs_by_mut_type, tricounts_method=None):
     result = {}
     for mut_type, chosen_sig_ids in chosen_sigs_by_mut_type.items():
         chosen_sigs = [get_sig_data(sig_id) for sig_id in chosen_sig_ids]
-        result[mut_type] = Signatures(cat_type=MUT_TYPE_MAP[mut_type], chosen_sigs=chosen_sigs)
+        result[mut_type] = Signatures(cat_type=MUT_TYPE_MAP[mut_type], chosen_sigs=chosen_sigs, tricounts_method=tricounts_method)
     return result
 
 class Signatures():
 
-    def __init__(self, cat_type, chosen_sigs=[]):
+    def __init__(self, cat_type, chosen_sigs=[], tricounts_method=None):
         self.cat_type = cat_type
         self.chosen_sigs = chosen_sigs
         self.sigs_df = pd.DataFrame(index=[], data=[], columns=[META_COL_SIG])
         for sig in chosen_sigs:
             self.sigs_df = self.sigs_df.append(sig.get_sig_dict(), ignore_index=True)
         self.sigs_df = self.sigs_df.set_index(META_COL_SIG, drop=True)
+
+        self.sigs_df = self.normalize_by_tricount_freqs(tricounts_method)
 
     def get_cat_type(self):
         return self.cat_type
@@ -91,3 +94,24 @@ class Signatures():
 
         return assignments_df
     
+    # Note: not reversible; only call in constructor
+    def normalize_by_tricount_freqs(self, tricounts_method):
+        cat_type = self.cat_type
+        categories = self.get_contexts()
+        if cat_type == "SBS_96": # TODO: remove this constraint once mapping from trinucleotides to DBS/INDEL categories in place
+            if tricounts_method != None and tricounts_method != "None" and tricounts_method in get_tricounts_methods():
+                tricounts_by_categories_df = get_tricounts_by_categories_df(cat_type, categories, tricounts_method)
+                tricounts_by_categories_df = tricounts_by_categories_df.set_index('Category', drop=True)
+                tricounts_by_categories_df = tricounts_by_categories_df.transpose()
+                tricounts_by_categories_df = tricounts_by_categories_df[categories] # Enforce category ordering
+                tricounts_by_categories_series = tricounts_by_categories_df.loc['Proportion'].astype(float)
+
+                sigs_df = self.sigs_df.copy()
+                # Divide by trinucleotide proportions
+                sigs_df = sigs_df.divide(tricounts_by_categories_series, axis=1)
+                # Normalize to sum to one again
+                sigs_df = sigs_df.div(sigs_df.sum(axis=1), axis=0)
+
+                return sigs_df
+
+        return self.sigs_df
