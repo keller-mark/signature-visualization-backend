@@ -48,7 +48,7 @@ Authentication helpers
 """
 @app.exception_handler(NotAuthenticated)
 async def handle_not_authenticated(request, exc):
-    return response_json_error(app, {"detail": exc.detail}, exc.status_code)
+    return response_json_error(app, {"message": exc.message}, exc.status_code)
 
 async def check_req(request, schema=None):
   req = await request.json()
