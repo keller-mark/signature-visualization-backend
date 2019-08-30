@@ -37,6 +37,8 @@ from plot_signature import plot_signature
 from plot_reconstruction_cosine_similarity import plot_reconstruction_cosine_similarity
 # Sharing
 from sharing_state import get_sharing_state, set_sharing_state, plot_featured_listing
+from sessions import session_start, session_connect, session_post
+
 # Authentication
 from auth import NotAuthenticated, login, logout, check_token
 
@@ -445,6 +447,34 @@ async def route_sharing_set(request):
     return response_json(app, output)
   except:
     return response_json_error(app, {"message": "An error has occurred."}, 500)
+
+"""
+Sessions
+"""
+schema_session_start = {
+  "type": "object",
+  "properties": {
+    "state": {"type": "string"}
+  }
+}
+@app.route('/session-start', methods=['POST'])
+async def route_session_start(request):
+  req = await check_req(request, schema=schema_session_start)
+  try:
+    output = session_start(req['state'])
+    return response_json(app, output)
+  except:
+    return response_json_error(app, {"message": "An error has occurred."}, 500)
+
+@app.websocket_route('/session-connect')
+async def route_session_connect(websocket):
+  await session_connect(websocket)
+
+@app.route('/session-post', methods=['POST'])
+async def route_session_post(request):
+  # TODO: check things
+  await session_post("test", {'more': 'data'})
+  return response_json(app, {})
 
 """ 
 Authentication routes 

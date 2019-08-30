@@ -109,7 +109,7 @@ def create_proj_to_sigs_mapping(data_df, sigs_df):
               }, ignore_index=True)
   match_df.to_csv(PROJ_TO_SIGS_FILE, index=False, sep='\t')
 
-def create_sharing_table():
+def create_db_tables():
   try:
     engine = create_engine("mysql://{user}:{password}@db:3306/explosig".format(
       user=os.environ['EXPLOSIG_DB_USER'],
@@ -126,6 +126,14 @@ def create_sharing_table():
       extend_existing=True
     )
     Table(
+      'sessions', 
+      metadata, 
+      Column('id', Integer(), primary_key=True), 
+      Column('slug', String(length=255)), 
+      Column('data', Text()), 
+      extend_existing=True
+    )
+    Table(
       'auth', 
       metadata, 
       Column('id', Integer(), primary_key=True), 
@@ -134,7 +142,7 @@ def create_sharing_table():
       extend_existing=True
     )
     metadata.create_all()
-    print('* Successfully connected to database and created sharing table')
+    print('* Successfully connected to database and created tables')
   except Exception as e:
     print(e)
     print('* Unable to connect to database')
@@ -165,6 +173,6 @@ if __name__ == "__main__":
   download_oncotree()
   create_proj_to_sigs_mapping(data_df, sigs_df)
 
-  create_sharing_table()
+  create_db_tables()
   
   print('* Done')
