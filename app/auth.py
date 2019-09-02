@@ -43,11 +43,11 @@ def check_token(req):
             row = res.fetchone()
             if row != None:
                 # If a row for the token was found, check when it was created
-                if (datetime.now() - row['created']) < timedelta(hours=48):
-                    # If less than 48 hours ago, succeed
+                if (datetime.now() - row['created']) < timedelta(days=7):
+                    # If less than 7 days ago, succeed
                     return True
                 else:
-                    # If more than 48 hours ago, delete the token, allow to fail
+                    # If more than 7 days ago, delete the token, allow to fail
                     sel = table.delete().where(table.c.token == token)
                     conn.execute(sel)
         except:

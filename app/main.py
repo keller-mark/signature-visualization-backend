@@ -18,6 +18,8 @@ from scale_exposures import scale_exposures
 from plot_counts import plot_counts
 from scale_counts import scale_counts
 
+from plot_counts_by_category import plot_counts_by_category
+
 from plot_samples_meta import plot_samples_meta
 
 from plot_gene_mut_track import plot_gene_mut_track, autocomplete_gene, plot_pathways_listing
@@ -37,7 +39,7 @@ from plot_signature import plot_signature
 from plot_reconstruction_cosine_similarity import plot_reconstruction_cosine_similarity
 # Sharing
 from sharing_state import get_sharing_state, set_sharing_state, plot_featured_listing
-from sessions import session_start, session_connect, session_post
+from sessions import session_get, session_start, session_connect, session_post
 
 # Authentication
 from auth import NotAuthenticated, login, logout, check_token
@@ -148,6 +150,20 @@ async def route_plot_counts(request):
   req = await check_req(request, schema=schema_counts)
 
   output = plot_counts(req["projects"])
+  return response_json(app, output)
+
+schema_counts_by_category = {
+  "type": "object",
+  "properties": {
+    "projects": projects_schema,
+    "mut_type": {"type": "string"},
+  }
+}
+@app.route('/plot-counts-by-category', methods=['POST'])
+async def route_plot_counts_by_category(request):
+  req = await check_req(request, schema=schema_counts_by_category)
+
+  output = plot_counts_by_category(req["projects"], req["mut_type"])
   return response_json(app, output)
 
 """
@@ -397,10 +413,7 @@ async def route_scale_samples(request):
   req = await check_req(request, schema=schema_samples)
 
   output = scale_samples(req["projects"])
-  if len(output) != len(set(output)):
-    print("WARNING: Duplicate sample IDs")
   return response_json(app, output)
-
 
 
 """
@@ -466,18 +479,43 @@ async def route_session_start(request):
   except:
     return response_json_error(app, {"message": "An error has occurred."}, 500)
 
+schema_session_get = {
+  "type": "object",
+  "properties": {
+    "conn_id": {"type": "string"}
+  }
+}
+@app.route('/session-get', methods=['POST'])
+async def route_session_get(request):
+  req = await check_req(request, schema=schema_session_get)
+  try:
+    output = session_get(req['conn_id'])
+    return response_json(app, output)
+  except:
+    return response_json_error(app, {"message": "An error has occurred."}, 500)
+
 @app.websocket_route('/session-connect')
 async def route_session_connect(websocket):
   await session_connect(websocket)
 
+schema_session_post = {
+  "type": "object",
+  "properties": {
+    "conn_id": {"type": "string"},
+    "data": {"type": "object"}
+  }
+}
 @app.route('/session-post', methods=['POST'])
 async def route_session_post(request):
-  # TODO: check things
-  await session_post("test", {'more': 'data'})
-  return response_json(app, {})
+  req = await check_req(request, schema=schema_session_post)
+  try:
+    output = await session_post(req['conn_id'], req['data'])
+    return response_json(app, output)
+  except:
+    return response_json_error(app, {"message": "An error has occurred."}, 500)
 
 """ 
-Authentication routes 
+Authentication routes
 """
 schema_login = {
   "type": "object",

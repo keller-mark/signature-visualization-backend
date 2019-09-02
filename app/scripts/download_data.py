@@ -129,7 +129,7 @@ def create_db_tables():
       'sessions', 
       metadata, 
       Column('id', Integer(), primary_key=True), 
-      Column('slug', String(length=255)), 
+      Column('conn_id', String(length=255)), 
       Column('data', Text()), 
       extend_existing=True
     )

@@ -5,10 +5,10 @@ import pandas as pd
 from db import connect
 from starlette.websockets import WebSocketDisconnect
 
-def session_get(slug):
+def session_get(conn_id):
     table, conn = connect('sessions')
 
-    sel = table.select().where(table.c.slug == slug)
+    sel = table.select().where(table.c.conn_id == conn_id)
     res = conn.execute(sel)
     row = res.fetchone()
 
@@ -17,11 +17,11 @@ def session_get(slug):
 def session_start(state):
     table, conn = connect('sessions')
 
-    slug = str(uuid.uuid4())[:8]
-    ins = table.insert().values(slug=slug, data=json.dumps(state))
+    conn_id = str(uuid.uuid4())[:8]
+    ins = table.insert().values(conn_id=conn_id, data=json.dumps(state))
     conn.execute(ins)
 
-    return { "slug": slug }
+    return { "conn_id": conn_id }
 
 open_websockets = {}
 async def session_connect(new_websocket):
@@ -43,7 +43,8 @@ async def session_post(conn_id, data):
     global open_websockets
     try:
         for open_ws in open_websockets[conn_id]:
-            await open_ws.send_json({'msg': 'Hello, test websocket!', 'data': data})
+            await open_ws.send_json({ 'data': data })
     except KeyError:
-        print("No open websockets for that connection ID.")
+        return {"result": "No open websockets for that connection ID."}
+    return {}
     
