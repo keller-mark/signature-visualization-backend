@@ -156,7 +156,7 @@ schema_counts_by_category = {
   "type": "object",
   "properties": {
     "projects": projects_schema,
-    "mut_type": {"type": "string"},
+    "mut_type": {"type": "string"}
   }
 }
 @app.route('/plot-counts-by-category', methods=['POST'])
@@ -482,14 +482,14 @@ async def route_session_start(request):
 schema_session_get = {
   "type": "object",
   "properties": {
-    "conn_id": {"type": "string"}
+    "session_id": {"type": "string"}
   }
 }
 @app.route('/session-get', methods=['POST'])
 async def route_session_get(request):
   req = await check_req(request, schema=schema_session_get)
   try:
-    output = session_get(req['conn_id'])
+    output = session_get(req['session_id'])
     return response_json(app, output)
   except:
     return response_json_error(app, {"message": "An error has occurred."}, 500)
@@ -501,7 +501,7 @@ async def route_session_connect(websocket):
 schema_session_post = {
   "type": "object",
   "properties": {
-    "conn_id": {"type": "string"},
+    "session_id": {"type": "string"},
     "data": {"type": "object"}
   }
 }
@@ -509,7 +509,7 @@ schema_session_post = {
 async def route_session_post(request):
   req = await check_req(request, schema=schema_session_post)
   try:
-    output = await session_post(req['conn_id'], req['data'])
+    output = await session_post(req['session_id'], req['data'])
     return response_json(app, output)
   except:
     return response_json_error(app, {"message": "An error has occurred."}, 500)
