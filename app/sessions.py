@@ -23,26 +23,23 @@ def session_start(state):
 
     return { "session_id": session_id }
 
-open_websockets = {}
-async def session_connect(new_websocket):
-    global open_websockets
+async def session_connect(app, new_websocket):
     await new_websocket.accept()
     init_json = await new_websocket.receive_json()
     # Store websocket connections in the global dict based on the connection ID
     try:
-        open_websockets[init_json["session_id"]].append(new_websocket)
+        app.open_websockets[init_json["session_id"]].append(new_websocket)
     except KeyError:
-        open_websockets[init_json["session_id"]] = [ new_websocket ]
+        app.open_websockets[init_json["session_id"]] = [ new_websocket ]
     # Keep the connections open by pretending to wait for json
     try:
         await new_websocket.receive_json()
     except WebSocketDisconnect:
-        del open_websockets[init_json["session_id"]]
+        del app.open_websockets[init_json["session_id"]]
 
-async def session_post(session_id, data):
-    global open_websockets
+async def session_post(app, session_id, data):
     try:
-        for open_ws in open_websockets[session_id]:
+        for open_ws in app.open_websockets[session_id]:
             await open_ws.send_json({ 'data': data })
     except KeyError:
         return {"result": "No open websockets for that connection ID."}
