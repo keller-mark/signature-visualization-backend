@@ -12,6 +12,7 @@ RUN conda install -y -c conda-forge SQLAlchemy==1.2.15
 RUN conda install -y -c conda-forge mysqlclient==1.3.14
 RUN conda install -y -c conda-forge argon2_cffi==19.1.0
 RUN conda install -y -c conda-forge python-snappy==0.5.3
+RUN conda install -y -c conda-forge websockets==7.0
 
 # TODO: check if these are really needed
 RUN apt-get update --fix-missing && \

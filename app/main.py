@@ -46,7 +46,6 @@ from auth import NotAuthenticated, login, logout, check_token
 
 
 app = Starlette(debug=bool(os.environ.get('DEBUG', '')))
-app.open_websockets = {}
 
 """ 
 Authentication helpers 
@@ -497,7 +496,7 @@ async def route_session_get(request):
 
 @app.websocket_route('/session-connect')
 async def route_session_connect(websocket):
-  await session_connect(app, websocket)
+  await session_connect(websocket)
 
 schema_session_post = {
   "type": "object",
@@ -510,7 +509,7 @@ schema_session_post = {
 async def route_session_post(request):
   req = await check_req(request, schema=schema_session_post)
   try:
-    output = await session_post(app, req['session_id'], req['data'])
+    output = await session_post(req['session_id'], req['data'])
     return response_json(app, output)
   except:
     return response_json_error(app, {"message": "An error has occurred."}, 500)

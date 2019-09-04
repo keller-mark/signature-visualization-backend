@@ -40,7 +40,8 @@ cd app && python main.py
 
 ### Build
 ```
-docker build -t explosig-server .
+docker build -f server.Dockerfile -t explosig-server .
+docker build -f connect.Dockerfile -t explosig-connect .
 ```
 
 ### Integration Tests

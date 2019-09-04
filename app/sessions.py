@@ -3,7 +3,10 @@ import uuid
 import json
 import pandas as pd
 from db import connect
+import requests
+import websockets
 from starlette.websockets import WebSocketDisconnect
+from web_constants import EXPLOSIG_CONNECT_HOST
 
 def session_get(session_id):
     table, conn = connect('sessions')
@@ -23,24 +26,23 @@ def session_start(state):
 
     return { "session_id": session_id }
 
-async def session_connect(app, new_websocket):
-    await new_websocket.accept()
-    init_json = await new_websocket.receive_json()
-    # Store websocket connections in the global dict based on the connection ID
-    try:
-        app.open_websockets[init_json["session_id"]].append(new_websocket)
-    except KeyError:
-        app.open_websockets[init_json["session_id"]] = [ new_websocket ]
-    # Keep the connections open by pretending to wait for json
-    try:
-        await new_websocket.receive_json()
-    except WebSocketDisconnect:
-        del app.open_websockets[init_json["session_id"]]
+async def session_connect(websocket_in):
+    await websocket_in.accept()
+    init_json = await websocket_in.receive_json()
+    url = 'ws://' + EXPLOSIG_CONNECT_HOST + '/global-session-connect'
+    async with websockets.connect(url) as websocket_out:
+        await websocket_out.send(json.dumps(init_json))
+        data = json.loads(await websocket_out.recv())
+        try:
+            await websocket_in.send_json(data)
+            # Keep the connections open by pretending to wait for json
+            await websocket_in.receive_json()
+        except WebSocketDisconnect:
+            pass
 
-async def session_post(app, session_id, data):
-    try:
-        for open_ws in app.open_websockets[session_id]:
-            await open_ws.send_json({ 'data': data })
-    except KeyError:
-        return {"result": "No open websockets for that connection ID."}
-    return {}
+async def session_post(session_id, data):
+    url = 'http://' + EXPLOSIG_CONNECT_HOST + '/global-session-post'
+    payload = { 'data': data, 'session_id': session_id }
+    r = requests.post(url, data=json.dumps(payload))
+    r.raise_for_status()
+    return {"message": "Success"}
