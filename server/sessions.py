@@ -32,17 +32,16 @@ async def session_connect(websocket_in):
     url = 'ws://' + EXPLOSIG_CONNECT_HOST + '/global-session-connect'
     async with websockets.connect(url) as websocket_out:
         await websocket_out.send(json.dumps(init_json))
-        data = json.loads(await websocket_out.recv())
-        try:
-            await websocket_in.send_json(data)
-            # Keep the connections open by pretending to wait for json
-            await websocket_in.receive_json()
-        except WebSocketDisconnect:
-            pass
+        while True:
+            try:
+                data = json.loads(await websocket_out.recv())
+                await websocket_in.send_json(data)
+            except WebSocketDisconnect:
+                break
 
 async def session_post(session_id, data):
     url = 'http://' + EXPLOSIG_CONNECT_HOST + '/global-session-post'
     payload = { 'data': data, 'session_id': session_id }
     r = requests.post(url, data=json.dumps(payload))
     r.raise_for_status()
-    return {"message": "Success"}
+    return r.json()
