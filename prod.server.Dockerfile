@@ -20,11 +20,11 @@ RUN apt-get update --fix-missing && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Create folder to mount volume
+# Create folder to mount volumes
 RUN mkdir -p /obj
 
 # Starlette environment variables
-ENV PORT 80
+ENV PORT 8100
 ENV DEBUG ''
 
-COPY ./app /app
+COPY ./server /app

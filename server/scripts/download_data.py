@@ -15,7 +15,7 @@ sys.path.append(os.path.normpath(this_file_path + '/../'))
 from web_constants import *
 from oncotree import *
 
-OBJ_DIR = './obj' if bool(os.environ.get("DEBUG", '')) else '/obj'
+OBJ_DIR = '/obj'
 
 META_DATA_FILE = os.path.join(OBJ_DIR, META_DATA_FILENAME)
 META_SIGS_FILE = os.path.join(OBJ_DIR, META_SIGS_FILENAME)

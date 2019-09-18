@@ -2,7 +2,7 @@ import os
 import re
 from enum import Enum
 
-OBJ_DIR = '../obj' if bool(os.environ.get("DEBUG", '')) else '/obj'
+OBJ_DIR = '/obj'
 
 META_DATA_FILENAME = 'meta-data.tsv'
 META_SIGS_FILENAME = 'meta-sigs.tsv'
