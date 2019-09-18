@@ -48,7 +48,7 @@ async def route_global_session_post(request):
       await open_ws.send_json(data)
     return response_json(app, { "message": ("Sent data to %d open client websockets." % len(app.open_websockets[session_id])) })
   else:
-    return response_json_error(app, { "message": "No open websockets for that session ID." }, 500)
+    return response_json(app, { "message": "No open websockets for that session ID." })
 
 if __name__ == '__main__':
     uvicorn.run(app, host='0.0.0.0', port=int(os.environ.get('PORT', 8200)))
