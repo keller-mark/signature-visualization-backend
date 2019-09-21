@@ -26,4 +26,3 @@ RUN mkdir -p /obj
 # Starlette environment variables
 ENV PORT 8100
 ENV DEBUG '1'
-ENV RELOAD '1'

@@ -6,6 +6,7 @@ from db import connect
 import requests
 import websockets
 from starlette.websockets import WebSocketDisconnect
+from websockets.exceptions import ConnectionClosed
 from web_constants import EXPLOSIG_CONNECT_HOST
 
 def session_get(session_id):
@@ -35,7 +36,10 @@ async def session_connect(websocket_in):
         while True:
             try:
                 data = json.loads(await websocket_out.recv())
-                await websocket_in.send_json(data)
+                try:
+                    await websocket_in.send_json(data)
+                except ConnectionClosed:
+                    break
             except WebSocketDisconnect:
                 break
 
