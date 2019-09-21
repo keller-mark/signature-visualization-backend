@@ -107,6 +107,7 @@ schema_signature = {
   "type": "object",
   "properties": {
     "signature": {"type": "string"},
+    "signature_index": {"type": "string"},
     "mut_type": {"type": "string"},
     "tricounts_method": {"type": "string"}
   }
@@ -117,7 +118,9 @@ async def route_plot_signature(request):
 
   assert(req["mut_type"] in MUT_TYPES)
 
-  output = plot_signature(req["signature"], req["mut_type"], tricounts_method=req["tricounts_method"])
+  signature_index = None if req["signature_index"] == 'None' else req["signature_index"]
+
+  output = plot_signature(req["signature"], req["mut_type"], signature_index=signature_index, tricounts_method=req["tricounts_method"])
   return response_json(app, output)
 
 """
