@@ -280,7 +280,6 @@ async def route_plot_reconstruction_cosine_similarity_single_sample(request):
 schema_contexts = {
   "type": "object",
   "properties": {
-    "signatures": string_array_schema,
     "mut_type": {"type": "string"}
   }
 }
@@ -290,7 +289,7 @@ async def route_scale_contexts(request):
 
   assert(req["mut_type"] in MUT_TYPES)
 
-  output = scale_contexts(req["signatures"], req["mut_type"])
+  output = scale_contexts(req["mut_type"])
   return response_json(app, output)
 
 
@@ -368,7 +367,6 @@ Clinical Variable Tracks
 schema_clinical = {
   "type": "object",
   "properties": {
-    "clinical_variable": {"type": "string"},
     "projects": projects_schema
   }
 }

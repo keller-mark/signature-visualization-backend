@@ -16,7 +16,7 @@ RUN conda install -y -c conda-forge websockets==7.0
 
 # TODO: check if these are really needed
 RUN apt-get update --fix-missing && \
-    apt-get install -y openssl mysql-server mysql-client && \
+    apt-get install -y openssl default-mysql-server default-mysql-client && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 

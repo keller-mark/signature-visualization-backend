@@ -67,6 +67,12 @@ def get_all_sig_data():
     row_tuples = sigs_meta_df.to_dict(orient='index').items()
     return list(map(lambda row: SigData(row[0], row[1]), row_tuples))
 
+# Function for getting category listing
+def get_category_list(cat_type):
+    if cat_type in sig_dfs.keys():
+        return sig_dfs[cat_type].columns.values.tolist()
+    return []
+
 # Function for getting 'serialized' list of all SigData objects
 def get_all_sig_data_as_json():
     def sig_data_to_json(obj):
