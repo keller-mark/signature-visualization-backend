@@ -12,18 +12,19 @@ RUN conda install -y -c conda-forge SQLAlchemy==1.2.15
 RUN conda install -y -c conda-forge mysqlclient==1.3.14
 RUN conda install -y -c conda-forge argon2_cffi==19.1.0
 RUN conda install -y -c conda-forge python-snappy==0.5.3
+RUN conda install -y -c conda-forge websockets==7.0
 
 # TODO: check if these are really needed
 RUN apt-get update --fix-missing && \
-    apt-get install -y openssl mysql-server mysql-client && \
+    apt-get install -y openssl default-mysql-server default-mysql-client && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Create folder to mount volume
+# Create folder to mount volumes
 RUN mkdir -p /obj
 
 # Starlette environment variables
-ENV PORT 80
+ENV PORT 8100
 ENV DEBUG ''
 
-COPY ./app /app
+COPY ./server /app

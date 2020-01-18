@@ -11,5 +11,5 @@ def plot_signature(signature, mut_type, tricounts_method=None):
     sigs_df = signatures.get_df()
 
     sigs_list = list(sigs_df.loc[signature, :].to_dict().items())
-    result = list(map(lambda cat_array: {"cat_" + mut_type: cat_array[0], "probability": cat_array[1]}, sigs_list))
+    result = list(map(lambda cat_array: {"cat_" + mut_type: cat_array[0],  "sig_prob_" + mut_type: cat_array[1]}, sigs_list))
     return result

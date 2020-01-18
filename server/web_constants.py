@@ -2,7 +2,7 @@ import os
 import re
 from enum import Enum
 
-OBJ_DIR = '../obj' if bool(os.environ.get("DEBUG", '')) else '/obj'
+OBJ_DIR = '/obj'
 
 META_DATA_FILENAME = 'meta-data.tsv'
 META_SIGS_FILENAME = 'meta-sigs.tsv'
@@ -28,6 +28,7 @@ SAMPLES_AGG_FILE = os.path.join(OBJ_DIR, SAMPLES_AGG_FILENAME)
 ONCOTREE_FILE = os.path.join(OBJ_DIR, ONCOTREE_FILENAME)
 PROJ_TO_SIGS_FILE = os.path.join(OBJ_DIR, PROJ_TO_SIGS_FILENAME)
 
+EXPLOSIG_CONNECT_HOST = 'explosig_connect:8200'
 
 CAT_TYPES = [
   'SBS_96',
