@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import subprocess
 import os
 import sys
@@ -9,9 +10,11 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from models import (
+    SequencingType,
     ProjectSource,
     Project,
-    ProjectOncotreeMapping
+    Sample,
+    MutationCategoryType
 )
 
 # Load our modules
@@ -32,57 +35,77 @@ META_TRICOUNTS_FILE = os.path.join(OBJ_DIR, META_TRICOUNTS_FILENAME)
 
 ONCOTREE_FILE = os.path.join(OBJ_DIR, ONCOTREE_FILENAME)
 
+def read_tsv(csv_file_path, **kwargs):
+    return pd.read_csv(os.path.join(OBJ_DIR, csv_file_path), sep='\t', **kwargs)
+
+def anull(v):
+    if not pd.notnull(v):
+        return None
+    return v
+
+
 def load_oncotree():
     with open(ONCOTREE_FILE) as f:
         tree_json = json.load(f)
         return OncoTree(tree_json)
 
-
-"""
-def create_proj_to_sigs_mappings(data_df, sigs_df):
-    print('* Mapping projects to signature cancer types by Oncotree codes')
-    tree = load_oncotree()
-
-    matches = []
-
-    match_df = pd.DataFrame(index=[], data=[], columns=[META_COL_PROJ, META_COL_SIG_GROUP, META_COL_ONCOTREE_CODE])
-    for data_index, data_row in data_df.iterrows():
-        if pd.notnull(data_row[META_COL_ONCOTREE_CODE]):
-            proj_node = tree.find_node(data_row[META_COL_ONCOTREE_CODE])
-            if proj_node is not None:
-                for sig_group_index, sig_group_row in sigs_df.iterrows():
-                    if pd.notnull(sig_group_row[META_COL_PATH_SIGS_CANCER_TYPE_MAP]):
-                        sig_group_cancer_type_map_df = read_tsv(sig_group_row[META_COL_PATH_SIGS_CANCER_TYPE_MAP])
-                        cancer_type_map_codes = list(sig_group_cancer_type_map_df[META_COL_ONCOTREE_CODE].dropna().unique())
-                        sig_group_parent_node = proj_node.find_closest_parent(cancer_type_map_codes)
-                        if sig_group_parent_node is not None:
-                            matches.append(
-                                ProjectOncotreeMapping(
-                                    
-                                )
-                            )
-                            match_df = match_df.append({
-                                META_COL_PROJ: data_row[META_COL_PROJ],
-                                META_COL_SIG_GROUP: sig_group_row[META_COL_SIG_GROUP],
-                                META_COL_ONCOTREE_CODE: sig_group_parent_node.code
-                            }, ignore_index=True)
-    match_df.to_csv(PROJ_TO_SIGS_FILE, index=False, sep='\t')
-    return matches
-"""
-
-
-def create_project_sources(data_df):
-    project_sources = []
-    
+def create_project_sources(session, data_df):
     names = data_df[META_COL_PROJ_SOURCE].unique()
-    for name in names:
-        project_sources.append(
-            ProjectSource(
-                name=name
+    return [ ProjectSource(name=name) for name in names ]
+
+def get_project_source_id(session, name):
+    return session.query(ProjectSource).filter(
+        ProjectSource.name == name
+    ).one().id
+
+def create_seq_types(session, data_df):
+    names = data_df[META_COL_PROJ_SEQ_TYPE].unique()
+    return [ SequencingType(name=name) for name in names ]
+
+def get_seq_type_id(session, name):
+    return session.query(SequencingType).filter(
+        SequencingType.name == name
+    ).one().id
+
+def create_projects(session, data_df):
+    d = []
+    for i, row in data_df.iterrows():
+        d.append(
+            Project(
+                name=row[META_COL_PROJ],
+                name_nice=row[META_COL_PROJ_NAME],
+                source_id=get_project_source_id(session, row[META_COL_PROJ_SOURCE]),
+                seq_type_id=get_seq_type_id(session, row[META_COL_PROJ_SEQ_TYPE]),
+                oncotree_code=anull(row[META_COL_ONCOTREE_CODE])
             )
         )
+    return d
 
-    return project_sources
+def get_project_id(session, name):
+    return session.query(Project).filter(
+        Project.name == name
+    ).one().id
+
+def create_samples(session, data_df):
+    d = []
+    for i, d_row in data_df.iterrows():
+        project_id = get_project_id(session, d_row[META_COL_PROJ])
+        samples_df = read_tsv(d_row[META_COL_PATH_SAMPLES])
+        for j, s_row in samples_df.iterrows():
+            d.append(
+                Sample(
+                    project_id=project_id,
+                    sample_name=s_row[SAMPLE],
+                    patient_name=s_row[PATIENT]
+                )
+            )
+    return d
+
+def get_sample_id(session, name):
+    return session.query(Sample).filter(
+        Sample.sample_name == name
+    ).one().id
+
 
 
 if __name__ == "__main__":
@@ -105,7 +128,7 @@ if __name__ == "__main__":
         ))
 
         connection = engine.connect()
-        print('* Successfully connected to database and created tables')
+        print('* Successfully connected to database')
     except Exception as e:
         print(e)
         print('* Unable to connect to database')
@@ -117,12 +140,29 @@ if __name__ == "__main__":
 
     # Clear all tables that are about to be filled
     # DO NOT CLEAR SESSION, WORKFLOW, OR USER TABLES
+    session.query(MutationCategoryType).delete()
+    session.query(Sample).delete()
+    session.query(Project).delete()
     session.query(ProjectSource).delete()
+    session.query(SequencingType).delete()
     session.commit()
 
     # Fill tables
-    project_sources = create_project_sources(data_df)
+    project_sources = create_project_sources(session, data_df)
     session.add_all(project_sources)
+    session.commit()
+
+    seq_types = create_seq_types(session, data_df)
+    session.add_all(seq_types)
+    session.commit()
+
+    projects = create_projects(session, data_df)
+    session.add_all(projects)
+    session.commit()
+
+    samples = create_samples(session, data_df)
+    session.add_all(samples)
+    session.commit()
 
     session.commit()
 

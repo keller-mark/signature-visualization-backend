@@ -42,12 +42,21 @@ class Publication(Base):
     name = Column(String(length=255))
 
 
+class MutationType(Base):
+    __tablename__ = 'mut_type'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(length=255))
+
+    category_types = relationship("MutationCategoryType")
+
+
 class MutationCategoryType(Base):
     __tablename__ = 'mut_cat_type'
 
     id = Column(Integer, primary_key=True)
-    category_type = Column(String(length=255))
-    mutation_type = Column(String(length=255))
+    name = Column(String(length=255))
+    mutation_type_id = Column(Integer, ForeignKey('mut_type.id'))
 
     categories = relationship("MutationCategory")
     signatures = relationship("Signature")
@@ -57,8 +66,8 @@ class MutationCategory(Base):
     __tablename__ = 'mut_cat'
 
     id = Column(Integer, primary_key=True)
+    name = Column(String(length=255))
     category_type_id = Column(Integer, ForeignKey('mut_cat_type.id'))
-    category = Column(String(length=255))
 
 
 class SignatureGroup(Base):
@@ -74,8 +83,8 @@ class Signature(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String(length=255))
-    description = Column(Text)
     index = Column(Integer)
+    description = Column(Text)
     category_type_id = Column(Integer, ForeignKey('mut_cat_type.id'))
 
     categories = relationship("SignatureCategory")
@@ -88,16 +97,6 @@ class SignatureCategory(Base):
     signature_id = Column(Integer, ForeignKey('sig.id'))
     category_id = Column(Integer, ForeignKey('mut_cat.id'))
     value = Column(Float)
-
-
-class CancerType(Base):
-    __tablename__ = 'cancer_type'
-
-    id = Column(Integer, primary_key=True)
-    cancer_type_name = Column(String(length=255))
-    oncotree_code = Column(String(length=255))
-
-    projects = relationship("Project")
 
 
 class ProjectSource(Base):
@@ -113,7 +112,7 @@ class SequencingType(Base):
     __tablename__ = 'seq_type'
 
     id = Column(Integer, primary_key=True)
-    seq_type_name = Column(String(length=255))
+    name = Column(String(length=255))
 
     projects = relationship("Project")
 
@@ -122,10 +121,11 @@ class Project(Base):
     __tablename__ = 'project'
 
     id = Column(Integer, primary_key=True)
-    project_name = Column(String(length=255))
+    name = Column(String(length=255))
+    name_nice = Column(String(length=255))
     seq_type_id = Column(Integer, ForeignKey('seq_type.id'))
-    project_source_id = Column(Integer, ForeignKey('project_source.id'))
-    cancer_type_id = Column(Integer, ForeignKey('cancer_type.id'))
+    source_id = Column(Integer, ForeignKey('project_source.id'))
+    oncotree_code = Column(String(length=255))
 
     samples = relationship("Sample")
 

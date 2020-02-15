@@ -169,6 +169,7 @@ META_CANCER_TYPE_MAP_COLS = [
 # Mutation data columns
 META_COL_PROJ = 'Project'
 META_COL_PROJ_SOURCE = 'Project Source'
+META_COL_PROJ_SEQ_TYPE = 'Sequencing Strategy'
 META_COL_PROJ_NAME = 'Project Name'
 META_COL_PATH_MUTS_COUNTS = 'Path to Counts {cat_type} File'
 META_COL_PATH_CLINICAL = 'Path to Clinical File'
