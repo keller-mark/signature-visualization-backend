@@ -7,7 +7,7 @@ from db import connect
 from web_constants import META_FEATURED_FILE
 
 def get_sharing_state(slug):
-    table, conn = connect('sharing')
+    table, conn = connect('workflow')
 
     sel = table.select().where(table.c.slug == slug)
     res = conn.execute(sel)
@@ -16,7 +16,7 @@ def get_sharing_state(slug):
     return { "state": json.loads(row['data']) }
 
 def set_sharing_state(state):
-    table, conn = connect('sharing')
+    table, conn = connect('workflow')
 
     slug = str(uuid.uuid4())[:8]
     ins = table.insert().values(slug=slug, data=json.dumps(state))

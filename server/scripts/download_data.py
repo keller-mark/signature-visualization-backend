@@ -6,8 +6,10 @@ import json
 import string
 from datetime import datetime
 
+"""
 from sqlalchemy import create_engine
 from sqlalchemy import MetaData, Table, Column, Integer, String, Text, DateTime
+"""
 
 # Load our modules
 this_file_path = os.path.abspath(os.path.dirname(__file__))
@@ -23,10 +25,16 @@ META_PATHWAYS_FILE = os.path.join(OBJ_DIR, META_PATHWAYS_FILENAME)
 META_FEATURED_FILE = os.path.join(OBJ_DIR, META_FEATURED_FILENAME)
 META_TRICOUNTS_FILE = os.path.join(OBJ_DIR, META_TRICOUNTS_FILENAME)
 
+"""
 GENES_AGG_FILE = os.path.join(OBJ_DIR, GENES_AGG_FILENAME)
 SAMPLES_AGG_FILE = os.path.join(OBJ_DIR, SAMPLES_AGG_FILENAME)
+"""
+
 ONCOTREE_FILE = os.path.join(OBJ_DIR, ONCOTREE_FILENAME)
+
+"""
 PROJ_TO_SIGS_FILE = os.path.join(OBJ_DIR, PROJ_TO_SIGS_FILENAME)
+"""
 
 OBJ_STORE_URL = "https://mutation-signature-explorer.obj.umiacs.umd.edu/"
 ONCOTREE_URL = "http://oncotree.mskcc.org/api/tumorTypes/tree?version=oncotree_2018_11_01"
@@ -34,8 +42,11 @@ ONCOTREE_URL = "http://oncotree.mskcc.org/api/tumorTypes/tree?version=oncotree_2
 def read_tsv(csv_file_path, **kwargs):
   return pd.read_csv(os.path.join(OBJ_DIR, csv_file_path), sep='\t', **kwargs)
 
+"""
 def to_tsv(df, csv_file_path, **kwargs):
   df.to_csv(os.path.join(OBJ_DIR, csv_file_path), sep='\t', **kwargs)
+"""
+
 
 def download_files(file_list):
   for file_path in file_list:
@@ -46,7 +57,7 @@ def download_files(file_list):
       subprocess.run(['curl', remote_file_url, '--create-dirs', '-o', local_file_path])
     else:
       print('* Not downloading ' + local_file_path)
-
+"""
 def create_genes_agg_files():
   print('* Creating genes aggregate files')
   alphabet = string.ascii_uppercase
@@ -58,6 +69,7 @@ def create_samples_agg_file():
   print('* Creating samples aggregate file')
   samples_agg_df = pd.DataFrame(index=[], columns=[META_COL_PROJ, "count"])
   samples_agg_df.to_csv(SAMPLES_AGG_FILE, sep='\t', index=False)
+
 
 def clean_data_files(data_row):
   print('* Appending to samples aggregate file')
@@ -75,6 +87,7 @@ def clean_data_files(data_row):
   num_samples = len(list(counts_df.index.values))
   samples_agg_df = samples_agg_df.append({META_COL_PROJ: data_row[META_COL_PROJ], "count": num_samples}, ignore_index=True)
   samples_agg_df.to_csv(SAMPLES_AGG_FILE, sep='\t', index=False)
+"""
 
 def download_oncotree():
   if not os.path.isfile(ONCOTREE_FILE):
@@ -83,11 +96,7 @@ def download_oncotree():
   else:
     print('* Not downloading Oncotree file')
 
-def load_oncotree():
-  with open(ONCOTREE_FILE) as f:
-    tree_json = json.load(f)
-    return OncoTree(tree_json)
-
+"""
 def create_proj_to_sigs_mapping(data_df, sigs_df):
   print('* Mapping projects to signature cancer types by Oncotree codes')
   tree = load_oncotree()
@@ -108,6 +117,7 @@ def create_proj_to_sigs_mapping(data_df, sigs_df):
                 META_COL_ONCOTREE_CODE: sig_group_parent_node.code
               }, ignore_index=True)
   match_df.to_csv(PROJ_TO_SIGS_FILE, index=False, sep='\t')
+
 
 def create_db_tables():
   try:
@@ -146,33 +156,39 @@ def create_db_tables():
   except Exception as e:
     print(e)
     print('* Unable to connect to database')
+"""
+
 
 if __name__ == "__main__":
-  data_df = pd.read_csv(META_DATA_FILE, sep='\t')
-  sigs_df = pd.read_csv(META_SIGS_FILE, sep='\t')
-  pathways_df = pd.read_csv(META_PATHWAYS_FILE, sep='\t')
-  tricounts_df = pd.read_csv(META_TRICOUNTS_FILE, sep='\t')
+    data_df = pd.read_csv(META_DATA_FILE, sep='\t')
+    sigs_df = pd.read_csv(META_SIGS_FILE, sep='\t')
+    pathways_df = pd.read_csv(META_PATHWAYS_FILE, sep='\t')
+    tricounts_df = pd.read_csv(META_TRICOUNTS_FILE, sep='\t')
 
-  create_genes_agg_files()
-  create_samples_agg_file()
+    file_list = []
+    for file_column in META_DATA_FILE_COLS:
+        file_list += data_df[file_column].dropna().tolist()
+    for file_column in META_SIGS_FILE_COLS:
+        file_list += sigs_df[file_column].dropna().tolist()
+    for file_column in META_PATHWAYS_FILE_COLS:
+        file_list += pathways_df[file_column].dropna().tolist()
+    for file_column in META_TRICOUNTS_FILE_COLS:
+        file_list += tricounts_df[file_column].dropna().tolist()
+    download_files(file_list)
 
-  file_list = []
-  for file_column in META_DATA_FILE_COLS:
-    file_list += data_df[file_column].dropna().tolist()
-  for file_column in META_SIGS_FILE_COLS:
-    file_list += sigs_df[file_column].dropna().tolist()
-  for file_column in META_PATHWAYS_FILE_COLS:
-    file_list += pathways_df[file_column].dropna().tolist()
-  for file_column in META_TRICOUNTS_FILE_COLS:
-    file_list += tricounts_df[file_column].dropna().tolist()
-  download_files(file_list)
+    """
+    for index, data_row in data_df.iterrows():
+        clean_data_files(data_row)
+    """
+    
+    download_oncotree()
+    
+    """
+    create_proj_to_sigs_mapping(data_df, sigs_df)
+    """
 
-  for index, data_row in data_df.iterrows():
-    clean_data_files(data_row)
-  
-  download_oncotree()
-  create_proj_to_sigs_mapping(data_df, sigs_df)
-
-  create_db_tables()
-  
-  print('* Done')
+    """
+    create_db_tables()
+    """
+    
+    print('* Done downloading')

@@ -9,23 +9,23 @@ from starlette.websockets import WebSocketDisconnect
 from websockets.exceptions import ConnectionClosed
 from web_constants import EXPLOSIG_CONNECT_HOST
 
-def session_get(session_id):
-    table, conn = connect('sessions')
+def session_get(slug):
+    table, conn = connect('session')
 
-    sel = table.select().where(table.c.session_id == session_id)
+    sel = table.select().where(table.c.slug == slug)
     res = conn.execute(sel)
     row = res.fetchone()
 
     return { "state": json.loads(row['data']) }
 
 def session_start(state):
-    table, conn = connect('sessions')
+    table, conn = connect('session')
 
-    session_id = str(uuid.uuid4())[:8]
-    ins = table.insert().values(session_id=session_id, data=json.dumps(state))
+    slug = str(uuid.uuid4())[:8]
+    ins = table.insert().values(slug=slug, data=json.dumps(state))
     conn.execute(ins)
 
-    return { "session_id": session_id }
+    return { "slug": slug }
 
 async def session_connect(websocket_in):
     await websocket_in.accept()

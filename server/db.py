@@ -11,4 +11,3 @@ def connect(table_name):
     metadata = MetaData(engine, reflect=True)
     table = metadata.tables[table_name]
     return table, conn
-
