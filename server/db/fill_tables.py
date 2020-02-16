@@ -133,24 +133,33 @@ Samples
 """
 
 def create_samples_and_commit(engine, session, data_df):
-    # TODO: clean up samples df by joining with counts df first
     # TODO: only use one sample per patient (the one with the most mutations)
     for i, i_row in data_df.iterrows():
         d = []
         project_id = get_project_id(session, i_row[META_COL_PROJ])
         samples_df = read_tsv(i_row[META_COL_PATH_SAMPLES])
+        counts_df = pd.DataFrame(index=[], data=[])
+        for mut_type, cat_types in CAT_TYPE_MAP.items():
+            for cat_type in cat_types:
+                if pd.notnull(i_row[META_COL_PATH_MUTS_COUNTS.format(cat_type=cat_type)]):
+                    cat_type_counts_df = read_tsv(i_row[META_COL_PATH_MUTS_COUNTS.format(cat_type=cat_type)], index_col=0)
+                    counts_df = counts_df.join(cat_type_counts_df, how='outer')
+        
+        counts_df = counts_df.fillna(value=0)
+        counts_df = counts_df.loc[~(counts_df==0).all(axis=1)]
+        counts_samples = counts_df.index.values.tolist()
+
         for j, j_row in samples_df.iterrows():
-            d.append(
-                {
-                    'project_id': project_id,
-                    'sample_name': j_row[SAMPLE],
-                    'patient_name': j_row[PATIENT]
-                }
-            )
-        engine.execute(
-            Sample.__table__.insert(),
-            d
-        )
+            # Only use those samples that actually have mutation counts
+            if j_row[SAMPLE] in counts_samples:
+                d.append(
+                    {
+                        'project_id': project_id,
+                        'sample_name': j_row[SAMPLE],
+                        'patient_name': j_row[PATIENT]
+                    }
+                )
+        engine.execute(Sample.__table__.insert(), d)
         print(f'* Filled samples ({len(d)}) for project {i_row[META_COL_PROJ]}')
     return    
 
@@ -365,20 +374,18 @@ def create_mut_counts_and_commit(engine, session, data_df):
                     counts_df = read_tsv(i_row[META_COL_PATH_MUTS_COUNTS.format(cat_type=cat_type)], index_col=0)
                     for j, j_row in counts_df.iterrows():
                         sample_id = get_sample_id(session, j, project_id)
-                        for cat in counts_df.columns.values.tolist():
-                            if int(j_row[cat]) > 0:
-                                d.append(
-                                    {
-                                        'sample_id': sample_id,
-                                        'seq_type_id': seq_type_id,
-                                        'cat_id': cat_to_id_map[cat_type][cat],
-                                        'value': int(j_row[cat])
-                                    }
-                                )
-        engine.execute(
-            MutationCount.__table__.insert(),
-            d
-        )
+                        if sample_id != None:
+                            for cat in counts_df.columns.values.tolist():
+                                if int(j_row[cat]) > 0:
+                                    d.append(
+                                        {
+                                            'sample_id': sample_id,
+                                            'seq_type_id': seq_type_id,
+                                            'cat_id': cat_to_id_map[cat_type][cat],
+                                            'value': int(j_row[cat])
+                                        }
+                                    )
+        engine.execute(MutationCount.__table__.insert(), d)
         print(f'* Filled mut counts ({len(d)}) for project {i_row[META_COL_PROJ]}')
     return
 
@@ -729,24 +736,10 @@ if __name__ == "__main__":
     print('* Successfully created new tables')
     
     # Fill tables
-    project_sources = create_project_sources(session, data_df)
-    session.add_all(project_sources)
-    session.commit()
-    print('* Filled project source table')
-
     seq_types = create_seq_types(session, data_df)
     session.add_all(seq_types)
     session.commit()
     print('* Filled seq type table')
-
-    projects = create_projects(session, data_df)
-    session.add_all(projects)
-    session.commit()
-    print('* Filled project table')
-
-    samples = create_samples_and_commit(engine, session, data_df)
-    session.commit()
-    print('* Filled sample table')
 
     mut_types = create_mut_types(session)
     session.add_all(mut_types)
@@ -777,11 +770,25 @@ if __name__ == "__main__":
     session.commit()
     print('* Filled sig cat table')
 
+    project_sources = create_project_sources(session, data_df)
+    session.add_all(project_sources)
+    session.commit()
+    print('* Filled project source table')
+
+    projects = create_projects(session, data_df)
+    session.add_all(projects)
+    session.commit()
+    print('* Filled project table')
+
+    samples = create_samples_and_commit(engine, session, data_df)
+    session.commit()
+    print('* Filled sample table')
+
     mut_counts = create_mut_counts_and_commit(engine, session, data_df)
     session.commit()
     print('* Filled mut counts table')
 
-    exit(0)
+    exit(0) # TODO: remove
 
     clinical_vars = create_clinical_vars(session, clinical_df)
     session.add_all(clinical_vars)

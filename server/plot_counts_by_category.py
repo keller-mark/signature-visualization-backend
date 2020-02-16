@@ -35,3 +35,24 @@ def plot_counts_by_category(projects, mut_type, single_sample_id=None):
         result = (result + proj_result)
 
     return result
+
+
+"""
+SELECT sample_by_project.sample_name, mut_cat_by_type.mut_cat_name, COALESCE(mut_count.value, 0) AS mut_count_value
+FROM (
+    SELECT sample.id AS sample_id, sample.sample_name AS sample_name
+    FROM sample 
+    WHERE sample.project_id IN (SELECT project.id FROM project WHERE project.name = 'ICGC-ORCA-IN_ORCA_27.WXS')
+) AS sample_by_project
+CROSS JOIN (
+    SELECT mut_cat.id AS mut_cat_id, mut_cat.name AS mut_cat_name 
+    FROM mut_cat 
+    WHERE mut_cat.cat_type_id = (SELECT mut_cat_type.id FROM mut_cat_type WHERE mut_cat_type.name = 'SBS_96')
+) AS mut_cat_by_type
+LEFT JOIN mut_count
+	ON (
+        mut_count.sample_id = sample_by_project.sample_id 
+        AND mut_count.cat_id = mut_cat_by_type.mut_cat_id
+    )
+ORDER BY sample_by_project.sample_name, mut_cat_by_type.mut_cat_name
+"""
