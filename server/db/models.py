@@ -4,6 +4,7 @@ from datetime import datetime
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, ForeignKey, Integer, String, Text, Float, Boolean, DateTime
+from sqlalchemy.dialects.mysql import TINYINT, SMALLINT, MEDIUMINT
 from sqlalchemy.orm import relationship
 
 Base = declarative_base()
@@ -58,8 +59,8 @@ class MutationCategoryType(Base):
 class MutationCategory(Base):
     __tablename__ = 'mut_cat'
 
-    id = Column(Integer, primary_key=True)
-    name = Column(String(length=255))
+    id = Column(SMALLINT, primary_key=True)
+    name = Column(String(length=40))
     cat_type_id = Column(Integer, ForeignKey('mut_cat_type.id'))
 
 
@@ -91,7 +92,7 @@ class SignatureCategory(Base):
 
     id = Column(Integer, primary_key=True)
     sig_id = Column(Integer, ForeignKey('sig.id'))
-    cat_id = Column(Integer, ForeignKey('mut_cat.id'))
+    cat_id = Column(SMALLINT, ForeignKey('mut_cat.id'))
     value = Column(Float)
 
 
@@ -107,7 +108,7 @@ class ProjectSource(Base):
 class SequencingType(Base):
     __tablename__ = 'seq_type'
 
-    id = Column(Integer, primary_key=True)
+    id = Column(TINYINT, primary_key=True)
     name = Column(String(length=255))
 
     projects = relationship("Project")
@@ -119,7 +120,7 @@ class Project(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(length=255))
     name_nice = Column(String(length=255))
-    seq_type_id = Column(Integer, ForeignKey('seq_type.id'))
+    seq_type_id = Column(TINYINT, ForeignKey('seq_type.id'))
     source_id = Column(Integer, ForeignKey('project_source.id'))
     oncotree_code = Column(String(length=255))
 
@@ -129,10 +130,10 @@ class Project(Base):
 class Sample(Base):
     __tablename__ = 'sample'
 
-    id = Column(Integer, primary_key=True)
+    id = Column(MEDIUMINT, primary_key=True)
     project_id = Column(Integer, ForeignKey('project.id'))
-    sample_name = Column(String(length=255))
-    patient_name = Column(String(length=255))
+    sample_name = Column(String(length=60))
+    patient_name = Column(String(length=60))
 
     mut_counts = relationship("MutationCount")
 
@@ -141,10 +142,10 @@ class MutationCount(Base):
     __tablename__ = 'mut_count'
 
     id = Column(Integer, primary_key=True)
-    sample_id = Column(Integer, ForeignKey('sample.id'))
-    cat_id = Column(Integer, ForeignKey('mut_cat.id'))
-    seq_type_id = Column(Integer, ForeignKey('seq_type.id'))
-    value = Column(Integer)
+    sample_id = Column(MEDIUMINT, ForeignKey('sample.id'))
+    cat_id = Column(SMALLINT, ForeignKey('mut_cat.id'))
+    seq_type_id = Column(TINYINT, ForeignKey('seq_type.id'))
+    value = Column(MEDIUMINT)
 
 
 class ClinicalVariable(Base):
@@ -164,8 +165,8 @@ class ClinicalVariableValue(Base):
     # all possible values a clinical variable can take
     
     id = Column(Integer, primary_key=True)
-    variable_id = Column(Integer, ForeignKey('clinical_var.id'))
-    value = Column(String(length=255))
+    clinical_var_id = Column(Integer, ForeignKey('clinical_var.id'))
+    value = Column(String(length=60))
 
 
 class ClinicalValue(Base):
@@ -174,31 +175,31 @@ class ClinicalValue(Base):
     # a particular value for a particular sample
 
     id = Column(Integer, primary_key=True)
-    sample_id = Column(Integer, ForeignKey('sample.id'))
-    variable_id = Column(Integer, ForeignKey('clinical_var.id'))
-    value = Column(String(length=255))
+    sample_id = Column(MEDIUMINT, ForeignKey('sample.id'))
+    clinical_var_id = Column(Integer, ForeignKey('clinical_var.id'))
+    value = Column(String(length=60))
 
 
 class Gene(Base):
     __tablename__ = 'gene'
 
-    id = Column(Integer, primary_key=True)
-    name = Column(String(length=255))
+    id = Column(SMALLINT, primary_key=True)
+    name = Column(String(length=30))
 
 
 class GeneExpressionValue(Base):
     __tablename__ = 'gene_exp_val'
 
     id = Column(Integer, primary_key=True)
-    gene_id = Column(Integer, ForeignKey('gene.id'))
-    sample_id = Column(Integer, ForeignKey('sample.id'))
+    gene_id = Column(SMALLINT, ForeignKey('gene.id'))
+    sample_id = Column(MEDIUMINT, ForeignKey('sample.id'))
     zscore = Column(Float)
 
 
 class GeneMutationClass(Base):
     __tablename__ = 'gene_mut_class'
 
-    id = Column(Integer, primary_key=True)
+    id = Column(TINYINT, primary_key=True)
     name = Column(String(length=255))
 
 
@@ -206,18 +207,18 @@ class GeneMutationValue(Base):
     __tablename__ = 'gene_mut_val'
 
     id = Column(Integer, primary_key=True)
-    gene_id = Column(Integer, ForeignKey('gene.id'))
-    sample_id = Column(Integer, ForeignKey('sample.id'))
-    mut_class_id = Column(Integer, ForeignKey('gene_mut_class.id'))
+    gene_id = Column(SMALLINT, ForeignKey('gene.id'))
+    sample_id = Column(MEDIUMINT, ForeignKey('sample.id'))
+    mut_class_id = Column(TINYINT, ForeignKey('gene_mut_class.id'))
 
 
 class GeneCopyNumberValue(Base):
     __tablename__ = 'gene_cna_val'
 
     id = Column(Integer, primary_key=True)
-    gene_id = Column(Integer, ForeignKey('gene.id'))
-    sample_id = Column(Integer, ForeignKey('sample.id'))
-    copy_number = Column(Integer)
+    gene_id = Column(SMALLINT, ForeignKey('gene.id'))
+    sample_id = Column(MEDIUMINT, ForeignKey('sample.id'))
+    copy_number = Column(TINYINT)
 
 
 class PathwayGroup(Base):
@@ -244,7 +245,7 @@ class PathwayGene(Base):
     __tablename__ = 'pathway_gene'
 
     id = Column(Integer, primary_key=True)
-    gene_id = Column(Integer, ForeignKey('gene.id'))
+    gene_id = Column(SMALLINT, ForeignKey('gene.id'))
     pathway_id = Column(Integer, ForeignKey('pathway.id'))
     is_core = Column(Boolean)
 
@@ -254,7 +255,7 @@ class TrinucleotideCount(Base):
 
     id = Column(Integer, primary_key=True)
     trinucleotide = Column(String(length=255))
-    seq_type_id = Column(Integer, ForeignKey('seq_type.id'))
+    seq_type_id = Column(TINYINT, ForeignKey('seq_type.id'))
     value = Column(Integer)
 
 
