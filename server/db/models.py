@@ -35,13 +35,6 @@ class Session(Base):
     data = Column(Text)
 
 
-class Publication(Base):
-    __tablename__ = 'publication'
-
-    id = Column(Integer, primary_key=True)
-    name = Column(String(length=255))
-
-
 class MutationType(Base):
     __tablename__ = 'mut_type'
 
@@ -56,7 +49,7 @@ class MutationCategoryType(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String(length=255))
-    mutation_type_id = Column(Integer, ForeignKey('mut_type.id'))
+    mut_type_id = Column(Integer, ForeignKey('mut_type.id'))
 
     categories = relationship("MutationCategory")
     signatures = relationship("Signature")
@@ -67,7 +60,7 @@ class MutationCategory(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String(length=255))
-    category_type_id = Column(Integer, ForeignKey('mut_cat_type.id'))
+    cat_type_id = Column(Integer, ForeignKey('mut_cat_type.id'))
 
 
 class SignatureGroup(Base):
@@ -75,7 +68,9 @@ class SignatureGroup(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String(length=255))
-    publication_id = Column(Integer, ForeignKey('publication.id'))
+    publication = Column(String(length=255))
+
+    signatures = relationship("Signature")
 
 
 class Signature(Base):
@@ -85,7 +80,8 @@ class Signature(Base):
     name = Column(String(length=255))
     index = Column(Integer)
     description = Column(Text)
-    category_type_id = Column(Integer, ForeignKey('mut_cat_type.id'))
+    cat_type_id = Column(Integer, ForeignKey('mut_cat_type.id'))
+    group_id = Column(Integer, ForeignKey('sig_group.id'))
 
     categories = relationship("SignatureCategory")
 
@@ -94,8 +90,8 @@ class SignatureCategory(Base):
     __tablename__ = 'sig_cat'
 
     id = Column(Integer, primary_key=True)
-    signature_id = Column(Integer, ForeignKey('sig.id'))
-    category_id = Column(Integer, ForeignKey('mut_cat.id'))
+    sig_id = Column(Integer, ForeignKey('sig.id'))
+    cat_id = Column(Integer, ForeignKey('mut_cat.id'))
     value = Column(Float)
 
 
@@ -146,7 +142,7 @@ class MutationCount(Base):
 
     id = Column(Integer, primary_key=True)
     sample_id = Column(Integer, ForeignKey('sample.id'))
-    category_id = Column(Integer, ForeignKey('mut_cat.id'))
+    cat_id = Column(Integer, ForeignKey('mut_cat.id'))
     seq_type_id = Column(Integer, ForeignKey('seq_type.id'))
     value = Column(Integer)
 
@@ -229,7 +225,7 @@ class PathwayGroup(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String(length=255))
-    publication_id = Column(Integer, ForeignKey('publication.id'))
+    publication = Column(String(length=255))
 
     pathways = relationship("Pathway")
 
@@ -271,28 +267,3 @@ class ProjectOncotreeMapping(Base):
     project_id = Column(Integer, ForeignKey('project.id'))
     sig_group_id = Column(Integer, ForeignKey('sig_group.id'))
     oncotree_code = Column(String(length=255))
-
-
-
-def create_tables():
-    try:
-        '''
-        engine = create_engine("mysql://{user}:{password}@db:3306/explosig".format(
-            user=os.environ['EXPLOSIG_DB_USER'],
-            password=os.environ['EXPLOSIG_DB_PASSWORD']
-        ))
-        '''
-        engine = create_engine("mysql://{user}:{password}@localhost:3306/explosig?unix_socket=/Applications/MAMP/tmp/mysql/mysql.sock".format(
-            user='root',
-            password='root'
-        ))
-
-        connection = engine.connect()
-        Base.metadata.create_all(engine)
-        print('* Successfully connected to database and created tables')
-    except Exception as e:
-        print(e)
-        print('* Unable to connect to database')
-
-if __name__ == "__main__":
-    create_tables()
