@@ -6,9 +6,9 @@ import sys
 import json
 import string
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, and_
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import and_
+from sqlalchemy.orm.exc import NoResultFound
 
 from models import (
     Base,
@@ -36,7 +36,8 @@ from models import (
     Pathway,
     PathwayGene,
     TrinucleotideCount,
-    ProjectOncotreeMapping
+    ProjectOncotreeMapping,
+    SignatureOncotreeMapping
 )
 
 # Load our modules
@@ -106,6 +107,15 @@ def get_seq_type_id(session, name):
         SequencingType.name == name
     ).one().id
 
+def try_get_seq_type_id(session, name):
+    try:
+        return get_seq_type_id(session, name)
+    except NoResultFound:
+        seq_type = SequencingType(name=name)
+        session.add(seq_type)
+        session.commit()
+        return seq_type.id
+
 def create_projects(session, data_df):
     d = []
     for i, row in data_df.iterrows():
@@ -133,25 +143,31 @@ Samples
 """
 
 def create_samples_and_commit(engine, session, data_df):
-    # TODO: only use one sample per patient (the one with the most mutations)
     for i, i_row in data_df.iterrows():
         d = []
         project_id = get_project_id(session, i_row[META_COL_PROJ])
         samples_df = read_tsv(i_row[META_COL_PATH_SAMPLES])
+
         counts_df = pd.DataFrame(index=[], data=[])
         for mut_type, cat_types in CAT_TYPE_MAP.items():
             for cat_type in cat_types:
                 if pd.notnull(i_row[META_COL_PATH_MUTS_COUNTS.format(cat_type=cat_type)]):
                     cat_type_counts_df = read_tsv(i_row[META_COL_PATH_MUTS_COUNTS.format(cat_type=cat_type)], index_col=0)
                     counts_df = counts_df.join(cat_type_counts_df, how='outer')
-        
         counts_df = counts_df.fillna(value=0)
         counts_df = counts_df.loc[~(counts_df==0).all(axis=1)]
-        counts_samples = counts_df.index.values.tolist()
+        counts_sum_df = counts_df.sum(axis=1).to_frame().rename(columns={0:'sum'})
+
+        # Only use one sample per patient, the one with the most mutations
+        samples_sum_df = samples_df.set_index(SAMPLE).join(counts_sum_df, how='right')
+        samples_sum_df = samples_sum_df.sort_values(by=['sum'], ascending=False)
+        samples_sum_df = samples_sum_df.drop_duplicates(subset=[PATIENT], keep='first')
+
+        unique_patient_samples = samples_sum_df.index.values.tolist()
 
         for j, j_row in samples_df.iterrows():
             # Only use those samples that actually have mutation counts
-            if j_row[SAMPLE] in counts_samples:
+            if j_row[SAMPLE] in unique_patient_samples:
                 d.append(
                     {
                         'project_id': project_id,
@@ -474,8 +490,11 @@ def create_genes_and_commit(engine, session, data_df):
     for i, i_row in data_df.iterrows():
         if anull(i_row[META_COL_PATH_GENE_MUT]) != None:
             genes_df = read_tsv(i_row[META_COL_PATH_GENE_MUT])
-            gene_names = gene_names.union(genes_df[GENE_SYMBOL].unique())
-            gene_mut_classes = gene_mut_classes.union(genes_df[MUT_CLASS].unique())
+            gene_names = gene_names.union(list(genes_df[GENE_SYMBOL].unique()))
+            mut_classes = list(genes_df[MUT_CLASS].unique())
+            mut_classes = [ str(mc).split(",") for mc in mut_classes if anull(mc) != None ]
+            if len(mut_classes) > 0:
+                gene_mut_classes = gene_mut_classes.union(*mut_classes)
         print(f'* Updated genes ({len(gene_names)}) after project {i_row[META_COL_PROJ]}')
     
     engine.execute(
@@ -513,6 +532,7 @@ def generate_gene_mut_class_to_id_map(session):
     return class_to_id_map
 
 def create_gene_mut_values_and_commit(engine, session, data_df):
+    n_rows = 0
     gene_to_id_map = generate_gene_to_id_map(session)
     class_to_id_map = generate_gene_mut_class_to_id_map(session)
 
@@ -527,19 +547,23 @@ def create_gene_mut_values_and_commit(engine, session, data_df):
                     sample_id = sample_to_id_map[j_row[SAMPLE]]
                 except KeyError:
                     sample_id = None
-                if sample_id != None:
-                    d.append(
-                        {
-                            'sample_id': sample_id,
-                            'gene_id': gene_to_id_map[j_row[GENE_SYMBOL]],
-                            'mut_class_id': class_to_id_map[j_row[MUT_CLASS]]
-                        }
-                    )
-            engine.execute(
-                GeneMutationValue.__table__.insert(),
-                d
-            )
-            print(f'* Filled gene mutation values ({len(d)}) for project {i_row[META_COL_PROJ]}')
+                if sample_id != None and anull(j_row[MUT_CLASS]) != None:
+                    mut_classes = j_row[MUT_CLASS].split(",")
+                    for mut_class in mut_classes:
+                        d.append(
+                            {
+                                'sample_id': sample_id,
+                                'gene_id': gene_to_id_map[j_row[GENE_SYMBOL]],
+                                'mut_class_id': class_to_id_map[mut_class]
+                            }
+                        )
+                        if len(d) >= 100000:
+                            engine.execute(GeneMutationValue.__table__.insert(), d)
+                            n_rows += len(d)
+                            d = []
+            engine.execute(GeneMutationValue.__table__.insert(), d)
+            n_rows += len(d)
+            print(f'* Filled gene mutation values ({n_rows}) for project {i_row[META_COL_PROJ]}')
     return
 
 def try_gene_id_map(session, id_map, name):
@@ -630,6 +654,7 @@ def create_gene_cna_values_and_commit(engine, session, data_df):
             print(f'* Filled gene copy number values ({n_rows}) for project {i_row[META_COL_PROJ]}')
     return
 
+
 """
 =====================================
 Pathways data
@@ -652,24 +677,123 @@ def get_pathway_group_id(session, name):
         PathwayGroup.name == name
     ).one().id
 
-def create_pathways(session, pathways_df):
+def create_pathways(session, pathway_groups_df):
     d = []
-    # TODO: may need to create rows for unseen genes
+    for i, i_row in pathway_groups_df.iterrows():
+        group_id = get_pathway_group_id(session, i_row[META_COL_PATHWAYS_GROUP])
+        pathways_df = read_tsv(i_row[META_COL_PATH_PATHWAYS])
+        pathways = pathways_df[PATHWAY].unique()
+        d += [ Pathway(name=name, group_id=group_id) for name in pathways ]
+    return d
+
+def get_pathway_id(session, name, group_id):
+    return session.query(Pathway).filter(
+        and_(
+            Pathway.group_id == group_id,
+            Pathway.name == name
+        )
+    ).one().id
+
+def create_pathway_genes(session, pathway_groups_df):
+    gene_to_id_map = generate_gene_to_id_map(session)
+
+    d = []
+    for i, i_row in pathway_groups_df.iterrows():
+        group_id = get_pathway_group_id(session, i_row[META_COL_PATHWAYS_GROUP])
+        pathways_df = read_tsv(i_row[META_COL_PATH_PATHWAYS])
+        for j, j_row in pathways_df.iterrows():
+            pathway_id = get_pathway_id(session, j_row[PATHWAY], group_id)
+            gene_id, gene_to_id_map = try_gene_id_map(session, gene_to_id_map, j_row[GENE_SYMBOL])
+            d.append(
+                PathwayGene(
+                    gene_id=gene_id,
+                    pathway_id=pathway_id,
+                    is_core=j_row[PATHWAY_CORE]
+                )
+            )
     return d
 
 
+"""
+=====================================
+Trinucleotide count data
+=====================================
+"""
+
+def create_tricounts(session, tricounts_df):
+    d = []
+    for i, i_row in tricounts_df.iterrows():
+        method_df = read_tsv(i_row[META_COL_PATH_TRICOUNTS])
+        seq_type_id = try_get_seq_type_id(session, i_row[META_COL_TRICOUNTS_METHOD])
+        for j, j_row in method_df.iterrows():
+            d.append(
+                TrinucleotideCount(
+                    trinucleotide=j_row[TRINUCLEOTIDE],
+                    seq_type_id=seq_type_id,
+                    value=j_row[TRINUCLEOTIDE_COUNT]
+                )
+            )
+    return d
 
 
+"""
+=====================================
+Project-Oncotree mappings
+=====================================
+"""
+
+def create_proj_oncotree_mappings(session, data_df, sigs_df):
+    d = []
+    tree = load_oncotree()
+    for i, i_row in data_df.iterrows():
+        if anull(i_row[META_COL_ONCOTREE_CODE]) != None:
+            proj_node = tree.find_node(i_row[META_COL_ONCOTREE_CODE])
+            if proj_node is not None:
+                project_id = get_project_id(session, i_row[META_COL_PROJ])
+                for j, j_row in sigs_df.iterrows():
+                    if anull(j_row[META_COL_PATH_SIGS_CANCER_TYPE_MAP]) != None:
+                        sig_group_id = get_sig_group_id(session, j_row[META_COL_SIG_GROUP])
+                        sig_group_cancer_type_map_df = read_tsv(j_row[META_COL_PATH_SIGS_CANCER_TYPE_MAP])
+                        cancer_type_map_codes = list(sig_group_cancer_type_map_df[META_COL_ONCOTREE_CODE].dropna().unique())
+                        sig_group_parent_node = proj_node.find_closest_parent(cancer_type_map_codes)
+                        if sig_group_parent_node is not None:
+                            d.append(
+                                ProjectOncotreeMapping(
+                                    project_id=project_id,
+                                    sig_group_id=sig_group_id,
+                                    oncotree_code=sig_group_parent_node.code
+                                )
+                            )
+    return d
 
 
+"""
+=====================================
+Signature-Oncotree mappings
+=====================================
+"""
+
+def create_sig_oncotree_mappings(session, sigs_df):
+    d = []
+    for i, i_row in sigs_df.iterrows():
+        if anull(i_row[META_COL_PATH_SIGS_CANCER_TYPE_MAP]) != None:
+            sig_group_id = get_sig_group_id(session, i_row[META_COL_SIG_GROUP])
+            cancer_type_map_df = read_tsv(i_row[META_COL_PATH_SIGS_CANCER_TYPE_MAP])
+            for j, j_row in cancer_type_map_df.iterrows():
+                if anull(j_row[META_COL_ONCOTREE_CODE]) != None:
+                    d.append(
+                        SignatureOncotreeMapping(
+                            sig_id=get_sig_id(session, j_row[META_COL_SIG], sig_group_id),
+                            oncotree_code=j_row[META_COL_ONCOTREE_CODE],
+                            cancer_type=j_row[META_COL_CANCER_TYPE]
+                        )
+                    )
+    return d
 
 
 
 if __name__ == "__main__":
     data_df = pd.read_csv(META_DATA_FILE, sep='\t')
-
-    #data_df = data_df.head(2) # TODO: remove
-
     sigs_df = pd.read_csv(META_SIGS_FILE, sep='\t')
     pathways_df = pd.read_csv(META_PATHWAYS_FILE, sep='\t')
     featured_df = pd.read_csv(META_FEATURED_FILE, sep='\t')
@@ -700,6 +824,8 @@ if __name__ == "__main__":
     # Clear all tables that are about to be filled
     # DO NOT CLEAR SESSION, WORKFLOW, OR USER TABLES
     to_drop = [
+        SignatureOncotreeMapping,
+        ProjectOncotreeMapping,
         PathwayGene,
         Pathway,
         PathwayGroup,
@@ -718,7 +844,6 @@ if __name__ == "__main__":
         MutationCategoryType,
         MutationType,
         Sample,
-        ProjectOncotreeMapping,
         Project,
         ProjectSource,
         TrinucleotideCount,
@@ -787,9 +912,7 @@ if __name__ == "__main__":
     mut_counts = create_mut_counts_and_commit(engine, session, data_df)
     session.commit()
     print('* Filled mut counts table')
-
-    exit(0) # TODO: remove
-
+    
     clinical_vars = create_clinical_vars(session, clinical_df)
     session.add_all(clinical_vars)
     session.commit()
@@ -818,9 +941,31 @@ if __name__ == "__main__":
     session.commit()
     print('* Filled pathways table')
 
+    pathway_genes = create_pathway_genes(session, pathways_df)
+    session.add_all(pathway_genes)
+    session.commit()
+    print('* Filled pathway genes table')
+
+    tricounts = create_tricounts(session, tricounts_df)
+    session.add_all(tricounts)
+    session.commit()
+    print('* Filled tricounts table')
+
+    proj_oncotree_mappings = create_proj_oncotree_mappings(session, data_df, sigs_df)
+    session.add_all(proj_oncotree_mappings)
+    session.commit()
+    print('* Filled project oncotree mappings table')
+
+    sig_oncotree_mappings = create_sig_oncotree_mappings(session, sigs_df)
+    session.add_all(sig_oncotree_mappings)
+    session.commit()
+    print('* Filled signature oncotree mappings table')
+
     gene_mut_values = create_gene_mut_values_and_commit(engine, session, data_df)
     session.commit()
     print('* Filled gene mutation values table')
+
+    exit(0) # TODO: remove
 
     gene_exp_values = create_gene_exp_values_and_commit(engine, session, data_df)
     session.commit()

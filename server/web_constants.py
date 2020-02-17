@@ -80,6 +80,12 @@ NEAREST_MUT = 'Distance to Nearest Mutation'
 MUT_DIST_ROLLING_MEAN = 'Rolling Mean of 6 Mutation Distances'
 KATAEGIS = 'Kataegis'
 
+PATHWAY = 'Pathway'
+PATHWAY_CORE = 'Core'
+
+TRINUCLEOTIDE = 'Trinucleotide'
+TRINUCLEOTIDE_COUNT = 'Count'
+
 # Special clinical variables
 ICD_O_3_SITE_CODE = 'ICD-O-3 Site Code'
 ICD_O_3_SITE_DESC = 'ICD-O-3 Site Description'

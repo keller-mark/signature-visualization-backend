@@ -92,3 +92,33 @@ def plot_pathways_listing():
                 row_dict["core"] = False
             result.append(row_dict)
     return result
+
+
+"""
+SELECT gene.name AS gene_name, sample.sample_name AS sample_name, gene_mut_class.name AS gene_mut_class_name
+FROM (
+    SELECT gene_mut_val.gene_id, gene_mut_val.sample_id, gene_mut_val.mut_class_id 
+    FROM gene_mut_val 
+    WHERE 
+        gene_mut_val.gene_id = (
+            SELECT id 
+            FROM gene 
+            WHERE gene.name = 'BRCA1'
+        )
+        AND gene_mut_val.sample_id IN (
+            SELECT id 
+            FROM sample 
+            WHERE sample.project_id = (
+                SELECT id 
+                FROM project 
+                WHERE project.name = 'ICGC-ORCA-IN_ORCA_27.WXS'
+            )
+        )
+) AS gene_mut_vals_of_interest
+LEFT JOIN gene
+	ON gene.id = gene_mut_vals_of_interest.gene_id
+LEFT JOIN sample
+	ON sample.id = gene_mut_vals_of_interest.sample_id
+LEFT JOIN gene_mut_class
+	ON gene_mut_class.id = gene_mut_vals_of_interest.mut_class_id
+"""

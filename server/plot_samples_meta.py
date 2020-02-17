@@ -21,3 +21,13 @@ def plot_samples_meta(projects):
         proj_result = proj_df.to_dict('records')
         result = (result + proj_result)
     return result
+
+"""
+SELECT sample.sample_name AS sample_name, sample.patient_name AS patient_name
+FROM sample 
+WHERE sample.project_id IN (
+	SELECT project.id 
+	FROM project 
+	WHERE project.name = 'ICGC-ORCA-IN_ORCA_27.WXS'
+)
+"""

@@ -177,7 +177,7 @@ class ClinicalValue(Base):
     id = Column(Integer, primary_key=True)
     sample_id = Column(MEDIUMINT, ForeignKey('sample.id'))
     clinical_var_id = Column(Integer, ForeignKey('clinical_var.id'))
-    value = Column(String(length=60))
+    value = Column(String(length=100))
 
 
 class Gene(Base):
@@ -262,9 +262,19 @@ class TrinucleotideCount(Base):
 class ProjectOncotreeMapping(Base):
     __tablename__ = 'proj_oncotree_map'
 
-    # mapping of projects to signature cancer types by Oncotree codes
+    # mapping of projects to signature groups and cancer types by Oncotree codes
 
     id = Column(Integer, primary_key=True)
     project_id = Column(Integer, ForeignKey('project.id'))
     sig_group_id = Column(Integer, ForeignKey('sig_group.id'))
     oncotree_code = Column(String(length=255))
+
+class SignatureOncotreeMapping(Base):
+    __tablename__ = 'sig_oncotree_map'
+
+    # mapping of signatures to cancer types by Oncotree codes
+
+    id = Column(Integer, primary_key=True)
+    sig_id = Column(Integer, ForeignKey('sig.id'))
+    oncotree_code = Column(String(length=255))
+    cancer_type = Column(String(length=255))
