@@ -46,4 +46,10 @@ def scale_clinical(projects):
     
     return result
 
-
+"""
+SELECT clinical_var_val.clinical_var_id, clinical_var_val.value, clinical_var.name, clinical_var.scale_type
+FROM clinical_var_val
+LEFT JOIN clinical_var
+	ON clinical_var.id = clinical_var_val.clinical_var_id
+ORDER BY clinical_var_val.id ASC
+"""

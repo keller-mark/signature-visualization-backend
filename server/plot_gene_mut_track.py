@@ -94,6 +94,7 @@ def plot_pathways_listing():
     return result
 
 
+# Gene mutations for particular project and gene
 """
 SELECT gene.name AS gene_name, sample.sample_name AS sample_name, gene_mut_class.name AS gene_mut_class_name
 FROM (
@@ -121,4 +122,32 @@ LEFT JOIN sample
 	ON sample.id = gene_mut_vals_of_interest.sample_id
 LEFT JOIN gene_mut_class
 	ON gene_mut_class.id = gene_mut_vals_of_interest.mut_class_id
+"""
+
+
+# Autocomplete gene
+"""
+SELECT gene.name FROM gene WHERE gene.name LIKE 'BR%'
+"""
+# or
+"""
+session.Query(Gene).where(Gene.name.startswith('BR'))
+"""
+
+
+# Pathway gene listing
+"""
+SELECT 
+    pathway_group.name AS pathway_group_name, 
+    pathway_group.publication, 
+    pathway.name AS pathway_name, 
+    gene.name AS gene_name, 
+    pathway_gene.is_core
+FROM pathway_gene
+LEFT JOIN gene
+	ON gene.id = pathway_gene.gene_id
+LEFT JOIN pathway
+	ON pathway.id = pathway_gene.pathway_id
+LEFT JOIN pathway_group
+	ON pathway_group.id = pathway.group_id
 """
