@@ -78,3 +78,35 @@ def plot_clinical(projects, return_df=False):
     return result
   
 
+"""
+SELECT 
+	sample.sample_name AS sample_name,
+	clinical_var.name AS clinical_var_name,
+    clinical_val_by_project.value AS clinical_var_val
+FROM (
+    SELECT * 
+    FROM clinical_val
+    WHERE 
+        clinical_var_id IN (
+            SELECT id FROM clinical_var
+            WHERE 
+            	clinical_var.name = 'Diagnosis Age' 
+            	OR 
+            	clinical_var.name = 'Sex'
+        )
+    	AND
+    	sample_id IN (
+            SELECT id 
+            FROM sample 
+            WHERE sample.project_id IN (
+                SELECT project.id 
+                FROM project 
+                WHERE project.name = 'ICGC-ORCA-IN_ORCA_27.WXS'
+            )
+        )
+) AS clinical_val_by_project
+LEFT JOIN sample
+	ON sample.id = clinical_val_by_project.sample_id
+LEFT JOIN clinical_var
+	ON clinical_var.id = clinical_val_by_project.clinical_var_id
+"""

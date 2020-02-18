@@ -39,3 +39,66 @@ def scale_counts(projects, single_sample_id=None, count_sum=False):
         result[1] = max(result[1], proj_counts_df_max)
 
     return result
+
+# If for all mutation types
+"""
+SELECT MAX(mut_cat_type_count) AS max_sample_mut_count
+FROM (
+    SELECT 
+        mut_count_by_proj.sample_id, 
+        SUM(mut_count_by_proj.value) AS mut_cat_type_count
+    FROM (
+        SELECT 
+            samples_by_proj.sample_id, 
+            mut_count.cat_id, 
+            mut_count.value
+        FROM (
+            SELECT 
+                sample.id AS sample_id
+            FROM sample 
+            WHERE sample.project_id IN (
+                SELECT project.id 
+                FROM project 
+                WHERE project.name = 'ICGC-ORCA-IN_ORCA_27.WXS'
+            )
+        ) AS samples_by_proj
+        LEFT JOIN mut_count
+            ON mut_count.sample_id = samples_by_proj.sample_id
+    ) AS mut_count_by_proj
+    GROUP BY sample_id
+) AS mut_count_by_proj_by_sample
+"""
+
+# If for particular mutation type
+"""
+SELECT 
+	MAX(mut_count_by_cat_type.mut_cat_type_count) AS max_sample_mut_count
+FROM (
+    SELECT 
+    	mut_count_by_proj.sample_id, 
+    	SUM(mut_count_by_proj.value) AS mut_cat_type_count, 
+    	mut_cat.cat_type_id AS mut_cat_type_id
+    FROM (
+    	SELECT samples_by_proj.sample_id, samples_by_proj.sample_name, mut_count.cat_id, mut_count.value
+        FROM (
+            SELECT sample.id AS sample_id, sample.sample_name AS sample_name
+            FROM sample 
+            WHERE sample.project_id IN (
+                SELECT project.id 
+                FROM project 
+                WHERE project.name = 'ICGC-ORCA-IN_ORCA_27.WXS'
+            )
+        ) AS samples_by_proj
+        LEFT JOIN mut_count
+            ON mut_count.sample_id = samples_by_proj.sample_id
+    ) AS mut_count_by_proj
+    INNER JOIN mut_cat
+        ON mut_cat.id = mut_count_by_proj.cat_id
+    GROUP BY mut_count_by_proj.sample_id, mut_cat_type_id
+) AS mut_count_by_cat_type
+WHERE mut_count_by_cat_type.mut_cat_type_id = (
+    SELECT id 
+    FROM mut_cat_type 
+    WHERE mut_cat_type.name = 'SBS_96'
+)
+"""
