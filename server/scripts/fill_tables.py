@@ -10,7 +10,14 @@ from sqlalchemy import create_engine, and_
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 
-from models import (
+# Load our modules
+this_file_path = os.path.abspath(os.path.dirname(__file__))
+sys.path.append(os.path.normpath(this_file_path + '/../'))
+from web_constants import *
+from oncotree import *
+
+from db import db_connect
+from db_models import (
     Base,
     SequencingType,
     ProjectSource,
@@ -39,12 +46,6 @@ from models import (
     ProjectOncotreeMapping,
     SignatureOncotreeMapping
 )
-
-# Load our modules
-this_file_path = os.path.abspath(os.path.dirname(__file__))
-sys.path.append(os.path.normpath(this_file_path + '/../'))
-from web_constants import *
-from oncotree import *
 
 
 OBJ_DIR = '../../obj' # TODO: remove
@@ -802,23 +803,12 @@ if __name__ == "__main__":
     
 
     # Connect to the db
-    '''
-    engine = create_engine("mysql://{user}:{password}@db:3306/explosig".format(
-        user=os.environ['EXPLOSIG_DB_USER'],
-        password=os.environ['EXPLOSIG_DB_PASSWORD']
-    ))
-    '''
-    engine = create_engine("mysql://{user}:{password}@localhost:3306/explosig?unix_socket=/Applications/MAMP/tmp/mysql/mysql.sock".format(
-        user='root',
-        password='root'
-    ))
-
-    connection = engine.connect()
+    engine, conn = db_connect()
     print('* Successfully connected to database')
 
 
     # Get the session
-    Session = sessionmaker(bind=connection)
+    Session = sessionmaker(bind=conn)
     session = Session()
 
     # Clear all tables that are about to be filled

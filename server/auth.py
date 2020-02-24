@@ -1,7 +1,7 @@
 import os
 import uuid
 from argon2 import PasswordHasher
-from db import connect
+from db import table_connect
 from datetime import datetime, timedelta
 
 class NotAuthenticated(Exception):
@@ -16,7 +16,7 @@ def is_protected():
 
 def login(password):
     if is_protected():
-        table, conn = connect('auth')
+        table, conn = table_connect('auth')
         # Try to verify the password
         try:
             ph = PasswordHasher()
@@ -36,7 +36,7 @@ def check_token(req):
     if is_protected():
         try:
             token = req['token']
-            table, conn = connect('auth')
+            table, conn = table_connect('auth')
             # Look up the token in the database
             sel = table.select().where(table.c.token == token)
             res = conn.execute(sel)
@@ -56,7 +56,7 @@ def check_token(req):
 
 def logout(token):
     if is_protected():
-        table, conn = connect('auth')
+        table, conn = table_connect('auth')
         # If a logout was requested, proceed to delete the token
         sel = table.delete().where(table.c.token == token)
         conn.execute(sel)

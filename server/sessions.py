@@ -2,7 +2,7 @@ import os
 import uuid
 import json
 import pandas as pd
-from db import connect
+from db import table_connect
 import requests
 import websockets
 from starlette.websockets import WebSocketDisconnect
@@ -10,7 +10,7 @@ from websockets.exceptions import ConnectionClosed
 from web_constants import EXPLOSIG_CONNECT_HOST
 
 def session_get(slug):
-    table, conn = connect('session')
+    table, conn = table_connect('session')
 
     sel = table.select().where(table.c.slug == slug)
     res = conn.execute(sel)
@@ -19,7 +19,7 @@ def session_get(slug):
     return { "state": json.loads(row['data']) }
 
 def session_start(state):
-    table, conn = connect('session')
+    table, conn = table_connect('session')
 
     slug = str(uuid.uuid4())[:8]
     ins = table.insert().values(slug=slug, data=json.dumps(state))
