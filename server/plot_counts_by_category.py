@@ -1,58 +1,97 @@
-import pandas as pd
-import numpy as np
+from sqlalchemy.sql import text
+from sqlalchemy import String
+from sqlalchemy.dialects.mysql import MEDIUMINT
 
 from web_constants import *
-from project_data import ProjectData, get_selected_project_data
 
 # Regular counts matrix.
 # Names of counts functions are confusing because plot_counts just considers mutation type e.g. for a sample, SBS: 1, DBS: 3, INDEL: 2
-def plot_counts_by_category(projects, mut_type, single_sample_id=None):
-    result = []
-
+def plot_counts_by_category(conn, projects, mut_type, single_sample_id=None):
     if single_sample_id != None: # single sample request
-      assert(len(projects) == 1)
+        assert(len(projects) == 1)
+        return [] # TODO: write the sql query for the single-sample case
+
+    projects_where_clause = " OR ".join([ f"project.name = :project_name_{i}" for i in range(len(projects)) ])
+
+    counts_query = f"""
+    SELECT 
+        mut_count_by_project.sample_name AS sample_name, 
+        mut_cat.name, 
+        COALESCE(mut_count_by_project.value, 0) AS mut_count_value
+    FROM (
+        SELECT 
+            mut_count.sample_id, 
+            CONCAT(project.name, " ", sample.sample_name) AS sample_name,
+            mut_count.value,
+            mut_count.cat_id
+        FROM mut_count 
+        LEFT JOIN sample
+            ON sample.id = mut_count.sample_id
+        LEFT JOIN project
+            ON project.id = sample.project_id
+        WHERE {projects_where_clause}
+    ) AS mut_count_by_project
+    LEFT JOIN mut_cat
+        ON mut_cat.id = mut_count_by_project.cat_id
+    WHERE mut_cat.cat_type_id = (
+        SELECT mut_cat_type.id 
+        FROM mut_cat_type 
+        WHERE mut_cat_type.name = :mut_cat_type
+    )
+    ORDER BY sample_name ASC
+    """
+
+    projects_params = dict([(f"project_name_{i}", projects[i]) for i in range(len(projects))])
+    cat_type_params = dict(mut_cat_type=MUT_TYPE_MAP[mut_type])
+
+    counts_stmt = text(counts_query)
+    counts_stmt = counts_stmt.bindparams(
+        **projects_params, 
+        **cat_type_params
+    )
+
+    db_result_counts = conn.execute(counts_stmt)
+
+    cats_query = f"""
+    SELECT 
+        mut_cat.name
+    FROM mut_cat 
+    LEFT JOIN mut_cat_type
+        ON mut_cat_type.id = mut_cat.cat_type_id
+    WHERE mut_cat_type.name = :mut_cat_type
+    """
+
+    cats_stmt = text(cats_query)
+    cats_stmt = cats_stmt.bindparams(**cat_type_params)
+
+    db_result_cats = conn.execute(cats_stmt)
+    cats_obj = dict([(c[0], 0) for c in db_result_cats])
+
+    result = []
     
-    project_data = get_selected_project_data(projects)
-    for proj in project_data:
-        proj_id = proj.get_proj_id()
-
-        if single_sample_id != None: # single sample request
-            samples = [single_sample_id]
+    curr_sample = None
+    for row in db_result_counts:
+        # ASSUMING THE ROWS ARE ORDERED BY SAMPLE
+        if curr_sample == row[0]:
+            result[-1][row[1]] = row[2]
         else:
-            samples = proj.get_samples_list()
+            result.append(cats_obj.copy())
+            result[-1]["sample_id"] = row[0]
+            result[-1][row[1]] = row[2]
 
-        proj_counts_df = pd.DataFrame(index=samples, columns=[])
-        
-        counts_df = proj.get_counts_df(mut_type)
-
-        proj_counts_df = proj_counts_df.join(counts_df, how='outer')
-        proj_counts_df = proj_counts_df.fillna(value=0)
-        
-        proj_counts_df.index.rename("sample_id", inplace=True)
-        
-        proj_counts_df = proj_counts_df.reset_index()
-        proj_result = proj_counts_df.to_dict('records')
-        result = (result + proj_result)
+            curr_sample = row[0]
 
     return result
 
+if __name__ == "__main__":
+    from pprint import pprint
+    from db import db_connect
 
-"""
-SELECT sample_by_project.sample_name, mut_cat_by_type.mut_cat_name, COALESCE(mut_count.value, 0) AS mut_count_value
-FROM (
-    SELECT sample.id AS sample_id, sample.sample_name AS sample_name
-    FROM sample 
-    WHERE sample.project_id IN (SELECT project.id FROM project WHERE project.name = 'ICGC-ORCA-IN_ORCA_27.WXS')
-) AS sample_by_project
-CROSS JOIN (
-    SELECT mut_cat.id AS mut_cat_id, mut_cat.name AS mut_cat_name 
-    FROM mut_cat 
-    WHERE mut_cat.cat_type_id = (SELECT mut_cat_type.id FROM mut_cat_type WHERE mut_cat_type.name = 'SBS_96')
-) AS mut_cat_by_type
-LEFT JOIN mut_count
-	ON (
-        mut_count.sample_id = sample_by_project.sample_id 
-        AND mut_count.cat_id = mut_cat_by_type.mut_cat_id
-    )
-ORDER BY sample_by_project.sample_name, mut_cat_by_type.mut_cat_name
-"""
+    engine, conn = db_connect()
+    result = plot_counts_by_category(conn, projects=[
+        'ICGC-ORCA-IN_ORCA_27.WXS',
+        'ICGC-BRCA-EU_BRCA_27.WGS'
+    ], mut_type='SBS')
+
+    pprint(result)
+
